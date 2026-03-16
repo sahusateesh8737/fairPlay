@@ -1,27 +1,32 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  FileCode, Users, LogOut, Settings, LayoutDashboard, Search, GraduationCap
+  FileCode, Users, LogOut, Settings, LayoutDashboard, Search, GraduationCap, Radio
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MyAssignments from '../components/teacher/MyAssignments';
 import CreateAssignment from '../components/teacher/CreateAssignment';
 import StudentProgress from '../components/teacher/StudentProgress';
+import LiveMonitor from '../components/teacher/LiveMonitor';
+
+import { useAuth } from '../context/AuthContext';
 
 const TeacherDashboard = () => {
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('assignments');
 
-  // Simulated JWT Token Data
+  // Resolved from database
   const teacherProfile = {
-    name: 'Prof. Sarah Jenkins',
-    email: 's.jenkins@college.edu',
-    sections: ['k23DJ', 'k23IS', 'k24ML']
+    name: user?.name || 'Instructor',
+    email: user?.email || '',
+    sections: ['k23DJ'] // In real app, we might want a sections endpoint or include in 'me'
   };
 
   const navItems = [
     { id: 'assignments', label: 'My Assignments', icon: LayoutDashboard },
     { id: 'create', label: 'Draft New', icon: FileCode },
     { id: 'students', label: 'Student Progress', icon: Users },
+    { id: 'monitor', label: 'Live Proctor', icon: Radio },
     { id: 'settings', label: 'Course Settings', icon: Settings },
   ];
 
@@ -78,9 +83,12 @@ const TeacherDashboard = () => {
         </nav>
 
         <div className="p-4 border-t border-gray-800">
-          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors text-sm">
+          <button 
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-800/50 text-gray-400 hover:text-white transition-colors text-sm"
+          >
             <LogOut className="w-4 h-4" /> Sign Out
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -116,6 +124,7 @@ const TeacherDashboard = () => {
           {activeTab === 'assignments' && <MyAssignments setActiveTab={setActiveTab} />}
           {activeTab === 'create' && <CreateAssignment teacherSections={teacherProfile.sections} setActiveTab={setActiveTab} />}
           {activeTab === 'students' && <StudentProgress />}
+          {activeTab === 'monitor' && <LiveMonitor sectionId={teacherProfile.sections[0]} />}
           
           {['settings'].includes(activeTab) && (
             <motion.div 

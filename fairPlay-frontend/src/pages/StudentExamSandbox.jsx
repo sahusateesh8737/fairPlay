@@ -3,15 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
 import { AlertOctagon, Send, Clock, ShieldAlert, Code2, Play, Terminal, MonitorPlay, FilePlus, X } from 'lucide-react';
-import { getAssignments } from '../utils/storage';
-import * as Babel from '@babel/standalone';
+import axios from 'axios';
+import { io } from 'socket.io-client';
 
-// The default multi-file template to seed if no boilerplate is provided
-const defaultFiles = {
-  'App.jsx': `import React from 'react';\nimport Button from './Button.jsx';\n\nexport default function App() {\n  return (\n    <div style={{ padding: '20px', fontFamily: 'sans-serif', color: 'white' }}>\n      <h2>Hello from Multi-File React!</h2>\n      <Button />\n    </div>\n  );\n}`,
-  'Button.jsx': `import React from 'react';\n\nexport default function Button() {\n  return (\n    <button \n      onClick={() => alert('Imported Button clicked!')} \n      style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}\n    >\n      Test Imported Component\n    </button>\n  );\n}`,
-  'index.jsx': `import React from 'react';\nimport ReactDOM from 'react-dom/client';\nimport App from './App.jsx';\n\nconst root = ReactDOM.createRoot(document.getElementById('root'));\nroot.render(<App />);`
-};
+const socket = io('http://localhost:5001');
 
 const StudentExamSandbox = () => {
   const { assignmentId } = useParams();
@@ -19,39 +14,40 @@ const StudentExamSandbox = () => {
   
   const [exam, setExam] = useState(null);
   const [question, setQuestion] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   
   // --- MULTI-FILE STATE ---
-  const [files, setFiles] = useState({ 'index.jsx': '// Loading...' });
+  const [files, setFiles] = useState({});
   const [activeFile, setActiveFile] = useState('index.jsx');
-  const [newFileName, setNewFileName] = useState('');
-  const [isCreatingFile, setIsCreatingFile] = useState(false);
   
-  const [compileError, setCompileError] = useState('');
-  const iframeRef = useRef(null);
-  
-  const [cheatLogs, setCheatLogs] = useState([]);
-  const [warningMessage, setWarningMessage] = useState(null);
-  const editorRef = useRef(null);
+  const defaultFiles = {
+    'index.jsx': `import React from 'react';\nimport ReactDOM from 'react-dom/client';\n\nfunction App() {\n  return <h1>Hello World</h1>;\n}\n\nconst root = ReactDOM.createRoot(document.getElementById('root'));\nroot.render(<App />);`
+  };
 
   useEffect(() => {
-    const assignments = getAssignments();
-    const activeExam = assignments.find(a => String(a.id) === String(assignmentId));
-    
-    if (activeExam && activeExam.questions && activeExam.questions.length > 0) {
-      setExam(activeExam);
-      const randomIndex = Math.floor(Math.random() * activeExam.questions.length);
-      const selectedVariation = activeExam.questions[randomIndex];
-      setQuestion(selectedVariation);
-      
-      // If teacher provided single-string boilerplate, wrap it in index.jsx. Otherwise load multi-file default.
-      if (selectedVariation.boilerplate) {
-        setFiles({ 'index.jsx': selectedVariation.boilerplate });
-      } else {
-        setFiles(defaultFiles);
+    const fetchExam = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5001/api/assignments/${assignmentId}`);
+        const activeExam = res.data.data;
+        setExam(activeExam);
+        
+        if (activeExam.questions && activeExam.questions.length > 0) {
+          const randomIndex = Math.floor(Math.random() * activeExam.questions.length);
+          const selectedVariation = activeExam.questions[randomIndex];
+          setQuestion(selectedVariation);
+          
+          if (selectedVariation.boilerplate) {
+            setFiles({ 'index.jsx': selectedVariation.boilerplate });
+          } else {
+            setFiles(defaultFiles);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch assignment", err);
+        navigate('/student/dashboard');
       }
-    } else {
-      navigate('/student/dashboard');
-    }
+    };
+    fetchExam();
   }, [assignmentId, navigate]);
 
   // --- ANTI-CHEAT ENGINE ---
@@ -60,8 +56,16 @@ const StudentExamSandbox = () => {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        setCheatLogs(prev => [...prev, { eventType: 'Tab Switched', timestamp: new Date().toISOString() }]);
-        showWarning("WARNING: You left the exam tab. This action has been logged.");
+        const alertData = {
+          studentName: "Student_" + socket.id?.substring(0, 4), // Generic name for testing
+          sectionId: exam.targetSection || "General",
+          eventType: 'Tab Switched',
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        
+        socket.emit('student_cheat_alert', alertData);
+        setCheatLogs(prev => [...prev, alertData]);
+        showWarning("WARNING: You left the exam tab. This action has been logged and sent to your teacher.");
       }
     };
 
@@ -75,8 +79,16 @@ const StudentExamSandbox = () => {
       if (e.type === 'drop') actionType = 'Drag and Drop';
 
       if (actionType) {
-        setCheatLogs(prev => [...prev, { eventType: actionType, timestamp: new Date().toISOString() }]);
-        showWarning(`WARNING: ${actionType} actions are completely disabled in strictly proctored mode.`);
+        const alertData = {
+          studentName: "Student_" + socket.id?.substring(0, 4),
+          sectionId: exam.targetSection || "General",
+          eventType: actionType,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+
+        socket.emit('student_cheat_alert', alertData);
+        setCheatLogs(prev => [...prev, alertData]);
+        showWarning(`WARNING: ${actionType} actions are completely disabled and reported.`);
       }
     };
 
@@ -233,16 +245,24 @@ const StudentExamSandbox = () => {
     }
   }, [files]); // Re-run when files change. In a real app, you might only run on explicit "Run" button click to save CPU.
 
-  const handleSubmit = () => {
-    const finalSubmission = {
-      assignmentId: exam.id,
-      submittedAt: new Date().toISOString(),
-      files: files, // Sending the whole file system object
-      cheatLogs: cheatLogs 
-    };
-    console.log("FINAL SUBMISSION:", finalSubmission);
-    alert(`Successfully Submitted!\n\nViolations Logged: ${cheatLogs.length}`);
-    navigate('/student/dashboard');
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    try {
+      const finalSubmission = {
+        assignmentId: exam.id,
+        questionId: question.id,
+        files: files,
+        cheatLogs: cheatLogs 
+      };
+      await axios.post('http://localhost:5001/api/submissions', finalSubmission);
+      alert(`Successfully Submitted!\n\nViolations Logged: ${cheatLogs.length}`);
+      navigate('/student/dashboard');
+    } catch (err) {
+      console.error("Submission failed", err);
+      alert("Submission failed. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!exam || !question) {
@@ -286,9 +306,15 @@ const StudentExamSandbox = () => {
           <div className="w-px h-8 bg-gray-800 mx-2" />
           <button 
             onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+            disabled={submitting}
+            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
           >
-            <Send className="w-4 h-4" /> Submit Assessment
+            {submitting ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+            {submitting ? 'Submitting...' : 'Submit Assessment'}
           </button>
         </div>
       </header>

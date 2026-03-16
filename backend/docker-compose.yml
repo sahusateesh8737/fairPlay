@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: fairplay_db
+    restart: always
+    environment:
+      POSTGRES_USER: fairplay_user
+      POSTGRES_PASSWORD: fairplay_pass
+      POSTGRES_DB: fairplay_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

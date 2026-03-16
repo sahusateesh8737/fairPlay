@@ -1,37 +1,52 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Search, CheckCircle2, ChevronDown, MonitorPlay } from 'lucide-react';
+import { Users, Search, CheckCircle2, ChevronDown, MonitorPlay, History } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+import axios from 'axios';
 
 const StudentProgress = () => {
-  const [activeAssignment, setActiveAssignment] = useState('react-hooks-k23IS');
+  const [assignmentOptions, setAssignmentOptions] = useState([]);
+  const [activeAssignment, setActiveAssignment] = useState('');
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data representing the Teacher's active assignments
-  const assignmentOptions = [
-    { id: 'react-hooks-k23IS', title: 'React State Management Hooks', section: 'k23IS' },
-    { id: 'nav-bar-k23DJ', title: 'Build a Navigation Bar', section: 'k23DJ' },
-  ];
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/assignments');
+        const options = res.data.data;
+        setAssignmentOptions(options);
+        if (options.length > 0) {
+          setActiveAssignment(options[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch assignments", err);
+      }
+    };
+    fetchOptions();
+  }, []);
 
-  // Mock data mapping students to their randomly assigned question ID
-  const studentData = {
-    'react-hooks-k23IS': [
-      { id: 1, roll: '121001', name: 'Alice Smith', email: 'alice.s@college.edu', varId: 3, varTitle: 'Implement useReducer', status: 'coding' },
-      { id: 2, roll: '121002', name: 'Bob Johnson', email: 'bob.j@college.edu', varId: 1, varTitle: 'Basic useState Counter', status: 'submitted' },
-      { id: 3, roll: '121003', name: 'Charlie Davis', email: 'charlie.d@college.edu', varId: 2, varTitle: 'useEffect Data Fetch', status: 'coding' },
-      { id: 4, roll: '121004', name: 'Diana Prince', email: 'diana.p@college.edu', varId: 1, varTitle: 'Basic useState Counter', status: 'submitted' },
-      { id: 5, roll: '121005', name: 'Evan Wright', email: 'evan.w@college.edu', varId: 4, varTitle: 'Custom Hook creation', status: 'offline' },
-    ],
-    'nav-bar-k23DJ': [
-      { id: 6, roll: '121006', name: 'Fiona Gallagher', email: 'fiona.g@college.edu', varId: 2, varTitle: 'Responsive Hamburger', status: 'submitted' },
-      { id: 7, roll: '121007', name: 'George Miller', email: 'george.m@college.edu', varId: 1, varTitle: 'Horizontal Flex Nav', status: 'coding' },
-    ]
-  };
+  useEffect(() => {
+    if (!activeAssignment) return;
+    const fetchStudents = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`http://localhost:5001/api/submissions/assignment/${activeAssignment}`);
+        setStudents(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch submissions", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, [activeAssignment]);
 
-  const currentStudents = studentData[activeAssignment] || [];
-  
-  const filteredStudents = currentStudents.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.roll.includes(searchTerm)
+  const filteredStudents = students.filter(s => 
+    s.student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    s.student.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -91,57 +106,60 @@ const StudentProgress = () => {
             </thead>
             <tbody className="divide-y divide-gray-800">
               <AnimatePresence>
-                {filteredStudents.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-20 text-center">
+                      <div className="flex flex-col items-center justify-center text-gray-500">
+                        <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+                        <p>Loading submission data...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredStudents.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="px-6 py-12 text-center text-gray-500">
                       No students found matching "{searchTerm}".
                     </td>
                   </tr>
                 ) : (
-                  filteredStudents.map((student) => (
+                  filteredStudents.map((s) => (
                     <motion.tr 
-                      key={student.id}
+                      key={s.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       className="hover:bg-gray-800/30 transition-colors group"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-white">{student.name} <span className="text-gray-500 text-xs ml-2 font-mono">{student.roll}</span></div>
-                        <div className="text-xs text-gray-500 mt-1">{student.email}</div>
+                        <div className="font-medium text-white">{s.student.name}</div>
+                        <div className="text-xs text-gray-500 mt-1">{s.student.email}</div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                            <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono">
-                             Var {student.varId}
+                             Var {s.questionId || 'N/A'}
                            </span>
-                           <span className="text-gray-300 truncate max-w-[150px]" title={student.varTitle}>{student.varTitle}</span>
+                           <span className="text-gray-300 truncate max-w-[150px]" title={s.question?.prompt}>
+                             {s.question?.prompt?.substring(0, 30) || 'General Assessment'}...
+                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {student.status === 'submitted' && (
-                          <span className="flex items-center gap-1.5 text-xs font-medium text-green-400">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Submitted
-                          </span>
-                        )}
-                        {student.status === 'coding' && (
-                          <span className="flex items-center gap-1.5 text-xs font-medium text-blue-400">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                            </span> Active
-                          </span>
-                        )}
-                        {student.status === 'offline' && (
-                          <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
-                            <span className="w-2 h-2 rounded-full bg-gray-600"></span> Offline
-                          </span>
-                        )}
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-green-400">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Submitted
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="p-2 hover:bg-blue-500/20 hover:text-blue-400 rounded-lg text-gray-500 transition-colors" title="View Feed">
-                          <MonitorPlay className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link 
+                            to={`/teacher/review/${s.id}`}
+                            className="p-2 hover:bg-blue-500/20 hover:text-blue-400 rounded-lg text-gray-500 transition-colors flex items-center gap-2" 
+                            title="Review & Grade"
+                          >
+                            <History className="w-4 h-4" />
+                            <span className="text-[10px] font-bold uppercase">Review</span>
+                          </Link>
+                        </div>
                       </td>
                     </motion.tr>
                   ))

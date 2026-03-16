@@ -1,21 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileCode, Calendar, Clock, Edit2, Play, Users, Trash2, X, FileTerminal } from 'lucide-react';
-import { getAssignments, saveAssignments } from '../../utils/storage';
+import axios from 'axios';
 
 const MyAssignments = ({ setActiveTab }) => {
   const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedReview, setSelectedReview] = useState(null);
 
   useEffect(() => {
-    // Read from local storage
-    setAssignments(getAssignments());
+    const fetchAssignments = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/assignments');
+        setAssignments(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch assignments", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAssignments();
   }, []);
 
-  const handleDelete = (id) => {
-    const updatedAssignments = assignments.filter(a => a.id !== id);
-    setAssignments(updatedAssignments);
-    saveAssignments(updatedAssignments);
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this assignment?')) return;
+    try {
+      await axios.delete(`http://localhost:5001/api/assignments/${id}`);
+      setAssignments(assignments.filter(a => a.id !== id));
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const res = await axios.patch(`http://localhost:5001/api/assignments/${id}/status`, { status: newStatus });
+      setAssignments(assignments.map(a => a.id === id ? { ...a, status: res.data.data.status } : a));
+    } catch (err) {
+      console.error('Status update failed', err);
+    }
   };
 
   return (
@@ -38,7 +61,12 @@ const MyAssignments = ({ setActiveTab }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
-          {assignments.length === 0 ? (
+          {loading ? (
+            <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500">
+              <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+              <p>Fetching your assessments...</p>
+            </div>
+          ) : assignments.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -68,7 +96,7 @@ const MyAssignments = ({ setActiveTab }) => {
                       {assignment.status}
                     </span>
                     <span className="flex items-center gap-1.5 text-xs font-mono text-gray-400 bg-[#111115] px-2 py-1 rounded-md border border-gray-800">
-                      <Users className="w-3 h-3" /> {assignment.targetSection || assignment.section}
+                      <Users className="w-3 h-3" /> {assignment.section?.name || assignment.targetSection || '—'}
                     </span>
                   </div>
                   
@@ -94,18 +122,34 @@ const MyAssignments = ({ setActiveTab }) => {
                   </div>
                 </div>
 
-                <div className="p-4 bg-[#111115] border-t border-gray-800 flex justify-between items-center gap-2">
-                  <button 
-                    onClick={() => alert("Edit functionality is currently under construction. Please use 'Review' to view questions for now.")}
-                    className="flex-1 flex justify-center items-center gap-2 py-2 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-                  >
-                    <Edit2 className="w-4 h-4" /> Edit
-                  </button>
+              <div className="p-4 bg-[#111115] border-t border-gray-800 flex justify-between items-center gap-2">
+                  {assignment.status === 'draft' ? (
+                    <button
+                      onClick={() => handleStatusChange(assignment.id, 'active')}
+                      className="flex-1 flex justify-center items-center gap-2 py-2 text-sm font-medium text-green-400 hover:text-white hover:bg-green-600/20 rounded-lg transition-colors"
+                    >
+                      <Play className="w-4 h-4" /> Publish
+                    </button>
+                  ) : assignment.status === 'active' ? (
+                    <button
+                      onClick={() => handleStatusChange(assignment.id, 'closed')}
+                      className="flex-1 flex justify-center items-center gap-2 py-2 text-sm font-medium text-orange-400 hover:text-white hover:bg-orange-600/20 rounded-lg transition-colors"
+                    >
+                      <Clock className="w-4 h-4" /> Close
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleStatusChange(assignment.id, 'active')}
+                      className="flex-1 flex justify-center items-center gap-2 py-2 text-sm font-medium text-blue-400 hover:text-white hover:bg-blue-600/20 rounded-lg transition-colors"
+                    >
+                      <Play className="w-4 h-4" /> Reopen
+                    </button>
+                  )}
                   <button 
                     onClick={() => setSelectedReview(assignment)}
                     className="flex-1 flex justify-center items-center gap-2 py-2 text-sm font-medium text-blue-400 hover:text-white hover:bg-blue-600/20 rounded-lg transition-colors"
                   >
-                    <Play className="w-4 h-4" /> Review
+                    <Edit2 className="w-4 h-4" /> Review
                   </button>
                   <button 
                     onClick={() => handleDelete(assignment.id)}
@@ -141,7 +185,7 @@ const MyAssignments = ({ setActiveTab }) => {
                 <div>
                   <h3 className="text-xl font-bold text-white">{selectedReview.title}</h3>
                   <div className="flex gap-4 mt-2 text-sm text-gray-400">
-                    <span className="flex items-center gap-1.5"><Users className="w-4 h-4" /> {selectedReview.targetSection}</span>
+                    <span className="flex items-center gap-1.5"><Users className="w-4 h-4" /> {selectedReview.section?.name || selectedReview.targetSection || '—'}</span>
                     <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {new Date(selectedReview.dueDate).toLocaleString()}</span>
                   </div>
                 </div>

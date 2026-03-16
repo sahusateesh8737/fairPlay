@@ -1,25 +1,69 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, GraduationCap, Eye, EyeOff, Mail, Lock, CheckCircle2 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Auth = () => {
   const location = useLocation();
-  const [isLogin, setIsLogin] = useState(true);
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
   
-  useEffect(() => {
-    if (location.state?.defaultMode === 'signup') {
-      setIsLogin(false);
-    }
-  }, [location.state]);
+  const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [role, setRole] = useState('student'); // 'student' | 'teacher'
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'student',
+    sectionName: '',
+    teacherSecret: ''
+  });
+  
+  const { role } = formData;
   const [showPassword, setShowPassword] = useState(false);
 
-  // Mock sections for the dropdown
-  const sections = ['k23DJ', 'k23IS', 'k22AL', 'k24ML'];
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+  };
 
-  const toggleAuthMode = () => setIsLogin(!isLogin);
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(null);
+  };
+
+  const setRole = (newRole) => {
+    setFormData({ ...formData, role: newRole });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      let userData;
+      if (isLogin) {
+        userData = await login(formData.email, formData.password);
+      } else {
+        userData = await register(formData);
+      }
+
+      // Role-based redirection
+      if (userData.role === 'admin') navigate('/admin/dashboard');
+      else if (userData.role === 'teacher') navigate('/teacher/dashboard');
+      else navigate('/student/dashboard');
+
+    } catch (err) {
+      setError(err.response?.data?.error || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -85,7 +129,13 @@ const Auth = () => {
             )}
           </AnimatePresence>
 
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
+              {error}
+            </div>
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             
             {/* Full Name (Sign Up only) */}
             <AnimatePresence mode="popLayout">
@@ -102,6 +152,10 @@ const Auth = () => {
                     </div>
                     <input 
                       type="text" 
+                      name="name"
+                      required={!isLogin}
+                      value={formData.name}
+                      onChange={handleInputChange}
                       placeholder="John Doe"
                       className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                     />
@@ -121,6 +175,10 @@ const Auth = () => {
                 </div>
                 <input 
                   type="email" 
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleInputChange}
                   placeholder="name@college.edu"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                 />
@@ -136,6 +194,10 @@ const Auth = () => {
                 </div>
                 <input 
                   type={showPassword ? 'text' : 'password'} 
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
                   placeholder="••••••••"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-12 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                 />
@@ -159,11 +221,15 @@ const Auth = () => {
                 >
                   <label className="block text-sm font-medium text-gray-300 mb-1.5">My Section</label>
                   <select 
+                    name="sectionName"
+                    required
+                    value={formData.sectionName}
+                    onChange={handleInputChange}
                     title="Select your section"
                     className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all appearance-none [&>option]:text-black"
                   >
-                    <option value="" disabled selected>Select an active section...</option>
-                    {sections.map(sec => (
+                    <option value="" disabled>Select an active section...</option>
+                    {['k23DJ', 'k23IS', 'k22AL', 'k24ML'].map(sec => (
                       <option key={sec} value={sec}>{sec}</option>
                     ))}
                   </select>
@@ -183,6 +249,10 @@ const Auth = () => {
                     </div>
                     <input 
                       type="password" 
+                      name="teacherSecret"
+                      required
+                      value={formData.teacherSecret}
+                      onChange={handleInputChange}
                       placeholder="Admin provided secret"
                       className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
                     />
@@ -193,9 +263,14 @@ const Auth = () => {
 
             <button 
               type="submit"
-              className="w-full bg-primary hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl mt-6 transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] active:scale-[0.98]"
+              disabled={loading}
+              className="w-full bg-primary hover:bg-blue-600 disabled:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl mt-6 transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] active:scale-[0.98] flex items-center justify-center"
             >
-              {isLogin ? 'Sign In' : 'Create Account'}
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                isLogin ? 'Sign In' : 'Create Account'
+              )}
             </button>
           </form>
 

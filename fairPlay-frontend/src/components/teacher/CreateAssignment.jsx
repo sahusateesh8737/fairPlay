@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FileCode, Calendar, CheckCircle2, ChevronDown, Plus, Trash2 } from 'lucide-react';
-import { getAssignments, saveAssignments, getSections } from '../../utils/storage';
+import axios from 'axios';
 
 const CreateAssignment = ({ setActiveTab }) => {
   const [availableSections, setAvailableSections] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    // Load all active sections from Admin's storage
-    const storedSections = getSections();
-    setAvailableSections(storedSections.filter(sec => sec.status === 'active').map(sec => sec.code));
+    const fetchSections = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/auth/sections');
+        setAvailableSections(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch sections", err);
+      }
+    };
+    fetchSections();
   }, []);
 
   const [formData, setFormData] = useState({
@@ -18,14 +26,10 @@ const CreateAssignment = ({ setActiveTab }) => {
     dueDate: ''
   });
   
-  // New state mapping multiple question variations
   const [questions, setQuestions] = useState([
     { id: 1, prompt: '', boilerplate: '' }
   ]);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleAddQuestion = () => {
     if (questions.length >= 5) return; // Cap at 5 variations
@@ -53,10 +57,8 @@ const CreateAssignment = ({ setActiveTab }) => {
     setQuestions(updated);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Ensure all active questions have a prompt
     const invalidQuestion = questions.find(q => !q.prompt.trim());
     if (invalidQuestion) {
       alert("Please ensure all question variations have a prompt.");
@@ -64,33 +66,26 @@ const CreateAssignment = ({ setActiveTab }) => {
     }
 
     setIsSubmitting(true);
-    
-    // Payload that simulates backend structure
-    const newAssignment = {
-      id: Date.now(),
-      ...formData,
-      questions: questions,
-      status: 'active',
-      submissions: 0, // Mock initial state
-    };
+    try {
+      const payload = {
+        title: formData.title,
+        sectionName: formData.targetSection,
+        dueDate: formData.dueDate,
+        questions: questions.map(q => ({
+          prompt: q.prompt,
+          boilerplate: q.boilerplate
+        }))
+      };
 
-    console.log("Publishing Assessment payload:", newAssignment);
-
-    // Save to LocalStorage
-    const existingAssignments = getAssignments();
-    const updatedAssignments = [newAssignment, ...existingAssignments];
-    saveAssignments(updatedAssignments);
-
-    // Simulate API Call delay
-    setTimeout(() => {
-      setIsSubmitting(false);
+      await axios.post('http://localhost:5001/api/assignments', payload);
       setShowSuccess(true);
-      
-      setTimeout(() => {
-        setActiveTab('assignments');
-      }, 2000);
-      
-    }, 1000);
+      setTimeout(() => setActiveTab('assignments'), 2000);
+    } catch (err) {
+      console.error("Publishing failed", err);
+      alert("Failed to publish assessment. Check console for details.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (showSuccess) {
@@ -164,9 +159,9 @@ const CreateAssignment = ({ setActiveTab }) => {
                     onChange={(e) => setFormData({...formData, targetSection: e.target.value})}
                   >
                     <option value="" disabled>Select a mapped class...</option>
-                    {availableSections.length === 0 && <option disabled>No sections available. Create one in Admin.</option>}
+                    {availableSections.length === 0 && <option disabled>No sections available. Contact Admin.</option>}
                     {availableSections.map(section => (
-                      <option key={section} value={section}>{section}</option>
+                      <option key={section.id} value={section.name}>{section.name}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />

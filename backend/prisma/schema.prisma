@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Section {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  users       User[]
+  assignments Assignment[]
+
+  @@map("sections")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  password    String       @map("password_hash")
+  role        String       // "admin", "teacher", "student"
+  sectionId   Int?         @map("section_id")
+  section     Section?     @relation(fields: [sectionId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Relations
+  addedIps    AllowedIp[]  @relation("AddedBy")
+  assignments Assignment[] @relation("TeacherAssignments")
+  submissions Submission[]
+
+  @@map("users")
+}
+
+model AllowedIp {
+  id          Int      @id @default(autoincrement())
+  ipAddress   String   @unique @map("ip_address")
+  description String?
+  addedBy     Int?     @map("added_by_user_id")
+  user        User?    @relation("AddedBy", fields: [addedBy], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@map("allowed_ips")
+}
+
+model Assignment {
+  id              Int          @id @default(autoincrement())
+  title           String
+  targetSectionId Int          @map("target_section_id")
+  section         Section      @relation(fields: [targetSectionId], references: [id])
+  teacherId       Int          @map("teacher_id")
+  teacher         User         @relation("TeacherAssignments", fields: [teacherId], references: [id])
+  dueDate         DateTime?    @map("due_date")
+  status          String       @default("draft") // "draft", "active", "closed"
+  createdAt       DateTime     @default(now())
+  
+  questions       Question[]
+  submissions     Submission[]
+
+  @@map("assignments")
+}
+
+model Question {
+  id           Int        @id @default(autoincrement())
+  assignmentId Int        @map("assignment_id")
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  prompt       String     @db.Text
+  boilerplate  String?    @db.Text
+  createdAt    DateTime   @default(now())
+  
+  submissions  Submission[]
+
+  @@map("questions")
+}
+
+model Submission {
+  id           Int              @id @default(autoincrement())
+  assignmentId Int              @map("assignment_id")
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    Int              @map("student_id")
+  student      User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId   Int?             @map("question_id")
+  question     Question?        @relation(fields: [questionId], references: [id])
+  submittedAt  DateTime         @default(now()) @map("submitted_at")
+  score        Decimal?         @db.Decimal(5, 2) @map("final_score")
+  
+  files        SubmissionFile[]
+  cheatLogs    CheatLog[]
+
+  @@map("submissions")
+}
+
+model SubmissionFile {
+  id           Int        @id @default(autoincrement())
+  submissionId Int        @map("submission_id")
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  fileName     String     @map("file_name")
+  code         String     @db.Text
+  createdAt    DateTime   @default(now())
+
+  @@map("submission_files")
+}
+
+model CheatLog {
+  id             Int        @id @default(autoincrement())
+  submissionId   Int        @map("submission_id")
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  eventType      String     @map("event_type")
+  eventTimestamp DateTime   @map("event_timestamp")
+  createdAt      DateTime   @default(now())
+
+  @@map("cheat_logs")
+}

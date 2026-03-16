@@ -2,17 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Clock, Play, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { getAssignments } from '../utils/storage';
+import axios from 'axios';
 
 const StudentDashboard = () => {
   const [exams, setExams] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // In a real app, we'd fetch assignments specific to this student's section.
-    // For now, we'll just fetch all active localized assignments.
-    const allAssignments = getAssignments().filter(a => a.status === 'active');
-    setExams(allAssignments);
+    const fetchExams = async () => {
+      try {
+        const res = await axios.get('http://localhost:5001/api/assignments');
+        setExams(res.data.data);
+      } catch (err) {
+        console.error("Failed to fetch assignments", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExams();
   }, []);
 
   const handleStartExam = (id) => {
@@ -35,7 +43,12 @@ const StudentDashboard = () => {
         {/* Exams Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {exams.length === 0 ? (
+            {loading ? (
+              <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500">
+                <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+                <p>Loading your assessments...</p>
+              </div>
+            ) : exams.length === 0 ? (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
