@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,25 +34,36 @@ const Navbar = () => {
 
         {/* Central Nav Links (Optional, can add later, currently just centered space) */}
         <nav className="hidden md:flex items-center gap-8">
-          {/* Add links here if needed, for instance: <a href="#features" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Features</a> */}
+          {/* Add links here if needed */}
         </nav>
 
         {/* Auth Actions */}
         <div className="flex items-center gap-4">
-          <Link 
-            to="/auth" 
-            state={{ defaultMode: 'login' }}
-            className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2"
-          >
-            Sign In
-          </Link>
-          <Link 
-            to="/auth"
-            state={{ defaultMode: 'signup' }}
-            className="text-sm font-medium bg-white text-black px-5 py-2 rounded-full hover:bg-gray-200 hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-          >
-            Sign Up
-          </Link>
+          {user ? (
+            <Link 
+              to={`/${user.role}/dashboard`}
+              className="text-sm font-medium bg-primary text-white px-5 py-2 rounded-full hover:bg-blue-600 hover:scale-105 transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link 
+                to="/auth" 
+                state={{ defaultMode: 'login' }}
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors px-4 py-2"
+              >
+                Sign In
+              </Link>
+              <Link 
+                to="/auth"
+                state={{ defaultMode: 'signup' }}
+                className="text-sm font-medium bg-white text-black px-5 py-2 rounded-full hover:bg-gray-200 hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </motion.header>
