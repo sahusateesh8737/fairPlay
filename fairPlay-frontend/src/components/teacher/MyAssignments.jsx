@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FileCode, Calendar, Clock, Edit2, Play, Users, Trash2, X, FileTerminal } from 'lucide-react';
 import axios from 'axios';
 
-const MyAssignments = ({ setActiveTab }) => {
+const MyAssignments = ({ setActiveTab, searchQuery = '' }) => {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReview, setSelectedReview] = useState(null);
@@ -41,6 +41,10 @@ const MyAssignments = ({ setActiveTab }) => {
     }
   };
 
+  const filteredAssignments = assignments.filter((a) =>
+    a.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -66,18 +70,18 @@ const MyAssignments = ({ setActiveTab }) => {
               <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
               <p>Fetching your assessments...</p>
             </div>
-          ) : assignments.length === 0 ? (
+          ) : filteredAssignments.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500 border border-dashed border-gray-800 rounded-3xl bg-[#0a0a0c]/50"
             >
               <FileCode className="w-16 h-16 mb-4 opacity-20" />
-              <p className="text-lg mb-2">No active assignments</p>
-              <p className="text-sm">Draft a new coding assessment to get started.</p>
+              <p className="text-lg mb-2">No assignments found</p>
+              <p className="text-sm">Try adjusting your search query or draft a new assessment.</p>
             </motion.div>
           ) : (
-            assignments.map((assignment) => (
+            filteredAssignments.map((assignment) => (
               <motion.div 
                 key={assignment.id}
                 layout

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut } from 'lucide-react';
+import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const [exams, setExams] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -28,6 +29,10 @@ const StudentDashboard = () => {
   const handleStartExam = (id) => {
     navigate(`/student/exam/${id}`);
   };
+
+  const filteredExams = exams.filter((e) =>
+    e.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-[#050507] p-8 md:p-12">
@@ -51,7 +56,18 @@ const StudentDashboard = () => {
               <BookOpen className="w-8 h-8 text-blue-400" />
             </div>
             <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">My Assessments</h1>
-            <p className="text-lg text-gray-400">View and take your assigned coding exams.</p>
+            <p className="text-lg text-gray-400 mb-6">View and take your assigned coding exams.</p>
+            
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input 
+                type="text" 
+                placeholder="Search assessments..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full md:w-96 bg-[#111115] border border-gray-800 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/30 transition-all text-white placeholder:text-gray-600 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+              />
+            </div>
           </div>
           
           <div className="flex items-center gap-4 bg-[#0a0a0c] p-2 pr-6 rounded-full border border-gray-800 md:mt-0 mt-8">
@@ -75,7 +91,7 @@ const StudentDashboard = () => {
                 <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
                 <p>Loading your assessments...</p>
               </div>
-            ) : exams.length === 0 ? (
+            ) : filteredExams.length === 0 ? (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -83,10 +99,10 @@ const StudentDashboard = () => {
               >
                 <AlertTriangle className="w-16 h-16 mb-4 opacity-20" />
                 <p className="text-lg mb-2">No active exams found</p>
-                <p className="text-sm">You have no pending assignments right now.</p>
+                <p className="text-sm">You have no pending assignments matching your search.</p>
               </motion.div>
             ) : (
-              exams.map((exam) => (
+              filteredExams.map((exam) => (
                 <motion.div 
                   key={exam.id}
                   layout

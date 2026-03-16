@@ -15,6 +15,7 @@ import { useAuth } from '../context/AuthContext';
 const TeacherDashboard = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('assignments');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Resolved from database
   const teacherProfile = {
@@ -109,6 +110,8 @@ const TeacherDashboard = () => {
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search assessments..." 
                 className="bg-[#111115] border border-gray-800 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/30 transition-all w-64 text-white placeholder:text-gray-600"
               />
@@ -123,7 +126,7 @@ const TeacherDashboard = () => {
 
         {/* Dashboard Content routing based on activeTab */}
         <div className="p-8 md:p-12 flex-1 overflow-y-auto">
-          {activeTab === 'assignments' && <MyAssignments setActiveTab={setActiveTab} />}
+          {activeTab === 'assignments' && <MyAssignments setActiveTab={setActiveTab} searchQuery={searchQuery} />}
           {activeTab === 'create' && <CreateAssignment teacherSections={teacherProfile.sections} setActiveTab={setActiveTab} />}
           {activeTab === 'students' && <StudentProgress />}
           {activeTab === 'results' && <AssignmentResults />}
