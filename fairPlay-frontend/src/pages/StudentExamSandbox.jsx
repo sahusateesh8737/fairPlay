@@ -11,15 +11,23 @@ const socket = io('http://localhost:5001');
 const StudentExamSandbox = () => {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
+  const iframeRef = useRef(null);
+  const editorRef = useRef(null);
   
   const [exam, setExam] = useState(null);
   const [question, setQuestion] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [warningMessage, setWarningMessage] = useState(null);
+  const [cheatLogs, setCheatLogs] = useState([]);
+  const [newFileName, setNewFileName] = useState('');
+  const [isCreatingFile, setIsCreatingFile] = useState(false);
+  const [compileError, setCompileError] = useState('');
   
   // --- MULTI-FILE STATE ---
   const [files, setFiles] = useState({});
   const [activeFile, setActiveFile] = useState('index.jsx');
-  
+  const [savedStatus, setSavedStatus] = useState(''); // '', 'saving', 'saved'
+
   const defaultFiles = {
     'index.jsx': `import React from 'react';\nimport ReactDOM from 'react-dom/client';\n\nfunction App() {\n  return <h1>Hello World</h1>;\n}\n\nconst root = ReactDOM.createRoot(document.getElementById('root'));\nroot.render(<App />);`
   };
@@ -35,7 +43,23 @@ const StudentExamSandbox = () => {
           const randomIndex = Math.floor(Math.random() * activeExam.questions.length);
           const selectedVariation = activeExam.questions[randomIndex];
           setQuestion(selectedVariation);
-          
+
+          // --- RESTORE from localStorage if available ---
+          const storageKey = `fairplay_exam_${assignmentId}`;
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed.files && Object.keys(parsed.files).length > 0) {
+                setFiles(parsed.files);
+                setActiveFile(parsed.activeFile || 'index.jsx');
+                setSavedStatus('saved');
+                return; // Skip boilerplate — restore from save
+              }
+            } catch (_) { /* corrupt data, fall through */ }
+          }
+
+          // No saved state — use boilerplate or default
           if (selectedVariation.boilerplate) {
             setFiles({ 'index.jsx': selectedVariation.boilerplate });
           } else {
@@ -144,90 +168,71 @@ const StudentExamSandbox = () => {
   const runCode = () => {
     setCompileError('');
     try {
-      const transpiledModules = {};
-      
-      // 1. Transpile every file in the 'files' state
-      Object.keys(files).forEach((filename) => {
-        const fileContent = files[filename];
-        
-        // We use Babel with CommonJS module transform so `import` becomes `require()`
-        // This allows us to intercept requirements manually in the iframe.
-        const transpiled = Babel.transform(fileContent, { 
-          presets: ['react', 'env'] // 'env' handles ES6 module -> CommonJS transpilation
+      // Safely encode file contents to avoid </script> injection issues
+      const filesJson = JSON.stringify(files)
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e');
+
+      const iframeContent = `<!DOCTYPE html>
+<html>
+<head>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+  <style>
+    body { margin:0; background:#0a0a0c; color:white; font-family:sans-serif; padding:20px; box-sizing:border-box; }
+    #root { max-width:800px; margin:0 auto; }
+    .err { color:#ef4444; font-family:monospace; background:#220000; padding:20px; border-radius:8px; white-space:pre-wrap; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+    var filesMap = ${filesJson};
+    var moduleCache = {};
+
+    function requireModule(modulePath) {
+      if (modulePath === 'react') return window.React;
+      if (modulePath === 'react-dom/client' || modulePath === 'react-dom') return window.ReactDOM;
+
+      // Strip leading ./ and extension to get clean key
+      var cleanPath = modulePath.replace(/^\\.\\//, '').replace(/\\.(jsx?)$/, '');
+
+      if (moduleCache[cleanPath]) return moduleCache[cleanPath].exports;
+
+      var source = filesMap[cleanPath + '.jsx'] || filesMap[cleanPath + '.js'] || filesMap[cleanPath];
+      if (!source) throw new Error("Cannot find module '" + modulePath + "'");
+
+      var transpiled;
+      try {
+        transpiled = Babel.transform(source, {
+          filename: cleanPath + '.jsx',
+          presets: [
+            ['react'],
+            ['env', { modules: 'commonjs', targets: { browsers: ['last 1 Chrome version'] } }]
+          ]
         }).code;
-        
-        // Strip the ./ from module paths for easier lookup 
-        const moduleName = filename.replace(/\.(jsx?)$/, ''); // App.jsx -> App
-        transpiledModules[moduleName] = transpiled;
-      });
+      } catch(e) {
+        throw new Error("Babel error in " + cleanPath + ": " + e.message);
+      }
 
-      // 2. Build the Fake CommonJS Environment for the iFrame
-      // We stringify the transpiled modules map and inject a custom require() function
-      const modulesInjection = JSON.stringify(transpiledModules);
+      var mod = { exports: {} };
+      moduleCache[cleanPath] = mod;
+      (new Function('exports', 'require', 'module', transpiled))(mod.exports, requireModule, mod);
+      return mod.exports;
+    }
 
-      const iframeContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-            <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-            <style>
-              body { margin: 0; background-color: #0a0a0c; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; }
-              #root { width: 100%; max-width: 800px; padding: 20px; box-sizing: border-box; }
-            </style>
-          </head>
-          <body>
-            <div id="root"></div>
-            <script>
-              const modulesMap = ${modulesInjection};
-              const moduleCache = {};
-
-              // Fake CommonJS Require Implementation
-              function require(modulePath) {
-                // Handle React core imports natively
-                if (modulePath === 'react') return window.React;
-                if (modulePath === 'react-dom/client' || modulePath === 'react-dom') return window.ReactDOM;
-                
-                // Clean the path (e.g., './Button.jsx' -> 'Button')
-                let cleanPath = modulePath.replace(/^\\.\\//, '').replace(/\\.(jsx?)$/, '');
-                
-                // Return cached version if already executed
-                if (moduleCache[cleanPath]) {
-                  return moduleCache[cleanPath].exports;
-                }
-
-                // If module doesn't exist, throw error
-                if (!modulesMap[cleanPath]) {
-                  throw new Error("Cannot find module '" + modulePath + "'");
-                }
-
-                // Execute the module code
-                const module = { exports: {} };
-                moduleCache[cleanPath] = module;
-                
-                try {
-                  // Wrap the transpiled code in a function to provide exports and require variables
-                  const wrapper = new Function('exports', 'require', 'module', modulesMap[cleanPath]);
-                  wrapper(module.exports, require, module);
-                  return module.exports;
-                } catch (e) {
-                  throw new Error("Error executing module " + cleanPath + ": " + e.message);
-                }
-              }
-
-              // Boot the application starting from index
-              window.onload = () => {
-                try {
-                  require('index'); // Entry point must always be index.jsx
-                } catch (err) {
-                  document.body.innerHTML = '<div style="color: #ef4444; padding: 20px; font-family: monospace; background: #220000; border-radius: 8px;"><h3>Runtime Error</h3>' + err.toString() + '</div>';
-                  console.error(err);
-                }
-              };
-            </script>
-          </body>
-        </html>
-      `;
+    window.addEventListener('load', function() {
+      try {
+        requireModule('index');
+      } catch(err) {
+        document.getElementById('root').innerHTML =
+          '<div class="err"><strong>⚠ Error</strong>\\n' + err.message + '</div>';
+      }
+    });
+  <\/script>
+</body>
+</html>`;
 
       if (iframeRef.current) {
         iframeRef.current.srcdoc = iframeContent;
@@ -243,7 +248,21 @@ const StudentExamSandbox = () => {
       const timer = setTimeout(() => runCode(), 500);
       return () => clearTimeout(timer);
     }
-  }, [files]); // Re-run when files change. In a real app, you might only run on explicit "Run" button click to save CPU.
+  }, [files]);
+
+  // --- AUTO-SAVE to localStorage (debounced 1s) ---
+  useEffect(() => {
+    if (Object.keys(files).length === 0) return;
+    setSavedStatus('saving');
+    const timer = setTimeout(() => {
+      try {
+        const storageKey = `fairplay_exam_${assignmentId}`;
+        localStorage.setItem(storageKey, JSON.stringify({ files, activeFile }));
+        setSavedStatus('saved');
+      } catch (_) { setSavedStatus(''); }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [files, activeFile, assignmentId]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -255,6 +274,8 @@ const StudentExamSandbox = () => {
         cheatLogs: cheatLogs 
       };
       await axios.post('http://localhost:5001/api/submissions', finalSubmission);
+      // Clear the autosave for this exam on successful submit
+      localStorage.removeItem(`fairplay_exam_${assignmentId}`);
       alert(`Successfully Submitted!\n\nViolations Logged: ${cheatLogs.length}`);
       navigate('/student/dashboard');
     } catch (err) {
@@ -294,6 +315,22 @@ const StudentExamSandbox = () => {
             <ShieldAlert className="w-4 h-4" /> Proctored Session
           </div>
           <h1 className="text-white font-bold">{exam.title}</h1>
+        </div>
+
+        {/* Autosave indicator */}
+        <div className="flex items-center gap-2 text-xs font-medium">
+          {savedStatus === 'saving' && (
+            <span className="text-gray-400 flex items-center gap-1.5">
+              <div className="w-3 h-3 border border-gray-500 border-t-transparent rounded-full animate-spin" />
+              Saving…
+            </span>
+          )}
+          {savedStatus === 'saved' && (
+            <span className="text-green-500 flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+              Draft saved locally
+            </span>
+          )}
         </div>
         
         <div className="flex items-center gap-4">
@@ -401,7 +438,274 @@ const StudentExamSandbox = () => {
                 theme="vs-dark"
                 value={files[activeFile]} // Bind to active file
                 onChange={handleEditorChange} // Update active file in dict
-                onMount={(editor) => editorRef.current = editor}
+                onMount={(editor, monaco) => {
+                  editorRef.current = editor;
+
+                  // --- REACT SNIPPETS (VS Code-style) ---
+                  const snippets = [
+                    {
+                      label: 'rafce',
+                      detail: 'React Arrow Function Component Export',
+                      insertText: [
+                        "import React from 'react';",
+                        '',
+                        'const ${1:${TM_FILENAME_BASE}} = () => {',
+                        '  return (',
+                        '    <div>',
+                        '      ${2:}',
+                        '    </div>',
+                        '  );',
+                        '};',
+                        '',
+                        'export default ${1:${TM_FILENAME_BASE}};',
+                      ].join('\n'),
+                    },
+                    {
+                      label: 'rafc',
+                      detail: 'React Arrow Function Component',
+                      insertText: [
+                        "import React from 'react';",
+                        '',
+                        'const ${1:${TM_FILENAME_BASE}} = () => {',
+                        '  return (',
+                        '    <div>',
+                        '      ${2:}',
+                        '    </div>',
+                        '  );',
+                        '};',
+                      ].join('\n'),
+                    },
+                    {
+                      label: 'rfc',
+                      detail: 'React Functional Component',
+                      insertText: [
+                        "import React from 'react';",
+                        '',
+                        'function ${1:${TM_FILENAME_BASE}}() {',
+                        '  return (',
+                        '    <div>',
+                        '      ${2:}',
+                        '    </div>',
+                        '  );',
+                        '}',
+                        '',
+                        'export default ${1:${TM_FILENAME_BASE}};',
+                      ].join('\n'),
+                    },
+                    {
+                      label: 'useState',
+                      detail: 'React useState hook',
+                      insertText: "const [${1:state}, set${1/(.*)/${1:/capitalize}/}] = useState(${2:initialValue});",
+                    },
+                    {
+                      label: 'useEffect',
+                      detail: 'React useEffect hook',
+                      insertText: [
+                        'useEffect(() => {',
+                        '  ${1:}',
+                        '}, [${2:}]);',
+                      ].join('\n'),
+                    },
+                    {
+                      label: 'useRef',
+                      detail: 'React useRef hook',
+                      insertText: 'const ${1:ref} = useRef(${2:null});',
+                    },
+                    {
+                      label: 'imr',
+                      detail: "import React from 'react'",
+                      insertText: "import React from 'react';",
+                    },
+                    {
+                      label: 'imrd',
+                      detail: "import ReactDOM from 'react-dom/client'",
+                      insertText: "import ReactDOM from 'react-dom/client';",
+                    },
+                  ];
+
+                  monaco.languages.registerCompletionItemProvider('javascript', {
+                    provideCompletionItems: (model, position) => {
+                      const word = model.getWordUntilPosition(position);
+                      const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: word.startColumn,
+                        endColumn: word.endColumn,
+                      };
+                      return {
+                        suggestions: snippets.map(s => ({
+                          label: s.label,
+                          kind: monaco.languages.CompletionItemKind.Snippet,
+                          detail: s.detail,
+                          insertText: s.insertText,
+                          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                          range,
+                          sortText: '0' + s.label, // float snippets to top
+                        })),
+                      };
+                    },
+                  });
+
+                  // --- HTML / JSX TAG SNIPPETS ---
+                  const htmlTags = [
+                    ['div', 'div', '<div className="${1:}">\n  ${2:}\n</div>'],
+                    ['span', 'span', '<span className="${1:}">${2:}</span>'],
+                    ['p', 'p', '<p className="${1:}">${2:}</p>'],
+                    ['h1', 'h1', '<h1 className="${1:}">${2:}</h1>'],
+                    ['h2', 'h2', '<h2 className="${1:}">${2:}</h2>'],
+                    ['h3', 'h3', '<h3 className="${1:}">${2:}</h3>'],
+                    ['button', 'button', '<button className="${1:}" onClick={${2:() => {}}}>\n  ${3:Click me}\n</button>'],
+                    ['input', 'input', '<input type="${1:text}" className="${2:}" placeholder="${3:}" value={${4:}} onChange={${5:(e) => {}}} />'],
+                    ['img', 'img', '<img src="${1:}" alt="${2:}" className="${3:}" />'],
+                    ['a', 'a (anchor)', '<a href="${1:#}" className="${2:}">${3:Link}</a>'],
+                    ['ul', 'ul', '<ul className="${1:}">\n  <li>${2:}</li>\n</ul>'],
+                    ['li', 'li', '<li className="${1:}">${2:}</li>'],
+                    ['form', 'form', '<form className="${1:}" onSubmit={${2:(e) => { e.preventDefault(); }}}>\n  ${3:}\n</form>'],
+                    ['label', 'label', '<label htmlFor="${1:}" className="${2:}">${3:}</label>'],
+                    ['nav', 'nav', '<nav className="${1:}">\n  ${2:}\n</nav>'],
+                    ['section', 'section', '<section className="${1:}">\n  ${2:}\n</section>'],
+                    ['header', 'header', '<header className="${1:}">\n  ${2:}\n</header>'],
+                    ['footer', 'footer', '<footer className="${1:}">\n  ${2:}\n</footer>'],
+                    ['main', 'main', '<main className="${1:}">\n  ${2:}\n</main>'],
+                    ['table', 'table', '<table className="${1:}">\n  <thead><tr><th>${2:Header}</th></tr></thead>\n  <tbody><tr><td>${3:Cell}</td></tr></tbody>\n</table>'],
+                    ['select', 'select', '<select className="${1:}" value={${2:}} onChange={${3:(e) => {}}}>\n  <option value="${4:}">${5:Option}</option>\n</select>'],
+                    ['textarea', 'textarea', '<textarea className="${1:}" value={${2:}} onChange={${3:(e) => {}}} rows={${4:4}} />'],
+                  ];
+
+                  monaco.languages.registerCompletionItemProvider('javascript', {
+                    triggerCharacters: ['<'],
+                    provideCompletionItems: (model, position) => {
+                      const lineContent = model.getLineContent(position.lineNumber);
+                      const prefix = lineContent.substring(0, position.column - 1);
+                      const tagMatch = prefix.match(/<([a-z]*)$/);
+                      if (!tagMatch) return { suggestions: [] };
+                      const typedTag = tagMatch[1];
+                      const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: position.column - typedTag.length,
+                        endColumn: position.column,
+                      };
+                      return {
+                        suggestions: htmlTags
+                          .filter(([tag]) => tag.startsWith(typedTag))
+                          .map(([tag, detail, insertText]) => ({
+                            label: tag,
+                            kind: monaco.languages.CompletionItemKind.Property,
+                            detail: `<${detail}>`,
+                            insertText,
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            range,
+                          })),
+                      };
+                    },
+                  });
+
+                  // --- TAILWIND CSS CLASS SUGGESTIONS ---
+                  const twClasses = [
+                    // Layout
+                    'flex','inline-flex','grid','block','inline-block','hidden',
+                    'flex-row','flex-col','flex-wrap','flex-nowrap',
+                    'items-start','items-center','items-end','items-stretch',
+                    'justify-start','justify-center','justify-end','justify-between','justify-around','justify-evenly',
+                    'gap-1','gap-2','gap-3','gap-4','gap-6','gap-8',
+                    'grid-cols-1','grid-cols-2','grid-cols-3','grid-cols-4','grid-cols-6','grid-cols-12',
+                    // Spacing
+                    'p-1','p-2','p-3','p-4','p-5','p-6','p-8','p-10','p-12',
+                    'px-2','px-4','px-6','px-8','py-1','py-2','py-3','py-4','py-6','py-8',
+                    'm-1','m-2','m-4','m-auto','mx-auto','mx-4','my-4','mt-2','mt-4','mt-8','mb-2','mb-4','mb-8',
+                    // Sizing
+                    'w-full','w-screen','w-1/2','w-1/3','w-1/4','w-2/3','w-3/4',
+                    'w-4','w-6','w-8','w-10','w-12','w-16','w-20','w-24','w-32','w-48','w-64',
+                    'h-full','h-screen','h-auto','h-4','h-6','h-8','h-10','h-12','h-16','h-20','h-24','h-32','h-48','h-64',
+                    'max-w-xs','max-w-sm','max-w-md','max-w-lg','max-w-xl','max-w-2xl','max-w-full',
+                    'min-h-screen','min-h-full',
+                    // Typography
+                    'text-xs','text-sm','text-base','text-lg','text-xl','text-2xl','text-3xl','text-4xl','text-5xl',
+                    'font-thin','font-light','font-normal','font-medium','font-semibold','font-bold','font-extrabold',
+                    'text-left','text-center','text-right','text-justify',
+                    'leading-tight','leading-snug','leading-normal','leading-relaxed','leading-loose',
+                    'tracking-tight','tracking-normal','tracking-wide','tracking-wider','tracking-widest',
+                    'uppercase','lowercase','capitalize','normal-case',
+                    'truncate','line-clamp-2','line-clamp-3',
+                    // Colors (text)
+                    'text-white','text-black','text-gray-100','text-gray-200','text-gray-300','text-gray-400','text-gray-500','text-gray-600','text-gray-700','text-gray-900',
+                    'text-red-400','text-red-500','text-red-600',
+                    'text-blue-400','text-blue-500','text-blue-600',
+                    'text-green-400','text-green-500','text-green-600',
+                    'text-yellow-400','text-yellow-500',
+                    'text-purple-400','text-purple-500',
+                    'text-orange-400','text-orange-500',
+                    'text-indigo-400','text-indigo-500',
+                    // Colors (bg)
+                    'bg-white','bg-black','bg-transparent',
+                    'bg-gray-50','bg-gray-100','bg-gray-200','bg-gray-700','bg-gray-800','bg-gray-900',
+                    'bg-blue-500','bg-blue-600','bg-blue-700',
+                    'bg-green-500','bg-green-600',
+                    'bg-red-500','bg-red-600',
+                    'bg-purple-500','bg-purple-600',
+                    'bg-indigo-500','bg-indigo-600',
+                    'bg-yellow-400','bg-yellow-500',
+                    'bg-orange-500',
+                    // Borders
+                    'border','border-0','border-2','border-4',
+                    'border-gray-200','border-gray-300','border-gray-700','border-gray-800',
+                    'border-blue-500','border-red-500','border-green-500',
+                    'rounded','rounded-sm','rounded-md','rounded-lg','rounded-xl','rounded-2xl','rounded-3xl','rounded-full',
+                    // Shadows
+                    'shadow-sm','shadow','shadow-md','shadow-lg','shadow-xl','shadow-2xl','shadow-none',
+                    // Transitions / Animation
+                    'transition','transition-all','transition-colors','transition-opacity','transition-transform',
+                    'duration-150','duration-200','duration-300','duration-500',
+                    'ease-in','ease-out','ease-in-out',
+                    'animate-spin','animate-pulse','animate-bounce',
+                    'hover:opacity-80','hover:scale-105','hover:bg-blue-600','hover:text-white',
+                    // Positioning
+                    'relative','absolute','fixed','sticky',
+                    'top-0','bottom-0','left-0','right-0','inset-0',
+                    'z-10','z-20','z-50','z-auto',
+                    'overflow-hidden','overflow-auto','overflow-scroll','overflow-x-auto',
+                    // Opacity / Display
+                    'opacity-0','opacity-50','opacity-75','opacity-100',
+                    'cursor-pointer','cursor-not-allowed','cursor-default',
+                    'pointer-events-none','select-none',
+                    'space-y-1','space-y-2','space-y-4','space-y-6','space-x-2','space-x-4',
+                  ];
+
+                  monaco.languages.registerCompletionItemProvider('javascript', {
+                    triggerCharacters: ['"', "'", ' '],
+                    provideCompletionItems: (model, position) => {
+                      const lineContent = model.getLineContent(position.lineNumber);
+                      const prefix = lineContent.substring(0, position.column - 1);
+
+                      // Only trigger inside className="..." or className='...'
+                      const classNameMatch = prefix.match(/className=["']([^"']*)$/);
+                      if (!classNameMatch) return { suggestions: [] };
+
+                      const typedClasses = classNameMatch[1];
+                      const lastClass = typedClasses.split(' ').pop();
+
+                      const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: position.column - lastClass.length,
+                        endColumn: position.column,
+                      };
+
+                      return {
+                        suggestions: twClasses
+                          .filter(cls => cls.startsWith(lastClass))
+                          .map(cls => ({
+                            label: cls,
+                            kind: monaco.languages.CompletionItemKind.Value,
+                            detail: 'Tailwind CSS',
+                            insertText: cls,
+                            range,
+                          })),
+                      };
+                    },
+                  });
+                }}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,

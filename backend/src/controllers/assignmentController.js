@@ -82,7 +82,13 @@ exports.getAssignments = async (req, res, next) => {
           targetSectionId: sectionId,
           status: 'active'
         },
-        include: { teacher: { select: { name: true } } }
+        include: { 
+          teacher: { select: { name: true } },
+          submissions: {
+            where: { studentId: req.user.id },
+            select: { id: true, submittedAt: true }
+          }
+        }
       });
     }
 

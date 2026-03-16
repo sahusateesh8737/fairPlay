@@ -9,7 +9,8 @@ exports.getAssignmentSubmissions = async (req, res, next) => {
     const submissions = await prisma.submission.findMany({
       where: { assignmentId: parseInt(req.params.assignmentId) },
       include: {
-        student: { select: { id: true, name: true, email: true } },
+        student: { select: { id: true, name: true, email: true, section: { select: { name: true } } } },
+        question: { select: { id: true, prompt: true } },
         _count: { select: { cheatLogs: true } }
       },
       orderBy: { submittedAt: 'desc' }
@@ -32,7 +33,7 @@ exports.getSubmission = async (req, res, next) => {
     const submission = await prisma.submission.findUnique({
       where: { id: parseInt(req.params.id) },
       include: {
-        student: { select: { name: true, email: true } },
+        student: { select: { name: true, email: true, section: { select: { name: true } } } },
         files: true,
         cheatLogs: true,
         assignment: { select: { title: true } }

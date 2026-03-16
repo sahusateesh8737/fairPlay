@@ -7,11 +7,20 @@ import { useAuth } from '../context/AuthContext';
 const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { user, login, register } = useAuth();
   
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Redirect if already logged in (prevents back button to login bug)
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') navigate('/admin/dashboard', { replace: true });
+      else if (user.role === 'teacher') navigate('/teacher/dashboard', { replace: true });
+      else navigate('/student/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const [formData, setFormData] = useState({
     name: '',

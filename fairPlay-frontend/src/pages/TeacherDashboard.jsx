@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  FileCode, Users, LogOut, Settings, LayoutDashboard, Search, GraduationCap, Radio
+  FileCode, Users, LogOut, Settings, LayoutDashboard, Search, GraduationCap, Radio, BarChart2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MyAssignments from '../components/teacher/MyAssignments';
 import CreateAssignment from '../components/teacher/CreateAssignment';
 import StudentProgress from '../components/teacher/StudentProgress';
+import AssignmentResults from '../components/teacher/AssignmentResults';
 import LiveMonitor from '../components/teacher/LiveMonitor';
 
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +27,7 @@ const TeacherDashboard = () => {
     { id: 'assignments', label: 'My Assignments', icon: LayoutDashboard },
     { id: 'create', label: 'Draft New', icon: FileCode },
     { id: 'students', label: 'Student Progress', icon: Users },
+    { id: 'results', label: 'Results', icon: BarChart2 },
     { id: 'monitor', label: 'Live Proctor', icon: Radio },
     { id: 'settings', label: 'Course Settings', icon: Settings },
   ];
@@ -124,6 +126,7 @@ const TeacherDashboard = () => {
           {activeTab === 'assignments' && <MyAssignments setActiveTab={setActiveTab} />}
           {activeTab === 'create' && <CreateAssignment teacherSections={teacherProfile.sections} setActiveTab={setActiveTab} />}
           {activeTab === 'students' && <StudentProgress />}
+          {activeTab === 'results' && <AssignmentResults />}
           {activeTab === 'monitor' && <LiveMonitor sectionId={teacherProfile.sections[0]} />}
           
           {['settings'].includes(activeTab) && (

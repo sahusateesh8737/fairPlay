@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, Play, AlertTriangle } from 'lucide-react';
+import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const StudentDashboard = () => {
+  const { user, logout } = useAuth();
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -32,12 +34,37 @@ const StudentDashboard = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="mb-12">
-          <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-            <BookOpen className="w-8 h-8 text-blue-400" />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative">
+          
+          {/* Top Right Logout */}
+          <button 
+            onClick={logout}
+            className="absolute top-0 right-0 p-2 pl-4 pr-4 bg-gray-900 border border-gray-800 hover:border-red-500/50 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-xl transition-all flex items-center gap-2 group shadow-lg"
+            title="Sign Out"
+          >
+            <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-medium">Log Out</span>
+          </button>
+
+          <div>
+            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
+              <BookOpen className="w-8 h-8 text-blue-400" />
+            </div>
+            <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">My Assessments</h1>
+            <p className="text-lg text-gray-400">View and take your assigned coding exams.</p>
           </div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">My Assessments</h1>
-          <p className="text-lg text-gray-400">View and take your assigned coding exams.</p>
+          
+          <div className="flex items-center gap-4 bg-[#0a0a0c] p-2 pr-6 rounded-full border border-gray-800 md:mt-0 mt-8">
+             <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-[2px]">
+               <div className="w-full h-full rounded-full bg-[#0a0a0c] flex items-center justify-center border-2 border-[#0a0a0c]">
+                 <span className="text-white text-sm font-bold">{user?.name?.charAt(0) || 'S'}</span>
+               </div>
+             </div>
+             <div>
+               <p className="text-white font-medium text-sm leading-tight">{user?.name || 'Student'}</p>
+               <p className="text-gray-500 text-xs">{user?.email}</p>
+             </div>
+          </div>
         </div>
 
         {/* Exams Grid */}
@@ -83,12 +110,21 @@ const StudentDashboard = () => {
                   </div>
 
                   <div className="mt-auto pt-4 border-t border-gray-800/50">
-                    <button 
-                      onClick={() => handleStartExam(exam.id)}
-                      className="w-full flex justify-center items-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.4)]"
-                    >
-                      <Play className="w-5 h-5" /> Start Assessment
-                    </button>
+                    {exam.submissions && exam.submissions.length > 0 ? (
+                      <button 
+                        disabled
+                        className="w-full flex justify-center items-center gap-2 py-3 bg-gray-800 text-green-400 font-medium rounded-xl border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)] cursor-not-allowed"
+                      >
+                        <CheckCircle className="w-5 h-5" /> Completed
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleStartExam(exam.id)}
+                        className="w-full flex justify-center items-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.4)]"
+                      >
+                        <Play className="w-5 h-5" /> Start Assessment
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))
