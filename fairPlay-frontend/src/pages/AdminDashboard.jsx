@@ -4,11 +4,13 @@ import {
   ShieldAlert, Users, Network, Key, LayoutGrid, LogOut, 
   Settings, ServerCrash, ShieldCheck, Search
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import IPManager from '../components/admin/IPManager';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import NetworkManager from '../components/admin/NetworkManager';
 import SectionManager from '../components/admin/SectionManager';
+import UserDirectory from '../components/admin/UserDirectory';
+import SystemAudit from '../components/admin/SystemAudit';
 
-// Extracted Overview Component (what was originally on the dashboard)
 const Overview = () => (
   <>
     {/* Stats Grid */}
@@ -98,15 +100,20 @@ const Overview = () => (
 );
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('audit');
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const navItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutGrid },
-    { id: 'network', label: 'IP Whitelist', icon: Network },
-    { id: 'sections', label: 'Manage Sections', icon: ServerCrash },
-    { id: 'codes', label: 'Teacher Codes', icon: Key },
-    { id: 'users', label: 'Manage Users', icon: Users },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'audit', label: 'System Audit', icon: ShieldCheck },
+    { id: 'network', label: 'Network & Security', icon: Network },
+    { id: 'users', label: 'User Directory', icon: Users },
+    { id: 'sections', label: 'Academic Structure', icon: ServerCrash },
   ];
 
   return (
@@ -148,9 +155,9 @@ const AdminDashboard = () => {
         </nav>
 
         <div className="p-4 border-t border-gray-800">
-          <Link to="/" className="w-full flex items-center gap-3 px-3 py-2.5 rounded hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors text-sm">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors text-sm">
             <LogOut className="w-4 h-4" /> Sign Out
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -158,8 +165,8 @@ const AdminDashboard = () => {
       <main className="flex-1 flex flex-col h-screen">
         {/* Top Header */}
         <header className="h-20 shrink-0 border-b border-gray-800 flex items-center justify-between px-8 bg-[#0a0a0c]/50">
-          <h2 className="text-xl text-white font-medium capitalize">
-            {activeTab === 'overview' ? 'System Overview' : navItems.find(t => t.id === activeTab)?.label}
+          <h2 className="text-xl text-white font-medium capitalize flex items-center gap-3">
+            {navItems.find(t => t.id === activeTab)?.label}
           </h2>
           
           <div className="flex items-center gap-4">
@@ -176,15 +183,10 @@ const AdminDashboard = () => {
 
         {/* Dashboard Content routing based on activeTab */}
         <div className="p-8 flex-1 overflow-y-auto">
-          {activeTab === 'overview' && <Overview />}
-          {activeTab === 'network' && <IPManager />}
+          {activeTab === 'audit' && <SystemAudit />}
+          {activeTab === 'network' && <NetworkManager />}
+          {activeTab === 'users' && <UserDirectory />}
           {activeTab === 'sections' && <SectionManager />}
-          {['codes', 'users', 'settings'].includes(activeTab) && (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <Settings className="w-12 h-12 mb-4 opacity-20" />
-              <p>Module under construction during Phase 3</p>
-            </div>
-          )}
         </div>
       </main>
     </div>

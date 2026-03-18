@@ -1,46 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Plus, Trash2, Users, Search } from 'lucide-react';
-import { getSections, saveSections } from '../../utils/storage';
+import axios from 'axios';
 
 const SectionManager = () => {
   const [sections, setSections] = useState([]);
-
-  useEffect(() => {
-    // Load from local storage on mount
-    setSections(getSections());
-  }, []);
-  
   const [newSectionCode, setNewSectionCode] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddSection = (e) => {
-    e.preventDefault();
-    if (!newSectionCode) return;
-    
-    const newEntry = {
-      id: Date.now(),
-      code: newSectionCode.toUpperCase(),
-      studentsCount: 0,
-      status: 'active',
-      createdBy: 'Admin'
-    };
-    
-    const updatedSections = [newEntry, ...sections];
-    setSections(updatedSections);
-    saveSections(updatedSections); // Save to local storage
-
-    setNewSectionCode('');
+  const fetchSections = async () => {
+    try {
+      setIsLoading(true);
+      const res = await axios.get('http://localhost:5001/api/sections', { withCredentials: true });
+      setSections(res.data.data);
+    } catch (err) {
+      console.error("Failed to fetch sections", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    const updatedSections = sections.filter(sec => sec.id !== id);
-    setSections(updatedSections);
-    saveSections(updatedSections); // Save to local storage
+  useEffect(() => {
+    fetchSections();
+  }, []);
+
+  const handleAddSection = async (e) => {
+    e.preventDefault();
+    if (!newSectionCode.trim()) return;
+    
+    try {
+      await axios.post('http://localhost:5001/api/admin/sections', {
+        name: newSectionCode.toUpperCase()
+      }, { withCredentials: true });
+      
+      setNewSectionCode('');
+      fetchSections();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create section');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if(!window.confirm("Are you sure you want to delete this section? This might impact linked teachers/students.")) return;
+    // Note: The backend currently lacks a DELETE /sections endpoint.
+    // If you need actual deletion, you must add it to the backend `adminController.js` first.
+    // For now, alerting user.
+    alert("Delete section functionality requires a database cascade update. Not implemented yet.");
   };
 
   const filteredSections = sections.filter(sec => 
-    sec.code.toLowerCase().includes(searchTerm.toLowerCase())
+    sec.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -104,7 +114,9 @@ const SectionManager = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <AnimatePresence>
-              {filteredSections.length === 0 ? (
+              {isLoading ? (
+                <div className="col-span-full py-12 text-center text-gray-500 animate-pulse">Loading sections...</div>
+              ) : filteredSections.length === 0 ? (
                 <div className="col-span-full py-12 text-center text-gray-500 border border-dashed border-gray-800 rounded-xl">
                   No sections found matching "{searchTerm}".
                 </div>
@@ -123,11 +135,9 @@ const SectionManager = () => {
                     
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-2xl font-bold text-white tracking-tight uppercase">{sec.code}</h3>
-                        <span className={`inline-block px-1.5 py-0.5 rounded mt-1 text-[9px] uppercase tracking-widest font-bold ${
-                          sec.status === 'active' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-gray-800 text-gray-400 border border-gray-700'
-                        }`}>
-                          {sec.status}
+                        <h3 className="text-2xl font-bold text-white tracking-tight uppercase">{sec.name}</h3>
+                        <span className="inline-block px-1.5 py-0.5 rounded mt-1 text-[9px] uppercase tracking-widest font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                          Active
                         </span>
                       </div>
                       <button 
@@ -141,10 +151,10 @@ const SectionManager = () => {
                     <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-800/50">
                       <div className="flex items-center gap-1.5 text-gray-400">
                         <Users className="w-4 h-4" />
-                        <span className="text-sm font-medium">{sec.studentsCount} Enrolled</span>
+                        <span className="text-sm font-medium">{sec._count?.users || 0} Enrolled</span>
                       </div>
                       <div className="text-[10px] text-gray-600 uppercase tracking-wider">
-                        By {sec.createdBy}
+                        Est. {new Date(sec.createdAt).toLocaleDateString()}
                       </div>
                     </div>
                   </motion.div>

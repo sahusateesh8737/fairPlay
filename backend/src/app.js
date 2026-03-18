@@ -8,6 +8,8 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const submissionRoutes = require('./routes/submissionRoutes');
+const sectionRoutes = require('./routes/sectionRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/sections', sectionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
