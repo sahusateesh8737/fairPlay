@@ -1,18 +1,36 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, KeyRound, UserCog, CornerDownLeft } from 'lucide-react';
+import { Shield, KeyRound, UserCog, CornerDownLeft, AlertTriangle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const AdminAuth = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username && password) {
-      // Mock login success
-      navigate('/admin/dashboard');
+    setError(null);
+    setLoading(true);
+    
+    try {
+      if (username && password) {
+        const userData = await login(username, password);
+        if (userData.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          setError('Access Denied: Insufficient privileges.');
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Authentication failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,13 +58,19 @@ const AdminAuth = () => {
           
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
 
-          <div className="flex flex-col items-center text-center mb-8">
+          <div className="flex flex-col items-center text-center mb-6">
             <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mb-4">
               <Shield className="w-8 h-8 text-red-500" />
             </div>
             <h1 className="text-xl font-bold text-white tracking-widest uppercase">System Admin</h1>
             <p className="text-red-500/60 text-xs mt-2 uppercase tracking-widest">Restricted Area</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center flex items-center justify-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
@@ -83,10 +107,11 @@ const AdminAuth = () => {
 
             <button 
               type="submit"
-              className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold py-2.5 px-4 rounded-lg mt-8 transition-colors text-sm uppercase tracking-widest flex items-center justify-center gap-2 group"
+              disabled={loading}
+              className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-bold py-2.5 px-4 rounded-lg mt-8 transition-colors text-sm uppercase tracking-widest flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Authenticate
-              <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />
+              {loading ? 'Authenticating...' : 'Authenticate'}
+              {!loading && <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />}
             </button>
           </form>
 
