@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, GraduationCap, Eye, EyeOff, Mail, Lock, CheckCircle2 } from 'lucide-react';
+import { User, GraduationCap, Eye, EyeOff, Mail, Lock, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -67,7 +67,8 @@ const Auth = () => {
       else navigate('/student/dashboard');
 
     } catch (err) {
-      setError(err.response?.data?.error || 'Authentication failed');
+      const apiErr = err.response?.data?.error;
+      setError(apiErr?.message || (typeof apiErr === 'string' ? apiErr : 'Authentication failed'));
     } finally {
       setLoading(false);
     }
@@ -139,9 +140,13 @@ const Auth = () => {
           </AnimatePresence>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
-              {error}
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
+            </motion.div>
           )}
 
           <form className="space-y-4" onSubmit={handleSubmit}>

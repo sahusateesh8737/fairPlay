@@ -28,7 +28,8 @@ const AdminAuth = () => {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Authentication failed');
+      const apiErr = err.response?.data?.error;
+      setError(apiErr?.message || (typeof apiErr === 'string' ? apiErr : 'Authentication failed'));
     } finally {
       setLoading(false);
     }

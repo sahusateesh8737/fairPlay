@@ -83,14 +83,14 @@ exports.login = async (req, res, next) => {
     });
 
     if (!user) {
-      return next(new ErrorResponse('Invalid credentials', 401));
+      return next(new ErrorResponse('Incorrect email or password', 401));
     }
 
     // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return next(new ErrorResponse('Invalid credentials', 401));
+      return next(new ErrorResponse('Incorrect email or password', 401));
     }
 
     sendTokenResponse(user, 200, res);
