@@ -23,6 +23,10 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json());
 
+// Global Rate Limiting
+const { globalLimiter } = require('./middlewares/rateLimiter');
+app.use('/api', globalLimiter);
+
 // Mount Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/assignments', assignmentRoutes);
