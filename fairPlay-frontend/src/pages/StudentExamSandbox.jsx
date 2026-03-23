@@ -43,9 +43,15 @@ const StudentExamSandbox = () => {
         setExam(activeExam);
         
         if (activeExam.questions && activeExam.questions.length > 0) {
-          const randomIndex = Math.floor(Math.random() * activeExam.questions.length);
-          const selectedVariation = activeExam.questions[randomIndex];
+          // DISTRIBUTION LOGIC: Deterministic Set Assignment
+          // Uses student ID and assignment ID to pick a stable variation for this student
+          // (Form A/B/C/etc based on number of variations provided)
+          const setIndex = (user.id + activeExam.id) % activeExam.questions.length;
+          const selectedVariation = activeExam.questions[setIndex];
           setQuestion(selectedVariation);
+
+          // We also store a 'Label' for the Heat Map (e.g. SET A, SET B)
+          activeExam.assignedSetLabel = String.fromCharCode(65 + setIndex); // 0->A, 1->B...
 
           // --- RESTORE from localStorage if available ---
           const storageKey = `fairplay_exam_${assignmentId}`;
@@ -79,21 +85,42 @@ const StudentExamSandbox = () => {
 
   // --- ANTI-CHEAT ENGINE ---
   useEffect(() => {
-    if (!exam) return;
+    if (exam && user) {
+      // Notify monitor room that student is in the exam
+      socket.emit('join_exam', {
+        assignmentId: exam.id,
+        studentId: user.id,
+        studentName: user.name,
+        rollNumber: user.rollNumber || 'N/A'
+      });
+    }
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
+      const isHidden = document.hidden;
+      const status = isHidden ? 'FLAGGED' : 'ACTIVE';
+      
+      if (isHidden) {
         const alertData = {
+          studentId: user?.id,
           studentName: user?.name || "Unknown Student",
           sectionId: exam.section?.name || "General",
+          assignmentId: exam.id,
           eventType: 'Tab Switched',
           timestamp: new Date().toLocaleTimeString(),
         };
         
         socket.emit('student_cheat_alert', alertData);
         setCheatLogs(prev => [...prev, alertData]);
-        showWarning("WARNING: You left the exam tab. This action has been logged and sent to your teacher.");
+        showWarning("WARNING: You left the exam tab. This action has been logged.");
       }
+
+      // Update live status on heat map
+      socket.emit('student_progress_update', {
+        assignmentId: exam.id,
+        studentId: user?.id,
+        tabStatus: status,
+        currentQuestion: question?.id
+      });
     };
 
     const preventDefaultAction = (e) => {
@@ -107,15 +134,17 @@ const StudentExamSandbox = () => {
 
       if (actionType) {
         const alertData = {
+          studentId: user?.id,
           studentName: user?.name || "Unknown Student",
           sectionId: exam.section?.name || "General",
+          assignmentId: exam.id,
           eventType: actionType,
           timestamp: new Date().toLocaleTimeString(),
         };
 
         socket.emit('student_cheat_alert', alertData);
         setCheatLogs(prev => [...prev, alertData]);
-        showWarning(`WARNING: ${actionType} actions are completely disabled and reported.`);
+        showWarning(`WARNING: ${actionType} reported.`);
       }
     };
 
@@ -277,6 +306,17 @@ const StudentExamSandbox = () => {
         cheatLogs: cheatLogs 
       };
       await axios.post('http://localhost:5001/api/submissions', finalSubmission);
+      
+      // Notify teacher immediately that student has submitted
+      socket.emit('student_status_update', {
+        assignmentId: exam.id,
+        studentId: user.id,
+        studentName: user.name,
+        rollNumber: user.rollNumber || 'N/A',
+        status: 'SUBMITTED',
+        timestamp: new Date().toLocaleTimeString()
+      });
+
       // Clear the autosave for this exam on successful submit
       localStorage.removeItem(`fairplay_exam_${assignmentId}`);
       alert(`Successfully Submitted!\n\nViolations Logged: ${cheatLogs.length}`);

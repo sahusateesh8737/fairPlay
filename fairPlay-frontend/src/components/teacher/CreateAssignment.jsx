@@ -220,7 +220,7 @@ const CreateAssignment = ({ setActiveTab }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2 font-bold flex justify-between">
+              <label className="flex justify-between text-sm font-bold text-gray-300 mb-2">
                 Assignment Description
                 <span className="text-blue-400 font-mono text-xs">{formData.maxScore} PTS</span>
               </label>

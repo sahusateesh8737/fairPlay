@@ -13,16 +13,62 @@ const initSocket = (server) => {
     io.on('connection', (socket) => {
         console.log('A user connected:', socket.id);
 
-        // Teacher joins a specific room for their section
-        socket.on('join_section_monitor', (sectionId) => {
-            socket.join(`room_${sectionId}`);
-            console.log(`Teacher joined monitoring for section: ${sectionId}`);
+        // --- EXAM MONITORING & HEAT MAP ---
+        
+        // Student joins a specific assignment room for live tracking
+        socket.on('join_exam', ({ assignmentId, studentId, studentName, rollNumber }) => {
+            const roomName = `exam_${assignmentId}`;
+            socket.join(roomName);
+            console.log(`Student ${studentName} (Roll: ${rollNumber}) joined exam room: ${roomName}`);
+            
+            // Notify teachers in the monitoring room that a student has joined/is active
+            io.to(`monitor_${assignmentId}`).emit('student_status_update', {
+                studentId,
+                studentName,
+                rollNumber,
+                status: 'ACTIVE',
+                timestamp: new Date().toLocaleTimeString()
+            });
         });
 
-        // Student's browser emits a cheat alert
+        // Teacher joins monitoring for a specific assignment
+        socket.on('teacher_join_monitoring', (assignmentId) => {
+            const monitorRoom = `monitor_${assignmentId}`;
+            socket.join(monitorRoom);
+            console.log(`Teacher joined monitoring for assignment: ${assignmentId}`);
+        });
+
+        // Live progress update from student to teacher
+        socket.on('student_progress_update', ({ assignmentId, studentId, progress, currentQuestion, tabStatus }) => {
+            io.to(`monitor_${assignmentId}`).emit('receive_progress_update', {
+                studentId,
+                progress,
+                currentQuestion,
+                tabStatus, // 'ACTIVE' or 'FLAGGED'
+                timestamp: new Date().toLocaleTimeString()
+            });
+        });
+
+        // Legacy: Section Monitor (can be kept for general section chat/etc)
+        socket.on('join_section_monitor', (sectionId) => {
+            socket.join(`room_${sectionId}`);
+            console.log(`Legacy room join for section: ${sectionId}`);
+        });
+
         socket.on('student_cheat_alert', (data) => {
-            console.log(`Cheat alert received from ${data.studentName} in room_${data.sectionId}: ${data.eventType}`);
+            // Forward to both section room and specific assignment monitor room if available
+            console.log(`Cheat alert received from ${data.studentName} in room_${data.sectionId}`);
             io.to(`room_${data.sectionId}`).emit('receive_cheat_alert', data);
+            
+            // Also notify any assignment-specific monitor
+            if (data.assignmentId) {
+                io.to(`monitor_${data.assignmentId}`).emit('student_status_update', {
+                    studentId: data.studentId,
+                    status: 'FLAGGED',
+                    eventType: data.eventType,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+            }
         });
 
         socket.on('disconnect', () => {
