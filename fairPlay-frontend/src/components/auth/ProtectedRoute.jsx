@@ -15,8 +15,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!user) {
-    // Redirect to login but save the attempted location
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    // Redirect to home if not logged in
+    return <Navigate to="/" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
