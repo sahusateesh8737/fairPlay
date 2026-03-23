@@ -16,8 +16,12 @@ const app = express();
 // Middlewares
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE" , "PATCH"],
+    origin: [
+        "http://localhost:5173",
+        "https://fair-play-liart.vercel.app",
+        process.env.CLIENT_URL // fallback for custom envs
+    ].filter(Boolean),
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true
 }));
 app.use(morgan('dev'));
