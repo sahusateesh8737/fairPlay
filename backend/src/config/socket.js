@@ -76,6 +76,12 @@ const initSocket = (server) => {
             }
         });
 
+        socket.on('student_status_update', (data) => {
+            if (data.assignmentId) {
+                io.to(`monitor_${data.assignmentId}`).emit('student_status_update', data);
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log('User disconnected:', socket.id);
         });

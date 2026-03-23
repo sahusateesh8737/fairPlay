@@ -31,14 +31,15 @@ exports.register = async (req, res, next) => {
       }
       
       // Look up or create section by name
+      const normalizedSectionName = sectionName.toUpperCase();
       let section = await prisma.section.findUnique({
-        where: { name: sectionName }
+        where: { name: normalizedSectionName }
       });
 
       // For dev/testing: auto-create section if it doesn't exist
       if (!section) {
         section = await prisma.section.create({
-          data: { name: sectionName }
+          data: { name: normalizedSectionName }
         });
       }
       resolvedSectionId = section.id;

@@ -13,12 +13,14 @@ exports.createAssignment = async (req, res, next) => {
       return next(new ErrorResponse('Please provide a target section', 400));
     }
 
+    const normalizedSectionName = sectionName.toUpperCase();
+
     const section = await prisma.section.findUnique({
-      where: { name: sectionName }
+      where: { name: normalizedSectionName }
     });
 
     if (!section) {
-      return next(new ErrorResponse(`Section '${sectionName}' not found`, 404));
+      return next(new ErrorResponse(`Section '${normalizedSectionName}' not found`, 404));
     }
 
     const assignment = await prisma.assignment.create({
