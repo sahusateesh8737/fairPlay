@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, User, Clock, ShieldAlert, X, Radio } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
-const socket = io('http://localhost:5001');
+const socket = io(`${import.meta.env.VITE_API_BASE_URL}`);
 
 const LiveMonitor = ({ sectionId: propSectionId }) => {
   const { sectionId: paramsSectionId } = useParams();

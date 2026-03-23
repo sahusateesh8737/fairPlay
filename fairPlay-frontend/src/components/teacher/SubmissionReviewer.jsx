@@ -8,7 +8,7 @@ import {
   Send, ChevronLeft, ShieldAlert, MonitorPlay, Code2, Terminal
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5001/api';
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
 const SubmissionReviewer = () => {
   const { submissionId } = useParams();

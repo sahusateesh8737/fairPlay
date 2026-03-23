@@ -18,7 +18,7 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchExams = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/assignments');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments`);
         setExams(res.data.data);
       } catch (err) {
         console.error("Failed to fetch assignments", err);

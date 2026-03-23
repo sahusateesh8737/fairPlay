@@ -8,7 +8,7 @@ import { io } from 'socket.io-client';
 
 import { useAuth } from '../context/AuthContext';
 
-const socket = io('http://localhost:5001');
+const socket = io(`${import.meta.env.VITE_API_BASE_URL}`);
 
 const StudentExamSandbox = () => {
   const { user } = useAuth();
@@ -38,7 +38,7 @@ const StudentExamSandbox = () => {
   useEffect(() => {
     const fetchExam = async () => {
       try {
-        const res = await axios.get(`http://localhost:5001/api/assignments/${assignmentId}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments/${assignmentId}`);
         const activeExam = res.data.data;
         setExam(activeExam);
         
@@ -305,7 +305,7 @@ const StudentExamSandbox = () => {
         files: files,
         cheatLogs: cheatLogs 
       };
-      await axios.post('http://localhost:5001/api/submissions', finalSubmission);
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/submissions`, finalSubmission);
       
       // Notify teacher immediately that student has submitted
       socket.emit('student_status_update', {

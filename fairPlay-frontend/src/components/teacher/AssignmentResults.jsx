@@ -15,7 +15,7 @@ const AssignmentResults = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/assignments', {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         const options = res.data.data;
@@ -36,7 +36,7 @@ const AssignmentResults = () => {
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:5001/api/submissions/assignment/${activeAssignment}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/submissions/assignment/${activeAssignment}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setSubmissions(res.data.data);

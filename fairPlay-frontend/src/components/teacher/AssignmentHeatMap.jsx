@@ -8,7 +8,7 @@ import {
 import { io } from 'socket.io-client';
 import axios from 'axios';
 
-const socket = io('http://localhost:5001');
+const socket = io(`${import.meta.env.VITE_API_BASE_URL}`);
 
 const AssignmentHeatMap = ({ assignmentId, onClose }) => {
   const [assignment, setAssignment] = useState(null);
@@ -27,8 +27,8 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
     const fetchData = async () => {
       try {
         const [assignRes, studentRes] = await Promise.all([
-          axios.get(`http://localhost:5001/api/assignments/${assignmentId}`),
-          axios.get(`http://localhost:5001/api/auth/students`) // We'll filter this by section in a real app
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments/${assignmentId}`),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/auth/students`) // We'll filter this by section in a real app
         ]);
 
         const activeAssign = assignRes.data.data;

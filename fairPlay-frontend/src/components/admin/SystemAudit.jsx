@@ -13,9 +13,9 @@ const SystemAudit = () => {
     try {
       setIsLoading(true);
       const [metricsRes, logsRes, sectionsRes] = await Promise.all([
-        axios.get('http://localhost:5001/api/admin/analytics/metrics', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/admin/analytics/logs', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/sections', { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/analytics/metrics`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/analytics/logs`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/sections`, { withCredentials: true })
       ]);
       setMetrics(metricsRes.data.data);
       setLogs(logsRes.data.data);

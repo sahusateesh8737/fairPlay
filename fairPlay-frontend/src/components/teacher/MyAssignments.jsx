@@ -15,7 +15,7 @@ const MyAssignments = ({ setActiveTab, searchQuery = '' }) => {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/assignments');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments`);
         setAssignments(res.data.data);
       } catch (err) {
         console.error("Failed to fetch assignments", err);
@@ -29,7 +29,7 @@ const MyAssignments = ({ setActiveTab, searchQuery = '' }) => {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this assignment?')) return;
     try {
-      await axios.delete(`http://localhost:5001/api/assignments/${id}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/assignments/${id}`);
       setAssignments(assignments.filter(a => a.id !== id));
     } catch (err) {
       console.error("Delete failed", err);
@@ -38,7 +38,7 @@ const MyAssignments = ({ setActiveTab, searchQuery = '' }) => {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      const res = await axios.patch(`http://localhost:5001/api/assignments/${id}/status`, { status: newStatus });
+      const res = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/api/assignments/${id}/status`, { status: newStatus });
       setAssignments(assignments.map(a => a.id === id ? { ...a, status: res.data.data.status } : a));
     } catch (err) {
       console.error('Status update failed', err);

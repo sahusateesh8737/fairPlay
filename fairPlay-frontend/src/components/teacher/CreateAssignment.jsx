@@ -11,7 +11,7 @@ const CreateAssignment = ({ setActiveTab }) => {
   useEffect(() => {
     const fetchSections = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/auth/sections');
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/auth/sections`);
         setAvailableSections(res.data.data);
       } catch (err) {
         console.error("Failed to fetch sections", err);
@@ -85,7 +85,7 @@ const CreateAssignment = ({ setActiveTab }) => {
         }))
       };
 
-      await axios.post('http://localhost:5001/api/assignments', payload);
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/assignments`, payload);
       setShowSuccess(true);
       setTimeout(() => setActiveTab('assignments'), 2000);
     } catch (err) {

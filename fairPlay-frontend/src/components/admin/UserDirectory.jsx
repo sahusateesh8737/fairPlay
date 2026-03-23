@@ -19,8 +19,8 @@ const UserDirectory = () => {
     try {
       setIsLoading(true);
       const [usersRes, sectionsRes] = await Promise.all([
-        axios.get('http://localhost:5001/api/admin/users', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/sections', { withCredentials: true }) // Using public/teacher route for list
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/sections`, { withCredentials: true }) // Using public/teacher route for list
       ]);
       setUsers(usersRes.data.data);
       setSections(sectionsRes.data.data);
@@ -41,7 +41,7 @@ const UserDirectory = () => {
     setCreateSuccess('');
     
     try {
-      await axios.post('http://localhost:5001/api/admin/users/teacher', newTeacher, { withCredentials: true });
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/teacher`, newTeacher, { withCredentials: true });
       setCreateSuccess('Teacher account provisioned successfully!');
       setNewTeacher({ name: '', email: '', password: '', sectionId: '' });
       fetchUsersAndSections(); // Refresh list
@@ -55,7 +55,7 @@ const UserDirectory = () => {
     if (!window.confirm(`Are you sure you want to completely remove ${role.toUpperCase()} ${name}? This action cannot be undone and will delete all their submissions/assignments.`)) return;
     
     try {
-      await axios.delete(`http://localhost:5001/api/admin/users/${id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/admin/users/${id}`, { withCredentials: true });
       fetchUsersAndSections();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete user');

@@ -21,8 +21,8 @@ const StudentProgress = () => {
     const fetchInitialData = async () => {
       try {
         const [assignRes, sectionRes] = await Promise.all([
-          axios.get('http://localhost:5001/api/assignments'),
-          axios.get('http://localhost:5001/api/auth/sections')
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments`),
+          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/auth/sections`)
         ]);
         
         const assignmentsData = assignRes.data.data;
@@ -52,13 +52,13 @@ const StudentProgress = () => {
         let res;
         if (viewMode === 'assignment') {
           if (!activeAssignment) return;
-          res = await axios.get(`http://localhost:5001/api/submissions/assignment/${activeAssignment}`);
+          res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/submissions/assignment/${activeAssignment}`);
           setStudents(res.data.data);
         } else {
           if (!activeSection) return;
           const url = activeSection === 'all' 
-            ? 'http://localhost:5001/api/auth/students' 
-            : `http://localhost:5001/api/auth/students?sectionName=${activeSection}`;
+            ? `${import.meta.env.VITE_API_BASE_URL}/api/auth/students` 
+            : `${import.meta.env.VITE_API_BASE_URL}/api/auth/students?sectionName=${activeSection}`;
           res = await axios.get(url);
           setStudents(res.data.data);
         }

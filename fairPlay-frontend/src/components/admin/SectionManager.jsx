@@ -12,7 +12,7 @@ const SectionManager = () => {
   const fetchSections = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get('http://localhost:5001/api/sections', { withCredentials: true });
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/sections`, { withCredentials: true });
       setSections(res.data.data);
     } catch (err) {
       console.error("Failed to fetch sections", err);
@@ -30,7 +30,7 @@ const SectionManager = () => {
     if (!newSectionCode.trim()) return;
     
     try {
-      await axios.post('http://localhost:5001/api/admin/sections', {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/sections`, {
         name: newSectionCode.toUpperCase()
       }, { withCredentials: true });
       

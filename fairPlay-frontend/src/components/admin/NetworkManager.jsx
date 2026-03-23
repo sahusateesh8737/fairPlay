@@ -14,8 +14,8 @@ const NetworkManager = () => {
     try {
       setIsLoading(true);
       const [ipRes, configRes] = await Promise.all([
-        axios.get('http://localhost:5001/api/admin/ips', { withCredentials: true }),
-        axios.get('http://localhost:5001/api/admin/config/override', { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/ips`, { withCredentials: true }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/admin/config/override`, { withCredentials: true })
       ]);
       setIps(ipRes.data.data);
       setIsOverrideActive(configRes.data.data.emergencyOverride);
@@ -36,7 +36,7 @@ const NetworkManager = () => {
     if (!newIp.trim()) return;
     try {
       setError('');
-      await axios.post('http://localhost:5001/api/admin/ips', {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/ips`, {
         ipAddress: newIp,
         description: newDesc
       }, { withCredentials: true });
@@ -52,7 +52,7 @@ const NetworkManager = () => {
   const handleRemoveIp = async (id) => {
     if (!window.confirm("Are you sure you want to remove this IP from the whitelist?")) return;
     try {
-      await axios.delete(`http://localhost:5001/api/admin/ips/${id}`, { withCredentials: true });
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/admin/ips/${id}`, { withCredentials: true });
       fetchNetworkData();
     } catch (err) {
       setError('Failed to remove IP');
@@ -64,7 +64,7 @@ const NetworkManager = () => {
     if (!window.confirm(`Are you absolutely sure you want to ${action} the Emergency Override? ${!isOverrideActive ? 'This will allow ANY location to access exams.' : ''}`)) return;
     
     try {
-      const res = await axios.post('http://localhost:5001/api/admin/config/override', {
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/admin/config/override`, {
         emergencyOverride: !isOverrideActive
       }, { withCredentials: true });
       setIsOverrideActive(res.data.data.emergencyOverride);
