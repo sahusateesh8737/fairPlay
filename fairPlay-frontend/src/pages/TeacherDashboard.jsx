@@ -9,6 +9,7 @@ import CreateAssignment from '../components/teacher/CreateAssignment';
 import StudentProgress from '../components/teacher/StudentProgress';
 import AssignmentResults from '../components/teacher/AssignmentResults';
 import LiveMonitor from '../components/teacher/LiveMonitor';
+import UserProfile from '../components/auth/UserProfile';
 
 import { useAuth } from '../context/AuthContext';
 
@@ -116,11 +117,7 @@ const TeacherDashboard = () => {
                 className="bg-[#111115] border border-gray-800 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/30 transition-all w-64 text-white placeholder:text-gray-600"
               />
             </div>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-[2px]">
-               <div className="w-full h-full rounded-full bg-[#0a0a0c] flex items-center justify-center border-2 border-[#0a0a0c]">
-                 <span className="text-white text-xs font-bold">SJ</span>
-               </div>
-            </div>
+            <UserProfile />
           </div>
         </header>
 

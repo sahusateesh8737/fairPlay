@@ -7,11 +7,14 @@ const API_URL = 'http://localhost:5001/api/auth';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(() => {
+    const savedToken = localStorage.getItem('token');
+    return (savedToken === 'null' || savedToken === 'undefined') ? null : savedToken;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
+    if (token && token !== 'undefined' && token !== 'null') {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchMe();
     } else {

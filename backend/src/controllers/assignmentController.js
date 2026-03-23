@@ -6,7 +6,7 @@ const ErrorResponse = require('../utils/ErrorResponse');
 // @access  Private (Teacher)
 exports.createAssignment = async (req, res, next) => {
   try {
-    const { title, sectionName, dueDate, questions } = req.body;
+    const { title, sectionName, dueDate, questions, description, difficulty, language, maxScore } = req.body;
 
     // Resolve section by name
     if (!sectionName) {
@@ -28,6 +28,10 @@ exports.createAssignment = async (req, res, next) => {
         section: { connect: { id: section.id } },
         teacher: { connect: { id: req.user.id } },
         dueDate: dueDate ? new Date(dueDate) : null,
+        description,
+        difficulty: difficulty || 'Medium',
+        language: language || 'JavaScript',
+        maxScore: maxScore ? parseInt(maxScore) : 100,
         questions: {
           create: questions.map(q => ({
             prompt: q.prompt,

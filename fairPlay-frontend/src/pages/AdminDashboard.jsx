@@ -10,6 +10,7 @@ import NetworkManager from '../components/admin/NetworkManager';
 import SectionManager from '../components/admin/SectionManager';
 import UserDirectory from '../components/admin/UserDirectory';
 import SystemAudit from '../components/admin/SystemAudit';
+import UserProfile from '../components/auth/UserProfile';
 
 const Overview = () => (
   <>
@@ -178,6 +179,7 @@ const AdminDashboard = () => {
                 className="bg-[#111115] border border-gray-800 rounded-md py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:border-gray-600 transition-colors w-64 text-white"
               />
             </div>
+            <UserProfile />
           </div>
         </header>
 

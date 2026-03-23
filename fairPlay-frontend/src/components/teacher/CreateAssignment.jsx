@@ -23,7 +23,11 @@ const CreateAssignment = ({ setActiveTab }) => {
   const [formData, setFormData] = useState({
     title: '',
     targetSection: '',
-    dueDate: ''
+    dueDate: '',
+    description: '',
+    difficulty: 'Medium',
+    language: 'JavaScript',
+    maxScore: '100'
   });
   
   const [questions, setQuestions] = useState([
@@ -71,6 +75,10 @@ const CreateAssignment = ({ setActiveTab }) => {
         title: formData.title,
         sectionName: formData.targetSection,
         dueDate: formData.dueDate,
+        description: formData.description,
+        difficulty: formData.difficulty,
+        language: formData.language,
+        maxScore: formData.maxScore,
         questions: questions.map(q => ({
           prompt: q.prompt,
           boilerplate: q.boilerplate
@@ -169,18 +177,67 @@ const CreateAssignment = ({ setActiveTab }) => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Due Date & Time</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
-                  <Calendar className="w-4 h-4" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Due Date & Time</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <input 
+                    required
+                    type="datetime-local" 
+                    className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all [color-scheme:dark]"
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Difficulty</label>
+                <select 
+                  className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50 [&>option]:text-black"
+                  value={formData.difficulty}
+                  onChange={(e) => setFormData({...formData, difficulty: e.target.value})}
+                >
+                  <option value="Easy">Easy</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Language</label>
                 <input 
-                  required
-                  type="datetime-local" 
-                  className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all [color-scheme:dark]"
-                  value={formData.dueDate}
-                  onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                  type="text" 
+                  placeholder="e.g., React"
+                  className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50"
+                  value={formData.language}
+                  onChange={(e) => setFormData({...formData, language: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2 font-bold flex justify-between">
+                Assignment Description
+                <span className="text-blue-400 font-mono text-xs">{formData.maxScore} PTS</span>
+              </label>
+              <textarea 
+                rows="3" 
+                placeholder="Briefly describe the context of this assessment for the student dashboard..."
+                className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+              ></textarea>
+              
+              <div className="mt-2 text-right">
+                <input 
+                  type="range" min="10" max="1000" step="10"
+                  className="w-48 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  value={formData.maxScore}
+                  onChange={(e) => setFormData({...formData, maxScore: e.target.value})}
                 />
               </div>
             </div>

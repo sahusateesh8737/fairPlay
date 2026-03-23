@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search } from 'lucide-react';
+import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search, ChevronDown, Code2, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import UserProfile from '../components/auth/UserProfile';
+import CountdownTimer from '../components/common/CountdownTimer';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const [exams, setExams] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,23 +37,20 @@ const StudentDashboard = () => {
     e.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const getDifficultyColor = (diff) => {
+    switch (diff?.toLowerCase()) {
+      case 'easy': return 'text-green-400 border-green-500/20 bg-green-500/10';
+      case 'hard': return 'text-red-400 border-red-500/20 bg-red-500/10';
+      default: return 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#050507] p-8 md:p-12">
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative">
-          
-          {/* Top Right Logout */}
-          <button 
-            onClick={logout}
-            className="absolute top-0 right-0 p-2 pl-4 pr-4 bg-gray-900 border border-gray-800 hover:border-red-500/50 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-xl transition-all flex items-center gap-2 group shadow-lg"
-            title="Sign Out"
-          >
-            <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-sm font-medium">Log Out</span>
-          </button>
-
           <div>
             <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
               <BookOpen className="w-8 h-8 text-blue-400" />
@@ -70,17 +70,7 @@ const StudentDashboard = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-4 bg-[#0a0a0c] p-2 pr-6 rounded-full border border-gray-800 md:mt-0 mt-8">
-             <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 p-[2px]">
-               <div className="w-full h-full rounded-full bg-[#0a0a0c] flex items-center justify-center border-2 border-[#0a0a0c]">
-                 <span className="text-white text-sm font-bold">{user?.name?.charAt(0) || 'S'}</span>
-               </div>
-             </div>
-             <div>
-               <p className="text-white font-medium text-sm leading-tight">{user?.name || 'Student'}</p>
-               <p className="text-gray-500 text-xs">{user?.email}</p>
-             </div>
-          </div>
+          <UserProfile />
         </div>
 
         {/* Exams Grid */}
@@ -108,35 +98,67 @@ const StudentDashboard = () => {
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#0a0a0c] border border-gray-800 rounded-2xl p-6 hover:border-blue-500/50 transition-colors shadow-lg group flex flex-col relative overflow-hidden"
+                  className="bg-[#0a0a0c] border border-gray-800 rounded-3xl p-6 hover:border-primary/40 transition-all shadow-xl group flex flex-col relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none group-hover:bg-blue-500/20 transition-colors" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors" />
                   
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider border bg-red-500/10 text-red-400 border-red-500/20 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3" /> Strict Proctoring
-                    </span>
+                  {/* Top Badges */}
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex gap-2">
+                       <span className={`px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider border ${getDifficultyColor(exam.difficulty)}`}>
+                        {exam.difficulty || 'Medium'}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider border bg-white/5 text-gray-400 border-white/5 flex items-center gap-1.5">
+                        <Code2 className="w-3 h-3 text-blue-400" /> {exam.language || 'React'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] uppercase font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg border border-primary/20">
+                      <Award className="w-3 h-3" /> {exam.maxScore || 100} PTS
+                    </div>
                   </div>
                   
-                  <h3 className="text-xl font-bold text-white mb-2 leading-tight min-h-[56px]">{exam.title}</h3>
+                  <h3 className="text-xl font-bold text-white mb-4 leading-tight group-hover:text-primary transition-colors">{exam.title}</h3>
                   
-                  <div className="flex items-center gap-2 text-sm text-gray-400 mb-6 bg-[#111115] w-fit px-3 py-1.5 rounded-lg border border-gray-800/50">
-                    <Clock className="w-4 h-4 text-orange-400" />
-                    <span>Due: <strong className="text-white">{new Date(exam.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</strong></span>
+                  {/* Countdown / Due Date */}
+                  <div className="mb-6">
+                    <CountdownTimer dueDate={exam.dueDate} />
                   </div>
 
-                  <div className="mt-auto pt-4 border-t border-gray-800/50">
+                  {/* Expandable Section */}
+                  <div className="mb-6">
+                    <button 
+                      onClick={() => setExpandedId(expandedId === exam.id ? null : exam.id)}
+                      className="flex items-center gap-2 text-xs font-semibold text-gray-500 hover:text-white transition-colors uppercase tracking-widest mb-2"
+                    >
+                      Assignment Details
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedId === exam.id ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {expandedId === exam.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <p className="text-sm text-gray-400 leading-relaxed pt-2 line-clamp-4">
+                            {exam.description || "No additional instructions provided. Please follow the problem statement in the sandbox environment."}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <div className="mt-auto pt-5 border-t border-white/5 space-y-3">
                     {exam.submissions && exam.submissions.length > 0 ? (
-                      <button 
-                        disabled
-                        className="w-full flex justify-center items-center gap-2 py-3 bg-gray-800 text-green-400 font-medium rounded-xl border border-green-500/20 shadow-[0_0_15px_rgba(34,197,94,0.1)] cursor-not-allowed"
-                      >
+                      <div className="w-full flex justify-center items-center gap-2 py-3 bg-white/5 text-green-400 font-bold rounded-2xl border border-green-500/20 shadow-inner">
                         <CheckCircle className="w-5 h-5" /> Completed
-                      </button>
+                      </div>
                     ) : (
                       <button 
                         onClick={() => handleStartExam(exam.id)}
-                        className="w-full flex justify-center items-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] hover:shadow-[0_0_30px_rgba(37,99,235,0.4)]"
+                        className="w-full flex justify-center items-center gap-2 py-3.5 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-500 text-white font-bold rounded-2xl transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_15px_30px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 active:translate-y-0"
                       >
                         <Play className="w-5 h-5" /> Start Assessment
                       </button>

@@ -22,39 +22,54 @@ function App() {
           <Route path="/auth" element={<Auth />} />
           
           {/* Protected Routes */}
+          <Route path="/admin" element={<AdminAuth />} />
           <Route 
-            path="/admin/*" 
+            path="/admin/dashboard" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <Routes>
-                  <Route path="/" element={<AdminAuth />} />
-                  <Route path="dashboard" element={<AdminDashboard />} />
-                </Routes>
+                <AdminDashboard />
               </ProtectedRoute>
             } 
           />
 
           <Route 
-            path="/teacher/*" 
+            path="/teacher/dashboard" 
             element={
               <ProtectedRoute allowedRoles={['teacher', 'admin']}>
-                <Routes>
-                  <Route path="dashboard" element={<TeacherDashboard />} />
-                  <Route path="live-monitor/:sectionId" element={<LiveMonitor />} />
-                  <Route path="review/:submissionId" element={<SubmissionReviewer />} />
-                </Routes>
+                <TeacherDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/teacher/live-monitor/:sectionId" 
+            element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <LiveMonitor />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/teacher/review/:submissionId" 
+            element={
+              <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+                <SubmissionReviewer />
               </ProtectedRoute>
             } 
           />
           
           <Route 
-            path="/student/*" 
+            path="/student/dashboard" 
             element={
               <ProtectedRoute allowedRoles={['student', 'admin']}>
-                <Routes>
-                  <Route path="dashboard" element={<StudentDashboard />} />
-                  <Route path="exam/:assignmentId" element={<StudentExamSandbox />} />
-                </Routes>
+                <StudentDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/student/exam/:assignmentId" 
+            element={
+              <ProtectedRoute allowedRoles={['student', 'admin']}>
+                <StudentExamSandbox />
               </ProtectedRoute>
             } 
           />

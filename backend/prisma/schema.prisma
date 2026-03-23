@@ -58,6 +58,10 @@ model Assignment {
   teacherId       Int          @map("teacher_id")
   teacher         User         @relation("TeacherAssignments", fields: [teacherId], references: [id])
   dueDate         DateTime?    @map("due_date")
+  description     String?      @db.Text
+  difficulty      String?      @default("Medium") // "Easy", "Medium", "Hard"
+  language        String?      @default("JavaScript")
+  maxScore        Int?         @default(100) @map("max_score")
   status          String       @default("draft") // "draft", "active", "closed"
   createdAt       DateTime     @default(now())
   

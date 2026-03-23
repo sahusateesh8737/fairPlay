@@ -7,11 +7,12 @@ import { useAuth } from '../context/AuthContext';
 const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, login, register } = useAuth();
+  const { user, login, register, loading: authLoading } = useAuth();
   
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successData, setSuccessData] = useState(null);
 
   // Redirect if already logged in (prevents back button to login bug)
   useEffect(() => {
@@ -21,6 +22,14 @@ const Auth = () => {
       else navigate('/student/dashboard', { replace: true });
     }
   }, [user, navigate]);
+  
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const [formData, setFormData] = useState({
     name: '',
@@ -61,10 +70,14 @@ const Auth = () => {
         userData = await register(formData);
       }
 
-      // Role-based redirection
-      if (userData.role === 'admin') navigate('/admin/dashboard');
-      else if (userData.role === 'teacher') navigate('/teacher/dashboard');
-      else navigate('/student/dashboard');
+      // Show success animation before redirecting
+      setSuccessData(userData);
+      
+      setTimeout(() => {
+        if (userData.role === 'admin') navigate('/admin/dashboard');
+        else if (userData.role === 'teacher') navigate('/teacher/dashboard');
+        else navigate('/student/dashboard');
+      }, 1500);
 
     } catch (err) {
       const apiErr = err.response?.data?.error;
@@ -95,16 +108,53 @@ const Auth = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md z-10"
       >
-        <div className="glass-card rounded-3xl p-8 shadow-2xl border-white/10 relative overflow-hidden">
+        <div className="glass-card rounded-3xl p-8 shadow-2xl border-white/10 relative overflow-hidden min-h-[450px] flex flex-col justify-center">
           
-          <div className="text-center mb-8 line-clamp-1">
-            <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
-              {isLogin ? 'Welcome Back' : 'Create an Account'}
-            </h2>
-            <p className="text-gray-400 text-sm">
-              {isLogin ? 'Enter your credentials to access your portal' : 'Get started with the ultimate assessment platform'}
-            </p>
-          </div>
+          <AnimatePresence mode="wait">
+            {successData ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center text-center space-y-4 py-8"
+              >
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.1 }}
+                  className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-2"
+                >
+                  <CheckCircle2 className="w-10 h-10 text-green-500" />
+                </motion.div>
+                <h3 className="text-2xl font-bold text-white tracking-tight">
+                  Welcome to fairPlay, {successData.name.split(' ')[0]}!
+                </h3>
+                <p className="text-gray-400 text-sm">Preparing your secure workspace...</p>
+                <div className="w-48 h-1 bg-gray-800 rounded-full overflow-hidden mt-6">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 1.2, ease: "easeInOut", delay: 0.2 }}
+                    className="h-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"
+                  />
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <div className="text-center mb-8 line-clamp-1">
+                  <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
+                    {isLogin ? 'Welcome Back' : 'Create an Account'}
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    {isLogin ? 'Enter your credentials to access your portal' : 'Get started with the ultimate assessment platform'}
+                  </p>
+                </div>
 
           {/* Role Toggle for Sign Up */}
           <AnimatePresence mode="popLayout">
@@ -291,14 +341,17 @@ const Auth = () => {
           <div className="mt-8 text-center">
             <p className="text-gray-400 text-sm">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <button 
-                onClick={toggleAuthMode}
-                className="text-primary font-medium hover:text-blue-400 transition-colors"
-              >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
-            </p>
-          </div>
+                  <button 
+                    onClick={toggleAuthMode}
+                    className="text-primary font-medium hover:text-blue-400 transition-colors"
+                  >
+                    {isLogin ? 'Sign up' : 'Sign in'}
+                  </button>
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         </div>
       </motion.div>
