@@ -60,8 +60,14 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
+  const updateProfile = async (profileData) => {
+    const res = await axios.put(`${API_URL}/profile`, profileData);
+    setUser(res.data.data);
+    return res.data.data;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, fetchMe }}>
       {children}
     </AuthContext.Provider>
   );

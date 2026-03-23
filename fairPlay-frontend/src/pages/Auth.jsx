@@ -191,9 +191,10 @@ const Auth = () => {
 
           {error && (
             <motion.div 
-              initial={{ opacity: 0, y: -10 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-center gap-2"
+              initial={{ opacity: 0, x: -20 }} 
+              animate={{ opacity: 1, x: [0, -10, 10, -10, 10, 0] }}
+              transition={{ x: { duration: 0.4, ease: "easeInOut" }, opacity: { duration: 0.2 } }}
+              className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
             >
               <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
             </motion.div>

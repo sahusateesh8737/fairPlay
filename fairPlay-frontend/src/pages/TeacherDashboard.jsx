@@ -18,11 +18,11 @@ const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState('assignments');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Resolved from database
+  // Resolve sections from user profile
   const teacherProfile = {
     name: user?.name || 'Instructor',
     email: user?.email || '',
-    sections: ['k23DJ'] // In real app, we might want a sections endpoint or include in 'me'
+    sections: user?.section?.name ? [user.section.name] : ['General']
   };
 
   const navItems = [
@@ -96,8 +96,12 @@ const TeacherDashboard = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden z-10 relative">
+      <motion.main 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex-1 flex flex-col h-screen overflow-hidden z-10 relative"
+      >
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Top Header */}
@@ -127,7 +131,7 @@ const TeacherDashboard = () => {
           {activeTab === 'create' && <CreateAssignment teacherSections={teacherProfile.sections} setActiveTab={setActiveTab} />}
           {activeTab === 'students' && <StudentProgress />}
           {activeTab === 'results' && <AssignmentResults />}
-          {activeTab === 'monitor' && <LiveMonitor sectionId={teacherProfile.sections[0]} />}
+          {activeTab === 'monitor' && <LiveMonitor sectionId={user?.section?.name || 'General'} />}
           
           {['settings'].includes(activeTab) && (
             <motion.div 
@@ -141,7 +145,7 @@ const TeacherDashboard = () => {
             </motion.div>
           )}
         </div>
-      </main>
+      </motion.main>
     </div>
   );
 };

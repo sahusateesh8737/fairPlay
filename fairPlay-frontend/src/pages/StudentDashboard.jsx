@@ -46,7 +46,12 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] p-8 md:p-12">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-[#050507] p-8 md:p-12"
+    >
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header */}
@@ -170,7 +175,7 @@ const StudentDashboard = () => {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

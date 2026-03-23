@@ -135,10 +135,58 @@ const sendTokenResponse = (user, statusCode, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      sectionId: user.sectionId
+      sectionId: user.sectionId,
+      registrationNumber: user.registrationNumber,
+      department: user.department,
+      semester: user.semester,
+      year: user.year,
+      rollNumber: user.rollNumber
     }
   });
 };
+
+// @desc    Update user profile (academic details)
+// @route   PUT /api/auth/profile
+// @access  Private
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { registrationNumber, department, semester, year, rollNumber } = req.body;
+
+    // Check if registration number is already taken by another user
+    if (registrationNumber) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          registrationNumber,
+          NOT: { id: req.user.id }
+        }
+      });
+
+      if (existingUser) {
+        return next(new ErrorResponse('Registration number is already in use', 400));
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        registrationNumber,
+        department,
+        semester: semester ? parseInt(semester) : null,
+        year: year ? parseInt(year) : null,
+        rollNumber
+      },
+      include: { section: true }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedUser
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 // @desc    Get all sections
 // @route   GET /api/auth/sections
@@ -154,3 +202,33 @@ exports.getSections = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Get students by section
+// @route   GET /api/auth/students
+// @access  Private (Teacher/Admin)
+exports.getStudentsBySection = async (req, res, next) => {
+  try {
+    const { sectionName } = req.query;
+
+    const query = {
+      where: { role: 'student' },
+      include: { section: true },
+      orderBy: { name: 'asc' }
+    };
+
+    if (sectionName && sectionName !== 'all') {
+      query.where.section = { name: sectionName };
+    }
+
+    const students = await prisma.user.findMany(query);
+
+    res.status(200).json({
+      success: true,
+      count: students.length,
+      data: students
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

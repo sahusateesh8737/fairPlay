@@ -6,9 +6,12 @@ import { AlertOctagon, Send, Clock, ShieldAlert, Code2, Play, Terminal, MonitorP
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
+import { useAuth } from '../context/AuthContext';
+
 const socket = io('http://localhost:5001');
 
 const StudentExamSandbox = () => {
+  const { user } = useAuth();
   const { assignmentId } = useParams();
   const navigate = useNavigate();
   const iframeRef = useRef(null);
@@ -81,8 +84,8 @@ const StudentExamSandbox = () => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         const alertData = {
-          studentName: "Student_" + socket.id?.substring(0, 4), // Generic name for testing
-          sectionId: exam.targetSection || "General",
+          studentName: user?.name || "Unknown Student",
+          sectionId: exam.section?.name || "General",
           eventType: 'Tab Switched',
           timestamp: new Date().toLocaleTimeString(),
         };
@@ -104,8 +107,8 @@ const StudentExamSandbox = () => {
 
       if (actionType) {
         const alertData = {
-          studentName: "Student_" + socket.id?.substring(0, 4),
-          sectionId: exam.targetSection || "General",
+          studentName: user?.name || "Unknown Student",
+          sectionId: exam.section?.name || "General",
           eventType: actionType,
           timestamp: new Date().toLocaleTimeString(),
         };
