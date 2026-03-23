@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy generated Prisma client and production dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /root/.prisma /root/.prisma
 
 # Copy application source code
 COPY . .
