@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search, ChevronDown, Code2, Award } from 'lucide-react';
+import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search, ChevronDown, ChevronRight, Code2, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +13,16 @@ const StudentDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user && (!user.registrationNumber || !user.rollNumber)) {
+      setShowProfilePrompt(true);
+    } else {
+      setShowProfilePrompt(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchExams = async () => {
@@ -53,6 +62,36 @@ const StudentDashboard = () => {
       className="min-h-screen bg-[#050507] p-8 md:p-12"
     >
       <div className="max-w-6xl mx-auto space-y-8">
+        {/* Profile Incomplete Overlay */}
+        <AnimatePresence>
+          {showProfilePrompt && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.9 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 className="w-full max-w-md bg-[#0f0f13] border border-red-500/30 rounded-3xl overflow-hidden shadow-2xl relative"
+               >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-[50px] pointer-events-none" />
+                  <div className="p-8 text-center relative z-10">
+                     <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                       <AlertTriangle className="w-8 h-8 text-red-500" />
+                     </div>
+                     <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Profile Incomplete</h2>
+                     <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+                       You must fill in your Registration Number and Roll Number before you can access the assessments dashboard.
+                     </p>
+                     
+                     <button 
+                       onClick={() => navigate('/student/profile')}
+                       className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] flex items-center justify-center gap-2"
+                     >
+                       Go to Profile Settings <ChevronRight className="w-4 h-4 mt-0.5" />
+                     </button>
+                  </div>
+               </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
         
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative">

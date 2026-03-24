@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentExamSandbox from './pages/StudentExamSandbox';
+import StudentProfile from './pages/StudentProfile';
 import LiveMonitor from './components/teacher/LiveMonitor';
 import SubmissionReviewer from './components/teacher/SubmissionReviewer';
 import { AuthProvider } from './context/AuthContext';
@@ -62,6 +63,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student', 'admin']}>
                 <StudentDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/student/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['student', 'admin']}>
+                <StudentProfile />
               </ProtectedRoute>
             } 
           />
