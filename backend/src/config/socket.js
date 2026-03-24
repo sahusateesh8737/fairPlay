@@ -24,6 +24,11 @@ const initSocket = (server) => {
         socket.on('join_exam', ({ assignmentId, studentId, studentName, rollNumber }) => {
             const roomName = `exam_${assignmentId}`;
             socket.join(roomName);
+            
+            // Track assignment for disconnects
+            socket.activeAssignmentId = assignmentId;
+            socket.activeStudentId = studentId;
+
             console.log(`Student ${studentName} (Roll: ${rollNumber}) joined exam room: ${roomName}`);
             
             // Notify teachers in the monitoring room that a student has joined/is active
@@ -84,6 +89,13 @@ const initSocket = (server) => {
 
         socket.on('disconnect', () => {
             console.log('User disconnected:', socket.id);
+            if (socket.activeAssignmentId && socket.activeStudentId) {
+                io.to(`monitor_${socket.activeAssignmentId}`).emit('student_status_update', {
+                    studentId: socket.activeStudentId,
+                    status: 'IDLE',
+                    timestamp: new Date().toLocaleTimeString()
+                });
+            }
         });
     });
 

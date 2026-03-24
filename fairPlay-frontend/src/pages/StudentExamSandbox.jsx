@@ -162,6 +162,17 @@ const StudentExamSandbox = () => {
     document.addEventListener("drop", preventDefaultAction, true);
 
     return () => {
+      if (exam && user) {
+        socket.emit('student_status_update', {
+          assignmentId: exam.id,
+          studentId: user.id,
+          studentName: user.name,
+          rollNumber: user.rollNumber || 'N/A',
+          status: 'IDLE',
+          timestamp: new Date().toLocaleTimeString()
+        });
+      }
+
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("contextmenu", preventDefaultAction, true);
       document.removeEventListener("copy", preventDefaultAction, true);
@@ -169,7 +180,7 @@ const StudentExamSandbox = () => {
       document.removeEventListener("cut", preventDefaultAction, true);
       document.removeEventListener("drop", preventDefaultAction, true);
     };
-  }, [exam]);
+  }, [exam, user]);
 
   const showWarning = (msg) => {
     setWarningMessage(msg);
