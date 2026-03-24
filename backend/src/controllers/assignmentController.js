@@ -115,7 +115,15 @@ exports.getAssignment = async (req, res, next) => {
       where: { id: parseInt(req.params.id) },
       include: { 
         questions: true,
-        teacher: { select: { name: true } }
+        teacher: { select: { name: true } },
+        submissions: {
+          select: {
+            id: true,
+            studentId: true,
+            questionId: true,
+            submittedAt: true
+          }
+        }
       }
     });
 

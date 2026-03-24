@@ -14,6 +14,18 @@ const Auth = () => {
   const [error, setError] = useState(null);
   const [successData, setSuccessData] = useState(null);
 
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'student',
+    sectionName: '',
+    teacherSecret: ''
+  });
+  
+  const { role } = formData;
+  const [showPassword, setShowPassword] = useState(false);
+
   // Redirect if already logged in (prevents back button to login bug)
   useEffect(() => {
     if (user) {
@@ -30,18 +42,6 @@ const Auth = () => {
       </div>
     );
   }
-
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'student',
-    sectionName: '',
-    teacherSecret: ''
-  });
-  
-  const { role } = formData;
-  const [showPassword, setShowPassword] = useState(false);
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);

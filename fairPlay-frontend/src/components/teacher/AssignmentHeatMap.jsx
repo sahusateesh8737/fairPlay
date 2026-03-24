@@ -48,9 +48,11 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
         // Initialize live states from existing submissions
         const initialStates = {};
         activeAssign.submissions?.forEach(sub => {
+          const qIdx = activeAssign.questions?.findIndex(q => q.id === sub.questionId);
           initialStates[sub.studentId] = {
             status: 'SUBMITTED',
             progress: '100%',
+            currentQuestion: qIdx !== undefined && qIdx >= 0 ? qIdx + 1 : undefined,
             timestamp: new Date(sub.submittedAt).toLocaleTimeString()
           };
         });
