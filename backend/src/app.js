@@ -28,6 +28,9 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // Global Rate Limiting
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'Welcome to fairPlay API' });
+});
 const { globalLimiter } = require('./middlewares/rateLimiter');
 app.use('/api', globalLimiter);
 
