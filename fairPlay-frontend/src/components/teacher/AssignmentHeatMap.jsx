@@ -106,10 +106,18 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
     const grid = Array(TOTAL_SEATS).fill(null);
     students.forEach((student, idx) => {
       if (idx < TOTAL_SEATS) {
+        let hash = student.id;
+        if (student.rollNumber) {
+          const digits = String(student.rollNumber).match(/\d+/g);
+          if (digits) hash = parseInt(digits.join(''), 10);
+          else hash = String(student.rollNumber).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        }
+        const setIndex = (hash + parseInt(assignmentId)) % (assignment?.questions?.length || 2);
+
         grid[idx] = {
           ...student,
           live: liveStates[student.id] || { status: 'IDLE' },
-          setLabel: String.fromCharCode(65 + ((student.id + parseInt(assignmentId)) % (assignment?.questions?.length || 2)))
+          setLabel: String.fromCharCode(65 + setIndex)
         };
       }
     });

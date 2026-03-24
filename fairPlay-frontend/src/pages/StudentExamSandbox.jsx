@@ -44,9 +44,14 @@ const StudentExamSandbox = () => {
         
         if (activeExam.questions && activeExam.questions.length > 0) {
           // DISTRIBUTION LOGIC: Deterministic Set Assignment
-          // Uses student ID and assignment ID to pick a stable variation for this student
-          // (Form A/B/C/etc based on number of variations provided)
-          const setIndex = (user.id + activeExam.id) % activeExam.questions.length;
+          // Uses student Roll Number to strictly alternate variations for adjacent seating.
+          let hash = user.id;
+          if (user.rollNumber) {
+            const digits = String(user.rollNumber).match(/\\d+/g);
+            if (digits) hash = parseInt(digits.join(''), 10);
+            else hash = String(user.rollNumber).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          }
+          const setIndex = (hash + activeExam.id) % activeExam.questions.length;
           const selectedVariation = activeExam.questions[setIndex];
           setQuestion(selectedVariation);
 
