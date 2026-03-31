@@ -60,72 +60,72 @@ const AssignmentResults = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <CheckCircle2 className="w-6 h-6 text-green-400" />
+          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <CheckCircle2 className="w-6 h-6 text-green-500" />
             Assignment Results
           </h2>
-          <p className="text-sm text-gray-400 mt-1">Review student marks, sections, and variation performance.</p>
+          <p className="text-sm text-muted-foreground mt-1">Review student marks, sections, and variation performance.</p>
         </div>
         
         {/* Assignment Selector */}
         <div className="relative min-w-[250px]">
           <select 
-            className="w-full bg-[#111115] border border-gray-800 rounded-lg py-2 pl-4 pr-10 text-white text-sm focus:outline-none focus:border-green-500/50 appearance-none [&>option]:text-black"
+            className="w-full bg-background border border-border rounded-lg py-2 pl-4 pr-10 text-foreground text-sm focus:outline-none focus:border-green-500/50 appearance-none shadow-sm"
             value={activeAssignment}
             onChange={(e) => setActiveAssignment(e.target.value)}
           >
             {assignmentOptions.map(opt => (
-              <option key={opt.id} value={opt.id}>{opt.title} ({opt.section?.name || '—'})</option>
+              <option key={opt.id} value={opt.id} className="text-foreground">{opt.title} ({opt.section?.name || '—'})</option>
             ))}
           </select>
-          <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         </div>
       </div>
 
-      <div className="bg-[#0a0a0c] border border-gray-800 rounded-xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900/20">
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-             <span className="text-gray-400">Total Submissions: <strong className="text-white">{filteredSubmissions.length}</strong></span>
-             <div className="w-px h-4 bg-gray-700 hidden sm:block"></div>
-             <span className="text-gray-400">Sections: <strong className="text-white">{new Set(filteredSubmissions.map(s => s.student.section?.name)).size}</strong></span>
+      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/20">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+             <span>Total Submissions: <strong className="text-foreground">{filteredSubmissions.length}</strong></span>
+             <div className="w-px h-4 bg-border hidden sm:block"></div>
+             <span>Sections: <strong className="text-foreground font-mono">{new Set(filteredSubmissions.map(s => s.student.section?.name)).size}</strong></span>
           </div>
           <div className="relative w-full sm:w-auto">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input 
                type="text" 
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
                placeholder="Search name, email, or section..." 
-               className="w-full sm:w-72 bg-[#111115] border border-gray-800 rounded-md py-2 pl-9 pr-4 text-sm focus:outline-none focus:border-gray-600 transition-colors text-white"
+               className="w-full sm:w-72 bg-background border border-border rounded-md py-2 pl-9 pr-4 text-sm focus:outline-none focus:border-border transition-all text-foreground placeholder:text-muted-foreground/30 shadow-sm"
             />
           </div>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="text-xs text-gray-500 uppercase bg-[#070709] border-b border-gray-800">
+            <thead className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black bg-muted/40 border-b border-border">
               <tr>
-                <th className="px-6 py-4 font-medium">Student</th>
-                <th className="px-6 py-4 font-medium">Section</th>
-                <th className="px-6 py-4 font-medium">Assigned Variation</th>
-                <th className="px-6 py-4 font-medium">Score</th>
-                <th className="px-6 py-4 font-medium text-right">Action</th>
+                <th className="px-6 py-5 font-black">Student</th>
+                <th className="px-6 py-5 font-black">Section</th>
+                <th className="px-6 py-5 font-black">Assigned Variation</th>
+                <th className="px-6 py-5 font-black">Score</th>
+                <th className="px-6 py-5 font-black text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800">
+            <tbody className="divide-y divide-border">
               <AnimatePresence>
                 {loading ? (
                   <tr>
                     <td colSpan="5" className="px-6 py-20 text-center">
-                      <div className="flex flex-col items-center justify-center text-gray-500">
-                        <div className="w-8 h-8 border-2 border-green-500/20 border-t-green-500 rounded-full animate-spin mb-4" />
-                        <p>Loading results...</p>
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+                        <p className="font-mono text-[10px] uppercase font-black tracking-widest">Loading results...</p>
                       </div>
                     </td>
                   </tr>
                 ) : filteredSubmissions.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan="5" className="px-6 py-12 text-center text-muted-foreground italic text-sm">
                       No results found matching "{searchTerm}".
                     </td>
                   </tr>
@@ -136,43 +136,43 @@ const AssignmentResults = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="hover:bg-gray-800/30 transition-colors group"
+                      className="hover:bg-muted/30 transition-colors group"
                     >
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-white">{s.student.name}</div>
-                        <div className="text-xs text-gray-500 mt-1">{s.student.email}</div>
+                      <td className="px-6 py-5">
+                        <div className="font-bold text-foreground group-hover:text-primary transition-colors">{s.student.name}</div>
+                        <div className="text-[10px] text-muted-foreground mt-1 font-mono uppercase tracking-tighter">{s.student.email}</div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-xs text-gray-400 uppercase font-mono">
+                      <td className="px-6 py-5">
+                        <span className="px-2 py-0.5 bg-muted rounded border border-border text-[10px] text-muted-foreground uppercase font-mono font-bold">
                           {s.student.section?.name || 'N/A'}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         <div className="flex flex-col gap-1">
-                           <span className="w-fit px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono">
+                           <span className="w-fit px-2 py-0.5 rounded text-[10px] uppercase font-black bg-purple-500/10 text-purple-500 border border-purple-500/20 font-mono">
                              Var {s.question?.id || 'N/A'}
                            </span>
-                           <span className="text-gray-300 text-xs truncate max-w-[150px]" title={s.question?.prompt}>
+                           <span className="text-muted-foreground text-[10px] truncate max-w-[150px] italic" title={s.question?.prompt}>
                              {s.question?.prompt?.substring(0, 30) || 'General Assessment'}...
                            </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         {s.score !== null ? (
-                          <span className="text-green-400 font-bold text-base">{s.score} <span className="text-gray-500 text-xs font-normal">/ 100</span></span>
+                          <span className="text-green-600 font-bold text-base">{s.score} <span className="text-muted-foreground text-xs font-normal">/ 100</span></span>
                         ) : (
-                          <span className="text-yellow-500/70 text-xs italic">Ungraded</span>
+                          <span className="text-orange-500/70 text-[10px] font-bold uppercase tracking-wider italic">Ungraded</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link 
                             to={`/teacher/review/${s.id}`}
-                            className="p-2 hover:bg-green-500/20 hover:text-green-400 rounded-lg text-gray-500 transition-colors flex items-center gap-2" 
+                            className="px-4 py-2 hover:bg-green-500/10 hover:text-green-600 border border-transparent hover:border-green-500/20 rounded-xl text-muted-foreground transition-all flex items-center gap-2 group/btn" 
                             title="View Submission"
                           >
-                            <History className="w-4 h-4" />
-                            <span className="text-[10px] font-bold uppercase">View</span>
+                            <History className="w-3.5 h-3.5 transition-transform group-hover/btn:-rotate-12" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">View</span>
                           </Link>
                         </div>
                       </td>

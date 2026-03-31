@@ -135,9 +135,9 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
   }, [liveStates, students]);
 
   if (loading) return (
-    <div className="h-[60vh] flex flex-col items-center justify-center text-gray-500">
+    <div className="h-[60vh] flex flex-col items-center justify-center text-muted-foreground">
       <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
-      <p className="font-mono text-xs uppercase tracking-widest">Constructing Live Matrix...</p>
+      <p className="font-mono text-[10px] uppercase font-bold tracking-widest">Constructing Live Matrix...</p>
     </div>
   );
 
@@ -151,36 +151,35 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
+            <button onClick={onClose} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
                <X className="w-5 h-5" />
             </button>
-            <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-3">
               {assignment?.title}
-              <span className="text-xs font-mono bg-blue-500/10 text-blue-400 px-2 py-1 rounded border border-blue-500/20">LIVE FEED</span>
+              <span className="text-[10px] font-black tracking-widest bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full border border-blue-500/20 uppercase">LIVE FEED</span>
             </h2>
           </div>
-          <p className="text-sm text-gray-400 ml-10 italic">Seating Matrix: {ROWS} Rows × {COLS} Columns</p>
+          <p className="text-sm text-muted-foreground ml-12 italic">Seating Matrix: {ROWS} Rows × {COLS} Columns</p>
         </div>
 
-        <div className="flex items-center gap-4 bg-[#111115] p-2 rounded-2xl border border-gray-800 shadow-2xl">
-           <StatItem label="Active" value={stats.active} color="text-blue-400" icon={Radio} pulse />
-           <div className="w-px h-8 bg-gray-800" />
-           <StatItem label="Submitted" value={stats.submitted} color="text-green-500" icon={CheckCircle2} />
-           <div className="w-px h-8 bg-gray-800" />
+        <div className="flex items-center gap-4 bg-card p-2 rounded-2xl border border-border shadow-2xl">
+           <StatItem label="Active" value={stats.active} color="text-blue-500" icon={Radio} pulse />
+           <div className="w-px h-8 bg-border" />
+           <StatItem label="Submitted" value={stats.submitted} color="text-green-600" icon={CheckCircle2} />
+           <div className="w-px h-8 bg-border" />
            <StatItem label="Flagged" value={stats.flagged} color="text-orange-500" icon={ShieldAlert} />
         </div>
       </div>
 
       {/* The Actual Heat Map Grid */}
-      <div className="bg-[#0a0a0c] border border-gray-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+      <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
         
-        {/* Grid Labeling */}
-        <div className="grid grid-cols-8 gap-4 mb-2">
-           {Array.from({length: COLS}).map((_, i) => (
-             <div key={i} className="text-[10px] text-gray-700 font-bold text-center uppercase tracking-widest">Col {i+1}</div>
-           ))}
-        </div>
+         <div className="grid grid-cols-8 gap-4 mb-2">
+            {Array.from({length: COLS}).map((_, i) => (
+              <div key={i} className="text-[10px] text-muted-foreground/40 font-black text-center uppercase tracking-widest">Col {i+1}</div>
+            ))}
+         </div>
 
         <div className="grid grid-cols-8 gap-4">
           {gridData.map((seat, idx) => (
@@ -193,35 +192,35 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
         </div>
 
         {/* Legend */}
-        <div className="mt-12 pt-8 border-t border-gray-800/50 flex flex-wrap gap-8 justify-center">
-           <LegendItem color="bg-gray-800" label="Idle / Offline" />
+        <div className="mt-12 pt-8 border-t border-border flex flex-wrap gap-8 justify-center">
+           <LegendItem color="bg-muted" label="Idle / Offline" />
            <LegendItem color="bg-blue-600/40" label="Actively Solving" pulse />
            <LegendItem color="bg-orange-500/40" label="Suspicious (Tab Switch)" />
-           <LegendItem color="bg-green-500" label="Verified Submission" />
+           <LegendItem color="bg-green-600" label="Verified Submission" />
         </div>
       </div>
 
       {/* Student Detail Modal */}
       <AnimatePresence>
         {selectedStudent && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm">
              <motion.div 
-               initial={{ opacity: 0, scale: 0.9 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 0.9 }}
-               className="w-full max-w-lg bg-[#0f0f13] border border-gray-800 rounded-3xl overflow-hidden shadow-2xl"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="w-full max-w-lg bg-card border border-border rounded-3xl overflow-hidden shadow-2xl"
              >
-                <div className="p-6 bg-gradient-to-r from-gray-900 to-transparent border-b border-gray-800 flex justify-between items-center">
+                <div className="p-6 bg-muted/20 border-b border-border flex justify-between items-center">
                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${getStatusBg(selectedStudent.live.status)}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shadow-lg ${getStatusBg(selectedStudent.live.status)}`}>
                         {selectedStudent.name.charAt(0)}
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white leading-tight">{selectedStudent.name}</h3>
-                        <p className="text-xs text-gray-500 font-mono uppercase tracking-widest">{selectedStudent.rollNumber || 'No Roll Number'}</p>
+                        <h3 className="text-xl font-black text-foreground leading-tight tracking-tight">{selectedStudent.name}</h3>
+                        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">{selectedStudent.rollNumber || 'No Roll Number'}</p>
                       </div>
                    </div>
-                   <button onClick={() => setSelectedStudent(null)} className="p-2 hover:bg-white/5 rounded-full text-gray-500 hover:text-white transition-colors">
+                   <button onClick={() => setSelectedStudent(null)} className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
                       <X className="w-5 h-5" />
                    </button>
                 </div>
@@ -244,17 +243,17 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
                      </div>
                    )}
 
-                   <div className="flex gap-3 pt-4">
-                      <button 
-                        onClick={() => setSelectedStudent(null)}
-                        className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/5"
-                      >
-                        Dismiss
-                      </button>
-                      <button className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)]">
-                        Deep Inspect
-                      </button>
-                   </div>
+                    <div className="flex gap-3 pt-4">
+                       <button 
+                         onClick={() => setSelectedStudent(null)}
+                         className="flex-1 py-3 bg-muted hover:bg-muted/80 text-foreground font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all border border-border"
+                       >
+                         Dismiss
+                       </button>
+                       <button className="flex-1 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] rounded-2xl transition-all shadow-lg shadow-primary/20">
+                         Deep Inspect
+                       </button>
+                    </div>
                 </div>
              </motion.div>
           </div>
@@ -266,7 +265,7 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
 
 const SeatBox = ({ seat, onClick }) => {
   if (!seat) return (
-    <div className="aspect-square bg-white/[0.01] border border-dashed border-gray-900 rounded-xl" />
+    <div className="aspect-square bg-muted/20 border border-dashed border-border rounded-xl" />
   );
 
   const status = seat.live.status;
@@ -280,10 +279,10 @@ const SeatBox = ({ seat, onClick }) => {
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={`aspect-square rounded-2xl border transition-all flex flex-col items-center justify-center p-2 relative group overflow-hidden ${
-        isSubmitted ? 'bg-green-500 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]' :
-        isFlagged ? 'bg-orange-500/20 border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.1)]' :
-        isActive ? 'bg-blue-600/40 border-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.2)]' :
-        'bg-[#0f0f13] border-gray-800'
+        isSubmitted ? 'bg-green-600 border-green-500 shadow-lg shadow-green-500/20' :
+        isFlagged ? 'bg-orange-500/10 border-orange-500 shadow-md shadow-orange-500/10' :
+        isActive ? 'bg-blue-600/10 border-blue-500 shadow-md shadow-blue-500/10' :
+        'bg-muted/50 border-border shadow-sm'
       }`}
     >
       {isActive && (
@@ -292,11 +291,11 @@ const SeatBox = ({ seat, onClick }) => {
         </div>
       )}
 
-      <span className={`text-[10px] font-bold font-mono tracking-tighter ${isSubmitted ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>
+      <span className={`text-[9px] font-black uppercase tracking-tighter ${isSubmitted ? 'text-white' : 'text-muted-foreground/40 group-hover:text-foreground'}`}>
         {seat.rollNumber || '—'}
       </span>
       
-      <div className={`text-sm font-black mt-1 ${isSubmitted ? 'text-white' : 'text-white/40'}`}>
+      <div className={`text-sm font-black mt-1 ${isSubmitted ? 'text-white' : 'text-foreground/20 group-hover:text-foreground/50 transition-colors'}`}>
         {seat.setLabel}
       </div>
 
@@ -311,12 +310,12 @@ const SeatBox = ({ seat, onClick }) => {
 
 const StatItem = ({ label, value, color, icon: Icon, pulse }) => (
   <div className="px-4 flex items-center gap-3">
-    <div className={`p-2 rounded-lg bg-gray-900 ${pulse ? 'animate-pulse' : ''}`}>
+    <div className={`p-2 rounded-lg bg-muted ${pulse ? 'animate-pulse' : ''}`}>
       <Icon className={`w-4 h-4 ${color}`} />
     </div>
     <div>
-      <div className={`text-xl font-bold text-white font-mono`}>{value}</div>
-      <div className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{label}</div>
+      <div className={`text-xl font-bold text-foreground font-mono`}>{value}</div>
+      <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{label}</div>
     </div>
   </div>
 );
@@ -324,13 +323,13 @@ const StatItem = ({ label, value, color, icon: Icon, pulse }) => (
 const LegendItem = ({ color, label, pulse }) => (
   <div className="flex items-center gap-2">
     <div className={`w-3 h-3 rounded-full ${color} ${pulse ? 'animate-pulse' : ''}`} />
-    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{label}</span>
+    <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.1em]">{label}</span>
   </div>
 );
 
-const DetailCard = ({ label, value, icon: Icon, color = "text-white" }) => (
-  <div className="p-4 bg-white/[0.02] border border-gray-800/50 rounded-2xl flex flex-col gap-2">
-     <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+const DetailCard = ({ label, value, icon: Icon, color = "text-foreground" }) => (
+  <div className="p-4 bg-muted/30 border border-border rounded-2xl flex flex-col gap-2">
+     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-widest">
         <Icon className="w-3 h-3" /> {label}
      </div>
      <div className={`text-lg font-bold font-mono ${color}`}>{value}</div>
@@ -339,19 +338,19 @@ const DetailCard = ({ label, value, icon: Icon, color = "text-white" }) => (
 
 const getStatusBg = (status) => {
   switch (status) {
-    case 'SUBMITTED': return 'bg-green-500 text-white';
-    case 'FLAGGED': return 'bg-orange-500/20 text-orange-500 border border-orange-500/30';
-    case 'ACTIVE': return 'bg-blue-600/20 text-blue-400 border border-blue-500/30';
-    default: return 'bg-gray-800 text-gray-500';
+    case 'SUBMITTED': return 'bg-green-600 text-white';
+    case 'FLAGGED': return 'bg-orange-500/10 text-orange-500 border border-orange-500/30';
+    case 'ACTIVE': return 'bg-blue-600/10 text-blue-500 border border-blue-500/20';
+    default: return 'bg-muted text-muted-foreground';
   }
 };
 
 const getStatusText = (status) => {
   switch (status) {
-    case 'SUBMITTED': return 'text-green-500';
+    case 'SUBMITTED': return 'text-green-600';
     case 'FLAGGED': return 'text-orange-500';
-    case 'ACTIVE': return 'text-blue-400';
-    default: return 'text-gray-500';
+    case 'ACTIVE': return 'text-blue-500';
+    default: return 'text-muted-foreground';
   }
 };
 

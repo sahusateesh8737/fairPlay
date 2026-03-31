@@ -41,10 +41,10 @@ const CountdownTimer = ({ dueDate }) => {
   return (
     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
       isPastDue 
-        ? 'bg-red-500/10 border-red-500/20 text-red-400' 
-        : 'bg-orange-500/10 border-orange-500/20 text-orange-400'
+        ? 'bg-red-500/10 border-red-500/20 text-red-600' 
+        : 'bg-orange-500/10 border-orange-500/20 text-orange-600'
     }`}>
-      <Clock className={`w-4 h-4 ${isPastDue ? 'text-red-400' : 'text-orange-400'}`} />
+      <Clock className={`w-4 h-4 ${isPastDue ? 'text-red-600' : 'text-orange-600'}`} />
       <span>{isPastDue ? 'Expired' : `${timeLeft} left`}</span>
     </div>
   );

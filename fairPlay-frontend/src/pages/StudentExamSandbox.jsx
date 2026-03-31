@@ -2,16 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
-import { AlertOctagon, Send, Clock, ShieldAlert, Code2, Play, Terminal, MonitorPlay, FilePlus, X } from 'lucide-react';
+import { AlertOctagon, Send, Clock, ShieldAlert, Code2, Play, Terminal, MonitorPlay, FilePlus, X, Lock } from 'lucide-react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const socket = io(`${import.meta.env.VITE_API_BASE_URL}`);
 
 const StudentExamSandbox = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const { assignmentId } = useParams();
   const navigate = useNavigate();
   const iframeRef = useRef(null);
@@ -25,6 +27,10 @@ const StudentExamSandbox = () => {
   const [newFileName, setNewFileName] = useState('');
   const [isCreatingFile, setIsCreatingFile] = useState(false);
   const [compileError, setCompileError] = useState('');
+  
+  // --- ANTI-CHEAT STATE ---
+  const [isSecureSessionStarted, setIsSecureSessionStarted] = useState(false);
+  const streamRef = useRef(null);
   
   // --- MULTI-FILE STATE ---
   const [files, setFiles] = useState({});
@@ -88,7 +94,13 @@ const StudentExamSandbox = () => {
     fetchExam();
   }, [assignmentId, navigate]);
 
-  // --- ANTI-CHEAT ENGINE ---
+  // --- STATE REFS ---
+  const isSecureRef = useRef(isSecureSessionStarted);
+  useEffect(() => {
+    isSecureRef.current = isSecureSessionStarted;
+  }, [isSecureSessionStarted]);
+
+  // --- ANTI-CHEAT ENGINE (Event Hooks) ---
   useEffect(() => {
     if (exam && user) {
       // Notify monitor room that student is in the exam
@@ -100,30 +112,72 @@ const StudentExamSandbox = () => {
       });
     }
 
-    const handleVisibilityChange = () => {
-      const isHidden = document.hidden;
-      const status = isHidden ? 'FLAGGED' : 'ACTIVE';
-      
-      if (isHidden) {
-        const alertData = {
-          studentId: user?.id,
-          studentName: user?.name || "Unknown Student",
-          sectionId: exam.section?.name || "General",
-          assignmentId: exam.id,
-          eventType: 'Tab Switched',
-          timestamp: new Date().toLocaleTimeString(),
-        };
+    const captureScreenshot = async () => {
+      if (!streamRef.current) return null;
+      try {
+        const track = streamRef.current.getVideoTracks()[0];
         
-        socket.emit('student_cheat_alert', alertData);
-        setCheatLogs(prev => [...prev, alertData]);
-        showWarning("WARNING: You left the exam tab. This action has been logged.");
-      }
+        // Use native ImageCapture API if available (Chrome/Edge optimization)
+        if (window.ImageCapture) {
+          const imageCapture = new ImageCapture(track);
+          const bitmap = await imageCapture.grabFrame();
+          const canvas = document.createElement('canvas');
+          // Scale it down to 720p for fast transmission to the DB
+          canvas.width = 1280;
+          canvas.height = Math.round(1280 * (bitmap.height / bitmap.width));
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+          return canvas.toDataURL('image/jpeg', 0.3); // 30% quality = ~50kb payload
+        }
 
-      // Update live status on heat map
-      socket.emit('student_progress_update', {
-        assignmentId: exam.id,
+        // Fallback for Safari / Firefox
+        const video = document.createElement('video');
+        video.srcObject = streamRef.current;
+        await video.play();
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1280;
+        canvas.height = Math.round(1280 * (video.videoHeight / video.videoWidth));
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        video.pause();
+        video.srcObject = null;
+
+        return canvas.toDataURL('image/jpeg', 0.3);
+      } catch (err) {
+        console.error("Screenshot capture failed", err);
+        return null;
+      }
+    };
+
+    const triggerCheatEvent = async (reason) => {
+      const screenshotBase64 = await captureScreenshot();
+
+      const alertData = {
         studentId: user?.id,
-        tabStatus: status,
+        studentName: user?.name || "Unknown Student",
+        sectionId: exam?.section?.name || "General",
+        assignmentId: exam?.id,
+        eventType: reason,
+        timestamp: new Date().toLocaleTimeString(),
+        isoTimestamp: new Date().toISOString(),
+        screenshot: screenshotBase64
+      };
+      
+      socket.emit('student_cheat_alert', alertData);
+      setCheatLogs(prev => [...prev, alertData]);
+      showWarning(`WARNING: ${reason} logged.`);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        triggerCheatEvent('Tab Switched or Minimized');
+      }
+      socket.emit('student_progress_update', {
+        assignmentId: exam?.id,
+        studentId: user?.id,
+        tabStatus: document.hidden ? 'FLAGGED' : 'ACTIVE',
         currentQuestion: question?.id
       });
     };
@@ -136,25 +190,24 @@ const StudentExamSandbox = () => {
       if (e.type === 'copy') actionType = 'Copy';
       if (e.type === 'cut') actionType = 'Cut';
       if (e.type === 'drop') actionType = 'Drag and Drop';
+      if (actionType) triggerCheatEvent(`${actionType} Attempted`);
+    };
 
-      if (actionType) {
-        const alertData = {
-          studentId: user?.id,
-          studentName: user?.name || "Unknown Student",
-          sectionId: exam.section?.name || "General",
-          assignmentId: exam.id,
-          eventType: actionType,
-          timestamp: new Date().toLocaleTimeString(),
-        };
-
-        socket.emit('student_cheat_alert', alertData);
-        setCheatLogs(prev => [...prev, alertData]);
-        showWarning(`WARNING: ${actionType} reported.`);
+    const handleKeyDown = (e) => {
+      // Block F12
+      if (e.key === 'F12') {
+        e.preventDefault();
+        triggerCheatEvent('Attempted to Open DevTools (F12)');
+      }
+      // Block Ctrl+Shift+I / J / C (Windows) or Cmd+Option+I / J / C (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) {
+        e.preventDefault();
+        triggerCheatEvent(`Attempted to Open DevTools (Shift+${e.key.toUpperCase()})`);
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    // Use capture phase (true) to intercept these BEFORE they reach Monaco Editor
+    document.addEventListener("keydown", handleKeyDown, true);
     document.addEventListener("contextmenu", preventDefaultAction, true);
     document.addEventListener("copy", preventDefaultAction, true);
     document.addEventListener("paste", preventDefaultAction, true);
@@ -174,6 +227,7 @@ const StudentExamSandbox = () => {
       }
 
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("keydown", handleKeyDown, true);
       document.removeEventListener("contextmenu", preventDefaultAction, true);
       document.removeEventListener("copy", preventDefaultAction, true);
       document.removeEventListener("paste", preventDefaultAction, true);
@@ -182,9 +236,97 @@ const StudentExamSandbox = () => {
     };
   }, [exam, user]);
 
+  // --- FULLSCREEN & STREAM TEARDOWN ENGINE ---
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      // Use ref to avoid stale closure tracking
+      if (!document.fullscreenElement && isSecureRef.current) {
+        setIsSecureSessionStarted(false);
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(t => t.stop());
+          streamRef.current = null;
+        }
+        
+        const alertData = {
+          studentId: user?.id,
+          studentName: user?.name || "Unknown Student",
+          sectionId: exam?.section?.name || "General",
+          assignmentId: exam?.id,
+          eventType: 'Exited Fullscreen Mode',
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        socket.emit('student_cheat_alert', alertData);
+        setCheatLogs(prev => [...prev, alertData]);
+        showWarning(`WARNING: Exited Fullscreen Mode logged.`);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(()=>console.log("Exit fullscreen failed"));
+      }
+    };
+  }, [exam, user]);
+
   const showWarning = (msg) => {
     setWarningMessage(msg);
     setTimeout(() => setWarningMessage(null), 4000);
+  };
+
+  const startSecureSession = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'monitor' },
+        audio: false
+      });
+
+      const track = stream.getVideoTracks()[0];
+      const settings = track.getSettings();
+
+      // Check if they shared the ENTIRE monitor, not just a window or tab
+      // Some browsers don't strictly support displaySurface metadata immediately, but we check if available
+      if (settings.displaySurface && settings.displaySurface !== 'monitor') {
+        track.stop();
+        alert("You MUST select 'Entire Screen' to proceed. Windows or Tabs are not permitted.");
+        return;
+      }
+
+      streamRef.current = stream;
+
+      // Listen for "Stop Sharing" click
+      track.onended = () => {
+        setIsSecureSessionStarted(false);
+        streamRef.current = null;
+        
+        // This triggers a massive cheat event
+        const alertData = {
+          studentId: user?.id,
+          studentName: user?.name,
+          sectionId: exam.section?.name,
+          assignmentId: exam.id,
+          eventType: 'Screen Share Terminated',
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        socket.emit('student_cheat_alert', alertData);
+        setCheatLogs(prev => [...prev, alertData]);
+        showWarning('SECURITY BREACH: Screen share terminated. Exam locked.');
+      };
+
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+
+      setIsSecureSessionStarted(true);
+    } catch (err) {
+      console.error(err);
+      alert("You must grant 'Entire Screen' sharing permissions to take this exam.");
+    }
   };
 
   const handleEditorChange = (value) => {
@@ -228,14 +370,25 @@ const StudentExamSandbox = () => {
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
   <style>
-    body { margin:0; background:#0a0a0c; color:white; font-family:sans-serif; padding:20px; box-sizing:border-box; }
+    body { margin:0; background: ${theme === 'dark' ? '#0a0a0c' : '#ffffff'}; color: ${theme === 'dark' ? 'white' : 'black'}; font-family:sans-serif; padding:20px; box-sizing:border-box; }
     #root { max-width:800px; margin:0 auto; }
-    .err { color:#ef4444; font-family:monospace; background:#220000; padding:20px; border-radius:8px; white-space:pre-wrap; }
+    .err { color:#ef4444; font-family:monospace; background: ${theme === 'dark' ? '#220000' : '#fee2e2'}; padding:20px; border-radius:8px; white-space:pre-wrap; }
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script>
+    // --- IFRAME SECURITY LOCKDOWN ---
+    window.addEventListener('contextmenu', e => e.preventDefault(), true);
+    window.addEventListener('copy', e => e.preventDefault(), true);
+    window.addEventListener('cut', e => e.preventDefault(), true);
+    window.addEventListener('paste', e => e.preventDefault(), true);
+    window.addEventListener('drop', e => e.preventDefault(), true);
+    window.addEventListener('keydown', e => {
+      if (e.key === 'F12') e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) e.preventDefault();
+    }, true);
+
     var filesMap = ${filesJson};
     var moduleCache = {};
 
@@ -346,11 +499,55 @@ const StudentExamSandbox = () => {
   };
 
   if (!exam || !question) {
-    return <div className="min-h-screen bg-[#050507] flex items-center justify-center text-white">Loading Security Environment...</div>;
+    return <div className="min-h-screen bg-background flex items-center justify-center text-foreground font-medium">Loading Security Environment...</div>;
+  }
+
+  // --- SECURITY LOCK SCREEN ---
+  if (!isSecureSessionStarted) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-red-600/10 rounded-full blur-[120px] dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-2xl w-full bg-card border border-border rounded-3xl p-10 text-center relative z-10 shadow-2xl"
+        >
+          <div className="w-20 h-20 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/20">
+            <Lock className="w-10 h-10 text-primary" />
+          </div>
+          
+          <h1 className="text-3xl font-extrabold text-foreground mb-4 tracking-tight">Security Checkpoint</h1>
+          <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+            This is a securely proctored environment. To access the exam, you must grant permission to share your <strong>Entire Screen</strong>.
+          </p>
+
+          <div className="bg-background border border-border rounded-2xl p-6 text-left mb-8 space-y-4">
+            <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-orange-500" /> Exam Rules
+            </h3>
+            <ul className="space-y-2 text-sm text-muted-foreground/80">
+              <li className="flex items-center gap-2"><span>1.</span> The browser will enter Fullscreen mode. Exiting will lock the exam.</li>
+              <li className="flex items-center gap-2"><span>2.</span> Selecting a specific Window or Tab to share is prohibited. You must share the Entire Screen.</li>
+              <li className="flex items-center gap-2"><span>3.</span> DevTools, right-clicking, and copy/paste are strictly disabled.</li>
+              <li className="flex items-center gap-2 text-red-500 font-semibold"><AlertOctagon className="w-4 h-4" /> Navigating to other tabs will be immediately flagged and logged.</li>
+            </ul>
+          </div>
+
+          <button 
+            onClick={startSecureSession}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-extrabold py-4 px-6 rounded-xl transition-all shadow-xl hover:-translate-y-1 shadow-primary/20"
+          >
+            Agree & Share Entire Screen
+          </button>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#050507] overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
       
       {/* Warning Overlay */}
       <AnimatePresence>
@@ -368,19 +565,19 @@ const StudentExamSandbox = () => {
       </AnimatePresence>
 
       {/* Header Bar */}
-      <header className="h-16 border-b border-gray-800 bg-[#0a0a0c] flex items-center justify-between px-6 shrink-0 z-40">
+      <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 shrink-0 z-40">
         <div className="flex items-center gap-4">
           <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-wider rounded-md flex items-center gap-2">
             <ShieldAlert className="w-4 h-4" /> Proctored Session
           </div>
-          <h1 className="text-white font-bold">{exam.title}</h1>
+          <h1 className="text-foreground font-bold">{exam.title}</h1>
         </div>
 
         {/* Autosave indicator */}
         <div className="flex items-center gap-2 text-xs font-medium">
           {savedStatus === 'saving' && (
-            <span className="text-gray-400 flex items-center gap-1.5">
-              <div className="w-3 h-3 border border-gray-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-muted-foreground flex items-center gap-1.5">
+              <div className="w-3 h-3 border border-muted-foreground border-t-transparent rounded-full animate-spin" />
               Saving…
             </span>
           )}
@@ -399,14 +596,14 @@ const StudentExamSandbox = () => {
           >
             <Play className="w-4 h-4" /> Compile & Run
           </button>
-          <div className="w-px h-8 bg-gray-800 mx-2" />
+          <div className="w-px h-8 bg-border mx-2" />
           <button 
             onClick={handleSubmit}
             disabled={submitting}
-            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+            className="bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
           >
             {submitting ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
             ) : (
               <Send className="w-4 h-4" />
             )}
@@ -419,27 +616,27 @@ const StudentExamSandbox = () => {
       <div className="flex-1 flex overflow-hidden">
         
         {/* Pane 1: Instructions (25% width) */}
-        <div className="w-1/4 min-w-[300px] border-r border-gray-800 bg-[#0a0a0c] overflow-y-auto flex flex-col relative z-20">
+        <div className="w-1/4 min-w-[300px] border-r border-border bg-card overflow-y-auto flex flex-col relative z-20">
           <div className="p-6">
-            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">Instructions</h2>
-            <div className="prose prose-invert prose-blue max-w-none text-gray-300">
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Instructions</h2>
+            <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/80">
               <p className="whitespace-pre-wrap leading-relaxed">{question.prompt}</p>
             </div>
           </div>
           
           <div className="mt-auto p-6">
-            <div className="bg-[#111115] border border-gray-800 rounded-xl p-4">
-               <h3 className="text-white text-sm font-semibold mb-2 flex items-center gap-2">
-                 <ShieldAlert className="w-4 h-4 text-orange-400" /> Exam Rules
+            <div className="bg-muted/50 border border-border rounded-xl p-4">
+               <h3 className="text-foreground text-sm font-semibold mb-2 flex items-center gap-2">
+                 <ShieldAlert className="w-4 h-4 text-orange-500" /> Exam Rules
                </h3>
-               <ul className="text-xs text-gray-400 space-y-1.5 list-disc pl-4">
+               <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
                  <li>Right-clicking is disabled.</li>
                  <li>Copying and pasting inside the editor is blocked.</li>
                  <li>Navigating away or switching tabs will be logged.</li>
                </ul>
-               <div className="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
-                 <span className="text-xs text-gray-600 font-mono tracking-widest uppercase">Violations Logs</span>
-                 <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${cheatLogs.length > 0 ? 'bg-red-500/20 text-red-400' : 'bg-green-500/10 text-green-500'}`}>
+               <div className="mt-4 pt-3 border-t border-border flex justify-between items-center">
+                 <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase">Violations Logs</span>
+                 <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded ${cheatLogs.length > 0 ? 'bg-red-500/20 text-red-500' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
                    {cheatLogs.length}
                  </span>
                </div>
@@ -451,24 +648,24 @@ const StudentExamSandbox = () => {
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           
           {/* Pane 2: Monaco Editor (60% height) */}
-          <div className="h-[60%] border-b border-gray-800 relative group flex flex-col bg-[#050507]">
+          <div className="h-[60%] border-b border-border relative group flex flex-col bg-background">
             {/* File Explorer Tab Bar */}
-            <div className="h-10 bg-[#0a0a0c] border-b border-gray-800 flex items-center overflow-x-auto shrink-0">
+            <div className="h-10 bg-card border-b border-border flex items-center overflow-x-auto shrink-0 no-scrollbar">
                {Object.keys(files).map((filename) => (
                  <button
                    key={filename}
                    onClick={() => setActiveFile(filename)}
-                   className={`h-full px-4 flex items-center gap-2 text-xs font-mono border-r border-gray-800 transition-colors shrink-0 ${
-                     activeFile === filename ? 'bg-[#111115] text-white border-t-2 border-t-blue-500' : 'text-gray-500 hover:text-gray-300 hover:bg-[#111115]/50 border-t-2 border-t-transparent'
+                   className={`h-full px-4 flex items-center gap-2 text-xs font-mono border-r border-border transition-colors shrink-0 ${
+                     activeFile === filename ? 'bg-background text-foreground border-t-2 border-t-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 border-t-2 border-t-transparent'
                    }`}
                  >
-                   <Code2 className={`w-3.5 h-3.5 ${activeFile === filename ? 'text-blue-400' : 'text-gray-600'}`} />
+                   <Code2 className={`w-3.5 h-3.5 ${activeFile === filename ? 'text-primary' : 'text-muted-foreground'}`} />
                    {filename}
                  </button>
                ))}
                
                {isCreatingFile ? (
-                 <form onSubmit={createNewFile} className="flex items-center px-2 h-full border-r border-gray-800">
+                 <form onSubmit={createNewFile} className="flex items-center px-2 h-full border-r border-border">
                     <input 
                       autoFocus
                       type="text" 
@@ -476,13 +673,13 @@ const StudentExamSandbox = () => {
                       onChange={(e) => setNewFileName(e.target.value)}
                       onBlur={() => { if(!newFileName) setIsCreatingFile(false) }}
                       placeholder="Component.jsx"
-                      className="bg-[#111115] border border-gray-800 rounded text-xs px-2 py-1 text-white font-mono w-32 focus:outline-none focus:border-blue-500"
+                      className="bg-background border border-border rounded text-xs px-2 py-1 text-foreground font-mono w-32 focus:outline-none focus:border-primary shadow-sm"
                     />
                  </form>
                ) : (
                  <button 
                   onClick={() => setIsCreatingFile(true)}
-                  className="h-full px-3 flex items-center text-gray-500 hover:text-white transition-colors border-r border-gray-800 shrink-0"
+                  className="h-full px-3 flex items-center text-muted-foreground hover:text-foreground transition-colors border-r border-border shrink-0"
                  >
                    <FilePlus className="w-4 h-4" />
                  </button>
@@ -490,11 +687,11 @@ const StudentExamSandbox = () => {
             </div>
 
             <div className="flex-1 relative">
-              <div className="absolute inset-0 pointer-events-none border-[2px] border-transparent group-focus-within:border-blue-500/20 transition-colors z-10" />
+              <div className="absolute inset-0 pointer-events-none border-[2px] border-transparent group-focus-within:border-primary/20 transition-colors z-10" />
               <Editor
                 height="100%"
                 defaultLanguage="javascript"
-                theme="vs-dark"
+                theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 value={files[activeFile]} // Bind to active file
                 onChange={handleEditorChange} // Update active file in dict
                 onMount={(editor, monaco) => {
@@ -782,25 +979,25 @@ const StudentExamSandbox = () => {
           </div>
 
           {/* Pane 3: Code Output & Console (40% height) */}
-          <div className="h-[40%] bg-[#0a0a0c] flex flex-col relative shrink-0">
-            <div className="h-10 bg-[#111115] border-b border-gray-800 flex items-center px-4 justify-between shrink-0">
+          <div className="h-[40%] bg-card flex flex-col relative shrink-0">
+            <div className="h-10 bg-muted/50 border-b border-border flex items-center px-4 justify-between shrink-0">
                <div className="flex items-center">
-                 <MonitorPlay className="w-4 h-4 text-green-400 mr-2" />
-                 <span className="text-xs font-mono text-gray-300">Live Preview Output</span>
+                 <MonitorPlay className="w-4 h-4 text-green-500 mr-2" />
+                 <span className="text-xs font-mono text-muted-foreground">Live Preview Output</span>
                </div>
                {compileError && (
-                 <span className="text-xs font-mono text-red-400 bg-red-500/10 px-2 py-1 rounded border border-red-500/20 truncate max-w-md">
+                 <span className="text-xs font-mono text-red-500 bg-red-500/10 px-2 py-1 rounded border border-red-500/20 truncate max-w-md">
                    Compilation Error
                  </span>
                )}
             </div>
             
-            <div className="flex-1 relative bg-[#050507]">
+            <div className="flex-1 relative bg-background">
               {compileError ? (
                 // Display Babel Syntax Errors
                 <div className="absolute inset-0 p-4 overflow-auto">
-                  <div className="bg-[#220000] border border-red-500/30 rounded-lg p-4 font-mono text-red-400 text-sm whitespace-pre-wrap">
-                    <div className="flex items-center gap-2 mb-2 text-red-500 font-bold border-b border-red-500/30 pb-2">
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 font-mono text-red-500 text-sm whitespace-pre-wrap">
+                    <div className="flex items-center gap-2 mb-2 text-red-600 font-bold border-b border-red-500/20 pb-2">
                       <Terminal className="w-4 h-4" /> Build Failed during Babel Transpilation
                     </div>
                     {compileError}

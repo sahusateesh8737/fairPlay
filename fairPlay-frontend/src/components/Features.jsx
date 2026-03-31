@@ -40,7 +40,7 @@ const itemVariants = {
 
 const Features = () => {
   return (
-    <section className="py-24 bg-card/30 relative">
+    <section className="py-24 bg-muted/30 relative">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
       <div className="container relative z-10 px-6 mx-auto max-w-6xl">
         <motion.div 
@@ -50,10 +50,10 @@ const Features = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight text-foreground">
             Built for <span className="text-gradient">Integrity</span>
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
             Four powerful pillars designed to ensure 100% fair and authentic technical assessments.
           </p>
         </motion.div>
@@ -71,13 +71,13 @@ const Features = () => {
               variants={itemVariants}
               className="glass-card p-8 rounded-3xl group hover:-translate-y-1 transition-transform duration-300"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 group-hover:bg-white/10">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 group-hover:bg-primary/20">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-foreground mb-3">
                 {feature.title}
               </h3>
-              <p className="text-gray-400 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 {feature.description}
               </p>
             </motion.div>

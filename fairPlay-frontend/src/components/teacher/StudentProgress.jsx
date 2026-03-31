@@ -91,25 +91,25 @@ const StudentProgress = () => {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-3">
             <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Users className="w-6 h-6 text-purple-400" />
+              <Users className="w-6 h-6 text-purple-500" />
             </div>
             Student Management
           </h2>
-          <p className="text-sm text-gray-400 mt-2 italic">Filter by assignment results or view full section rosters.</p>
+          <p className="text-sm text-muted-foreground mt-2 italic">Filter by assignment results or view full section rosters.</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 bg-[#111115] p-1 rounded-xl border border-gray-800">
+        <div className="flex flex-wrap items-center gap-3 bg-muted/50 p-1 rounded-xl border border-border">
            <button 
             onClick={() => setViewMode('assignment')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'assignment' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'assignment' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/20' : 'text-muted-foreground hover:text-foreground'}`}
            >
              By Assignment
            </button>
            <button 
             onClick={() => setViewMode('section')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'section' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${viewMode === 'section' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-muted-foreground hover:text-foreground'}`}
            >
              By Section
            </button>
@@ -121,66 +121,66 @@ const StudentProgress = () => {
         {viewMode === 'assignment' ? (
           <div className="relative flex-1 md:max-w-md">
             <select 
-              className="w-full bg-[#0a0a0c] border border-gray-800 rounded-xl py-3 pl-4 pr-10 text-white text-sm focus:outline-none focus:border-purple-500/50 appearance-none [&>option]:text-black"
+              className="w-full bg-background border border-border rounded-xl py-3 pl-4 pr-10 text-foreground text-sm focus:outline-none focus:border-purple-500/50 appearance-none shadow-sm"
               value={activeAssignment}
               onChange={(e) => setActiveAssignment(e.target.value)}
             >
               {assignmentOptions.map(opt => (
-                <option key={opt.id} value={opt.id}>{opt.title} ({opt.section?.name || '—'})</option>
+                <option key={opt.id} value={opt.id} className="text-foreground">{opt.title} ({opt.section?.name || '—'})</option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           </div>
         ) : (
           <div className="relative flex-1 md:max-w-md">
             <select 
-              className="w-full bg-[#0a0a0c] border border-gray-800 rounded-xl py-3 pl-4 pr-10 text-white text-sm focus:outline-none focus:border-blue-500/50 appearance-none [&>option]:text-black"
+              className="w-full bg-background border border-border rounded-xl py-3 pl-4 pr-10 text-foreground text-sm focus:outline-none focus:border-blue-500/50 appearance-none shadow-sm"
               value={activeSection}
               onChange={(e) => setActiveSection(e.target.value)}
             >
-              <option value="all">Global (All Students)</option>
+              <option value="all" className="text-foreground">Global (All Students)</option>
               {sections.map(sec => (
-                <option key={sec} value={sec}>{sec} Section</option>
+                <option key={sec} value={sec} className="text-foreground">{sec} Section</option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           </div>
         )}
 
         <div className="relative flex-1 md:max-w-sm">
-          <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input 
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search name, roll, or reg..." 
-            className="w-full bg-[#0a0a0c] border border-gray-800 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-gray-600 transition-colors text-white placeholder:text-gray-600 shadow-inner"
+            className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all text-foreground placeholder:text-muted-foreground/30 shadow-sm"
           />
         </div>
       </div>
 
-      <div className="bg-[#0a0a0c] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl relative">
-        <div className="p-4 border-b border-gray-800 flex items-center justify-between bg-gradient-to-r from-gray-900/40 to-transparent">
-           <div className="flex items-center gap-4 text-xs font-bold tracking-widest text-gray-500 uppercase">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-2xl relative">
+        <div className="p-4 border-b border-border flex items-center justify-between bg-muted/10">
+           <div className="flex items-center gap-4 text-xs font-bold tracking-widest text-muted-foreground uppercase">
              {viewMode === 'assignment' ? 'Submission Progress' : 'Student Roster'}
              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse ml-2" />
            </div>
-           <div className="text-xs text-gray-400">
-             Showing <span className="text-white font-mono">{filteredStudents.length}</span> results
+           <div className="text-xs text-muted-foreground">
+             Showing <span className="text-foreground font-mono font-bold">{filteredStudents.length}</span> results
            </div>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm border-separate border-spacing-0">
-            <thead className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-black bg-[#070709]">
+            <thead className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black bg-muted/30">
               <tr>
-                <th className="px-6 py-5 border-b border-gray-800">Student Identity</th>
-                <th className="px-6 py-5 border-b border-gray-800">Academic Records</th>
-                {viewMode === 'assignment' && <th className="px-6 py-5 border-b border-gray-800">Status & Variation</th>}
-                <th className="px-6 py-5 border-b border-gray-800 text-right">Actions</th>
+                <th className="px-6 py-5 border-b border-border">Student Identity</th>
+                <th className="px-6 py-5 border-b border-border">Academic Records</th>
+                {viewMode === 'assignment' && <th className="px-6 py-5 border-b border-border">Status & Variation</th>}
+                <th className="px-6 py-5 border-b border-border text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-border">
                 {loading ? (
                   <tr>
                     <td colSpan="4" className="px-6 py-32 text-center">
@@ -213,12 +213,12 @@ const StudentProgress = () => {
                         >
                           <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-400 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary transition-colors">
                                 {student.name?.substring(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <div className="font-bold text-white group-hover:text-primary transition-colors">{student.name}</div>
-                                <div className="text-[10px] text-gray-500 font-mono mt-0.5 uppercase tracking-tighter">{student.email}</div>
+                                <div className="font-bold text-foreground group-hover:text-primary transition-colors">{student.name}</div>
+                                <div className="text-[10px] text-muted-foreground font-mono mt-0.5 uppercase tracking-tighter">{student.email}</div>
                               </div>
                             </div>
                           </td>
@@ -227,12 +227,12 @@ const StudentProgress = () => {
                               {student.registrationNumber ? (
                                 <>
                                   <div className="flex items-center gap-2 text-[10px]">
-                                     <span className="text-gray-500 w-8">REG:</span>
-                                     <span className="text-gray-300 font-mono">{student.registrationNumber}</span>
+                                     <span className="text-muted-foreground w-8">REG:</span>
+                                     <span className="text-foreground/70 font-mono">{student.registrationNumber}</span>
                                   </div>
                                   <div className="flex items-center gap-2 text-[10px]">
-                                     <span className="text-gray-500 w-8">ROLL:</span>
-                                     <span className="text-blue-400 font-bold font-mono">{student.rollNumber || '—'}</span>
+                                     <span className="text-muted-foreground w-8">ROLL:</span>
+                                     <span className="text-primary font-bold font-mono">{student.rollNumber || '—'}</span>
                                   </div>
                                 </>
                               ) : (

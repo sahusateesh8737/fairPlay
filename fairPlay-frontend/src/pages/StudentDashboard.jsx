@@ -48,9 +48,9 @@ const StudentDashboard = () => {
 
   const getDifficultyColor = (diff) => {
     switch (diff?.toLowerCase()) {
-      case 'easy': return 'text-green-400 border-green-500/20 bg-green-500/10';
-      case 'hard': return 'text-red-400 border-red-500/20 bg-red-500/10';
-      default: return 'text-yellow-400 border-yellow-500/20 bg-yellow-500/10';
+      case 'easy': return 'text-green-600 border-green-500/20 bg-green-500/10';
+      case 'hard': return 'text-red-600 border-red-500/20 bg-red-500/10';
+      default: return 'text-orange-600 border-orange-500/20 bg-orange-500/10';
     }
   };
 
@@ -59,31 +59,35 @@ const StudentDashboard = () => {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#050507] p-8 md:p-12"
+      className="min-h-screen bg-background p-8 md:p-12 relative overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto space-y-8">
+      {/* Background decorations */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[100px] dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto space-y-8 relative z-10">
         {/* Profile Incomplete Overlay */}
         <AnimatePresence>
           {showProfilePrompt && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/80 backdrop-blur-md">
                <motion.div 
                  initial={{ opacity: 0, scale: 0.9 }}
                  animate={{ opacity: 1, scale: 1 }}
-                 className="w-full max-w-md bg-[#0f0f13] border border-red-500/30 rounded-3xl overflow-hidden shadow-2xl relative"
+                 className="w-full max-w-md bg-card border border-red-500/30 rounded-3xl overflow-hidden shadow-2xl relative"
                >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-[50px] pointer-events-none" />
                   <div className="p-8 text-center relative z-10">
                      <div className="w-16 h-16 bg-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                        <AlertTriangle className="w-8 h-8 text-red-500" />
                      </div>
-                     <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Profile Incomplete</h2>
-                     <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+                     <h2 className="text-2xl font-bold text-foreground tracking-tight mb-2">Profile Incomplete</h2>
+                     <p className="text-muted-foreground text-sm mb-8 leading-relaxed">
                        You must fill in your Registration Number and Roll Number before you can access the assessments dashboard.
                      </p>
                      
                      <button 
                        onClick={() => navigate('/student/profile')}
-                       className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] flex items-center justify-center gap-2"
+                       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3.5 px-4 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.3)] flex items-center justify-center gap-2"
                      >
                        Go to Profile Settings <ChevronRight className="w-4 h-4 mt-0.5" />
                      </button>
@@ -94,22 +98,22 @@ const StudentDashboard = () => {
         </AnimatePresence>
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative z-[20]">
           <div>
-            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 border border-blue-500/20">
-              <BookOpen className="w-8 h-8 text-blue-400" />
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20">
+              <BookOpen className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">My Assessments</h1>
-            <p className="text-lg text-gray-400 mb-6">View and take your assigned coding exams.</p>
+            <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">My Assessments</h1>
+            <p className="text-lg text-muted-foreground mb-6">View and take your assigned coding exams.</p>
             
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder="Search assessments..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full md:w-96 bg-[#111115] border border-gray-800 rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-blue-500/30 focus:ring-1 focus:ring-blue-500/30 transition-all text-white placeholder:text-gray-600 shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                className="w-full md:w-96 bg-muted border border-border rounded-xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-primary/30 transition-all text-foreground placeholder:text-muted-foreground/50 shadow-sm"
               />
             </div>
           </div>
@@ -121,7 +125,7 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
             {loading ? (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500">
+              <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground">
                 <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
                 <p>Loading your assessments...</p>
               </div>
@@ -129,7 +133,7 @@ const StudentDashboard = () => {
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500 border border-dashed border-gray-800 rounded-3xl bg-[#0a0a0c]/50"
+                className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground border border-dashed border-border rounded-3xl bg-muted/30"
               >
                 <AlertTriangle className="w-16 h-16 mb-4 opacity-20" />
                 <p className="text-lg mb-2">No active exams found</p>
@@ -142,7 +146,7 @@ const StudentDashboard = () => {
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#0a0a0c] border border-gray-800 rounded-3xl p-6 hover:border-primary/40 transition-all shadow-xl group flex flex-col relative overflow-hidden"
+                  className="bg-card border border-border rounded-3xl p-6 hover:border-primary/40 transition-all shadow-xl group flex flex-col relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-primary/10 transition-colors" />
                   
@@ -152,8 +156,8 @@ const StudentDashboard = () => {
                        <span className={`px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider border ${getDifficultyColor(exam.difficulty)}`}>
                         {exam.difficulty || 'Medium'}
                       </span>
-                      <span className="px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider border bg-white/5 text-gray-400 border-white/5 flex items-center gap-1.5">
-                        <Code2 className="w-3 h-3 text-blue-400" /> {exam.language || 'React'}
+                      <span className="px-2.5 py-1 rounded-lg text-[10px] uppercase font-bold tracking-wider border bg-muted text-muted-foreground border-border flex items-center gap-1.5">
+                        <Code2 className="w-3 h-3 text-primary" /> {exam.language || 'React'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] uppercase font-bold text-primary bg-primary/10 px-2 py-1 rounded-lg border border-primary/20">
@@ -161,7 +165,7 @@ const StudentDashboard = () => {
                     </div>
                   </div>
                   
-                  <h3 className="text-xl font-bold text-white mb-4 leading-tight group-hover:text-primary transition-colors">{exam.title}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-4 leading-tight group-hover:text-primary transition-colors">{exam.title}</h3>
                   
                   {/* Countdown / Due Date */}
                   <div className="mb-6">
@@ -172,7 +176,7 @@ const StudentDashboard = () => {
                   <div className="mb-6">
                     <button 
                       onClick={() => setExpandedId(expandedId === exam.id ? null : exam.id)}
-                      className="flex items-center gap-2 text-xs font-semibold text-gray-500 hover:text-white transition-colors uppercase tracking-widest mb-2"
+                      className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest mb-2"
                     >
                       Assignment Details
                       <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${expandedId === exam.id ? 'rotate-180' : ''}`} />
@@ -186,7 +190,7 @@ const StudentDashboard = () => {
                           exit={{ height: 0, opacity: 0 }}
                           className="overflow-hidden"
                         >
-                          <p className="text-sm text-gray-400 leading-relaxed pt-2 line-clamp-4">
+                          <p className="text-sm text-muted-foreground leading-relaxed pt-2 line-clamp-4">
                             {exam.description || "No additional instructions provided. Please follow the problem statement in the sandbox environment."}
                           </p>
                         </motion.div>
@@ -194,15 +198,15 @@ const StudentDashboard = () => {
                     </AnimatePresence>
                   </div>
 
-                  <div className="mt-auto pt-5 border-t border-white/5 space-y-3">
+                  <div className="mt-auto pt-5 border-t border-border space-y-3">
                     {exam.submissions && exam.submissions.length > 0 ? (
-                      <div className="w-full flex justify-center items-center gap-2 py-3 bg-white/5 text-green-400 font-bold rounded-2xl border border-green-500/20 shadow-inner">
+                      <div className="w-full flex justify-center items-center gap-2 py-3 bg-muted text-green-500 font-bold rounded-2xl border border-green-500/20 shadow-inner">
                         <CheckCircle className="w-5 h-5" /> Completed
                       </div>
                     ) : (
                       <button 
                         onClick={() => handleStartExam(exam.id)}
-                        className="w-full flex justify-center items-center gap-2 py-3.5 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-500 text-white font-bold rounded-2xl transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_15px_30px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 active:translate-y-0"
+                        className="w-full flex justify-center items-center gap-2 py-3.5 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-500 text-primary-foreground font-bold rounded-2xl transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_15px_30px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 active:translate-y-0"
                       >
                         <Play className="w-5 h-5" /> Start Assessment
                       </button>

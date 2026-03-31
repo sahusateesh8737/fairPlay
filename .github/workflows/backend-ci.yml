@@ -1,0 +1,71 @@
+name: Backend CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ "main", "master" ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+    
+    # Run all steps relative to backend folder
+    defaults:
+      run:
+        working-directory: ./backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: './backend/package-lock.json'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Validate Prisma Schema
+      run: npx prisma validate
+      
+    - name: Push Test Schema
+      run: npx prisma db push --accept-data-loss
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db?schema=public
+        
+    - name: Run Unit Tests
+      run: npm run test
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db?schema=public
+        PORT: 5001
+        JWT_SECRET: testing_secret
+        CLIENT_URL: http://localhost:5173
+        
+    - name: Test Docker Container Build
+      run: docker build -t fairplay-backend:test .

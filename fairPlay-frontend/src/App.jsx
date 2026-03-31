@@ -11,14 +11,16 @@ import StudentProfile from './pages/StudentProfile';
 import LiveMonitor from './components/teacher/LiveMonitor';
 import SubmissionReviewer from './components/teacher/SubmissionReviewer';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-      <main className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/30 selection:text-white">
-        <Routes>
+      <ThemeProvider>
+        <Router>
+        <main className="min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden selection:bg-primary/30 selection:text-white">
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
           
@@ -84,7 +86,8 @@ function App() {
           />
         </Routes>
       </main>
-    </Router>
+        </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

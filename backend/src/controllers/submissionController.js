@@ -104,10 +104,14 @@ exports.submitCode = async (req, res, next) => {
           }))
         },
         cheatLogs: {
-          create: cheatLogs.map(log => ({
-            eventType: log.eventType,
-            eventTimestamp: new Date() // In real app, might want to use log.timestamp
-          }))
+          create: cheatLogs.map(log => {
+            const parsedDate = new Date(log.isoTimestamp || new Date().toISOString());
+            return {
+              eventType: log.eventType,
+              eventTimestamp: isNaN(parsedDate.getTime()) ? new Date() : parsedDate,
+              screenshot: log.screenshot || null
+            };
+          })
         }
       }
     });

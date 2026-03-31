@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, BookOpen, Hash, Layers, Calendar, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, User, BookOpen, Hash, Layers, Calendar, Save, Loader2, CheckCircle2, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const ProfileSettingsModal = ({ isOpen, onClose }) => {
@@ -36,10 +37,10 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
     }
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -52,66 +53,67 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-lg bg-[#0a0a0c] border border-gray-800 rounded-3xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg bg-card border border-border rounded-3xl shadow-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-blue-500/5 to-purple-500/5">
+            <div className="p-6 border-b border-border/50 flex justify-between items-center bg-gradient-to-r from-primary/5 to-purple-500/5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20">
-                  <User className="w-5 h-5 text-blue-400" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                  <User className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-tight">Academic Profile</h2>
-                  <p className="text-xs text-gray-400">Complete your student details</p>
+                  <h2 className="text-xl font-bold text-foreground tracking-tight">Academic Profile</h2>
+                  <p className="text-xs text-muted-foreground">Complete your student details</p>
                 </div>
               </div>
               <button 
                 onClick={onClose}
-                className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white"
+                className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form onSubmit={handleSubmit} className="p-8 space-y-6">
               {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-2">
-                  <X className="w-4 h-4" /> {error}
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-3 rounded-lg text-xs font-medium">
+                  {error}
                 </div>
               )}
 
               {success && (
-                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" /> Profile updated successfully!
+                <div className="bg-green-500/10 border border-green-500/20 text-green-500 p-3 rounded-lg text-xs font-medium flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  Profile updated successfully!
                 </div>
               )}
 
               <div className="space-y-4">
                 {/* Registration Number */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
                     <Hash className="w-3 h-3" /> Registration Number
                   </label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. 2021BCS001"
-                    className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground text-sm focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-inner"
                     value={formData.registrationNumber}
                     onChange={(e) => setFormData({...formData, registrationNumber: e.target.value})}
                   />
                 </div>
 
                 {/* Department */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-                    <BookOpen className="w-3 h-3" /> Department
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <GraduationCap className="w-3 h-3" /> Department
                   </label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. Computer Science"
-                    className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground text-sm focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-inner"
                     value={formData.department}
                     onChange={(e) => setFormData({...formData, department: e.target.value})}
                   />
@@ -120,7 +122,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                 <div className="grid grid-cols-2 gap-4">
                   {/* Semester */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
                       <Layers className="w-3 h-3" /> Semester
                     </label>
                     <input
@@ -129,7 +131,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                       min="1"
                       max="12"
                       placeholder="e.g. 6"
-                      className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-all"
+                      className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground text-sm focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-inner"
                       value={formData.semester}
                       onChange={(e) => setFormData({...formData, semester: e.target.value})}
                     />
@@ -137,7 +139,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
 
                   {/* Year */}
                   <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
                       <Calendar className="w-3 h-3" /> Academic Year
                     </label>
                     <input
@@ -145,7 +147,7 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                       required
                       min="1"
                       placeholder="e.g. 3"
-                      className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-all"
+                      className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground text-sm focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-inner"
                       value={formData.year}
                       onChange={(e) => setFormData({...formData, year: e.target.value})}
                     />
@@ -153,33 +155,33 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
                 </div>
 
                 {/* Roll Number */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
                     <Hash className="w-3 h-3" /> Roll Number
                   </label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. 45"
-                    className="w-full bg-[#111115] border border-gray-800 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground text-sm focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30 shadow-inner"
                     value={formData.rollNumber}
                     onChange={(e) => setFormData({...formData, rollNumber: e.target.value})}
                   />
                 </div>
               </div>
 
-              <div className="pt-4 flex gap-3">
+              <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-3 px-4 rounded-xl border border-gray-800 text-gray-400 font-bold hover:bg-white/5 transition-all"
+                  className="flex-1 py-3 px-4 rounded-xl border border-border text-muted-foreground font-black uppercase tracking-widest text-[10px] hover:bg-muted transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-3 py-3 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 min-w-[140px]"
+                  className="flex-3 py-3 px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 min-w-[140px]"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -196,6 +198,8 @@ const ProfileSettingsModal = ({ isOpen, onClose }) => {
       )}
     </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default ProfileSettingsModal;

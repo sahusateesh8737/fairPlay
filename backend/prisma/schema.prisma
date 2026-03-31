@@ -125,6 +125,7 @@ model CheatLog {
   submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   eventType      String     @map("event_type")
   eventTimestamp DateTime   @map("event_timestamp")
+  screenshot     String?    @db.Text
   createdAt      DateTime   @default(now())
 
   @@map("cheat_logs")

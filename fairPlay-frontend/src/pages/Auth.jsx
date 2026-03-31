@@ -91,15 +91,15 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] dark:mix-blend-screen mix-blend-multiply pointer-events-none" />
 
       {/* Brand logo to return home */}
       <Link to="/" className="absolute top-8 left-8 flex items-center gap-2 group z-20">
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(59,130,246,0.5)]">
           fP
         </div>
-        <span className="font-bold text-xl tracking-tight text-white hidden sm:block">fairPlay</span>
+        <span className="font-bold text-xl tracking-tight text-foreground hidden sm:block">fairPlay</span>
       </Link>
 
       <motion.div 
@@ -108,7 +108,7 @@ const Auth = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md z-10"
       >
-        <div className="glass-card rounded-3xl p-8 shadow-2xl border-white/10 relative overflow-hidden min-h-[450px] flex flex-col justify-center">
+        <div className="glass-card rounded-3xl p-8 shadow-2xl relative overflow-hidden min-h-[450px] flex flex-col justify-center">
           
           <AnimatePresence mode="wait">
             {successData ? (
@@ -127,11 +127,11 @@ const Auth = () => {
                 >
                   <CheckCircle2 className="w-10 h-10 text-green-500" />
                 </motion.div>
-                <h3 className="text-2xl font-bold text-white tracking-tight">
+                <h3 className="text-2xl font-bold text-foreground tracking-tight">
                   Welcome to fairPlay, {successData.name.split(' ')[0]}!
                 </h3>
-                <p className="text-gray-400 text-sm">Preparing your secure workspace...</p>
-                <div className="w-48 h-1 bg-gray-800 rounded-full overflow-hidden mt-6">
+                <p className="text-muted-foreground text-sm">Preparing your secure workspace...</p>
+                <div className="w-48 h-1 bg-muted rounded-full overflow-hidden mt-6">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: "100%" }}
@@ -148,10 +148,10 @@ const Auth = () => {
                 exit={{ opacity: 0, scale: 0.95 }}
               >
                 <div className="text-center mb-8 line-clamp-1">
-                  <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
+                  <h2 className="text-3xl font-bold text-foreground tracking-tight mb-2">
                     {isLogin ? 'Welcome Back' : 'Create an Account'}
                   </h2>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-muted-foreground text-sm">
                     {isLogin ? 'Enter your credentials to access your portal' : 'Get started with the ultimate assessment platform'}
                   </p>
                 </div>
@@ -163,7 +163,7 @@ const Auth = () => {
                 initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                 animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
                 exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                className="flex p-1 bg-white/5 rounded-xl mb-6 relative"
+                className="flex p-1 bg-muted rounded-xl mb-6 relative border border-border"
               >
                 <div 
                   className={`absolute inset-y-1 w-[calc(50%-4px)] bg-primary/20 border border-primary/30 rounded-lg transition-transform duration-300 ease-out z-0 ${role === 'teacher' ? 'translate-x-[calc(100%+4px)]' : 'translate-x-0'}`}
@@ -172,7 +172,7 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setRole('student')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium z-10 transition-colors ${role === 'student' ? 'text-white' : 'text-gray-400 hover:text-gray-300'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium z-10 transition-colors ${role === 'student' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   <User className="w-4 h-4" />
                   Student
@@ -180,7 +180,7 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => setRole('teacher')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium z-10 transition-colors ${role === 'teacher' ? 'text-white' : 'text-gray-400 hover:text-gray-300'}`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium z-10 transition-colors ${role === 'teacher' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   <GraduationCap className="w-4 h-4" />
                   Teacher
@@ -194,7 +194,7 @@ const Auth = () => {
               initial={{ opacity: 0, x: -20 }} 
               animate={{ opacity: 1, x: [0, -10, 10, -10, 10, 0] }}
               transition={{ x: { duration: 0.4, ease: "easeInOut" }, opacity: { duration: 0.2 } }}
-              className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+              className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 dark:text-red-400 text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
             >
               <AlertTriangle className="w-4 h-4 shrink-0" /> {error}
             </motion.div>
@@ -210,9 +210,9 @@ const Auth = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">Full Name</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1.5">Full Name</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                       <User className="w-5 h-5" />
                     </div>
                     <input 
@@ -222,7 +222,7 @@ const Auth = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       placeholder="John Doe"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                      className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all shadow-sm"
                     />
                   </div>
                 </motion.div>
@@ -231,11 +231,11 @@ const Auth = () => {
 
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                 {isLogin ? 'Email Address' : 'College Email'}
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input 
@@ -245,16 +245,16 @@ const Auth = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="name@college.edu"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all shadow-sm"
                 />
               </div>
             </div>
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">Password</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input 
@@ -264,12 +264,12 @@ const Auth = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="••••••••"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-12 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-12 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all shadow-sm"
                 />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white transition-colors"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -284,14 +284,14 @@ const Auth = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">My Section</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1.5">My Section</label>
                   <select 
                     name="sectionName"
                     required
                     value={formData.sectionName}
                     onChange={handleInputChange}
                     title="Select your section"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all appearance-none [&>option]:text-black"
+                    className="w-full bg-background border border-border rounded-xl py-3 px-4 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all appearance-none [&>option]:text-foreground shadow-sm"
                   >
                     <option value="" disabled>Select an active section...</option>
                     {['k23DJ', 'k23IS', 'k22AL', 'k24ML'].map(sec => (
@@ -307,9 +307,9 @@ const Auth = () => {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">Teacher Access Code</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-1.5">Teacher Access Code</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <input 
@@ -319,7 +319,7 @@ const Auth = () => {
                       value={formData.teacherSecret}
                       onChange={handleInputChange}
                       placeholder="Admin provided secret"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+                      className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-sm"
                     />
                   </div>
                 </motion.div>
@@ -329,10 +329,10 @@ const Auth = () => {
             <button 
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-blue-600 disabled:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl mt-6 transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.39)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.23)] active:scale-[0.98] flex items-center justify-center"
+              className="w-full bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-semibold py-3 px-4 rounded-xl mt-6 transition-all shadow-[0_4px_14px_0_rgba(59,130,246,0.3)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.2)] active:scale-[0.98] flex items-center justify-center"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
                 isLogin ? 'Sign In' : 'Create Account'
               )}
@@ -340,11 +340,11 @@ const Auth = () => {
           </form>
 
           <div className="mt-8 text-center">
-            <p className="text-gray-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               {isLogin ? "Don't have an account? " : "Already have an account? "}
                   <button 
                     onClick={toggleAuthMode}
-                    className="text-primary font-medium hover:text-blue-400 transition-colors"
+                    className="text-primary font-medium hover:text-primary/80 transition-colors"
                   >
                     {isLogin ? 'Sign up' : 'Sign in'}
                   </button>

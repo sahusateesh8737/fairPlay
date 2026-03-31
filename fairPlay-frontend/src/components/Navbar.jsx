@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,16 +32,21 @@ const Navbar = () => {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-white group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(59,130,246,0.5)]">
             fP
           </div>
-          <span className="font-bold text-xl tracking-tight text-white">fairPlay</span>
+          <span className="font-bold text-xl tracking-tight text-foreground">fairPlay</span>
         </Link>
 
-        {/* Central Nav Links (Optional, can add later, currently just centered space) */}
-        <nav className="hidden md:flex items-center gap-8">
-          {/* Add links here if needed */}
-        </nav>
-
-        {/* Auth Actions */}
+        {/* Theme Toggle & Auth Actions */}
         <div className="flex items-center gap-4">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleTheme}
+            className="p-2 rounded-xl bg-secondary text-foreground border border-border hover:bg-muted transition-colors shadow-sm"
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          </motion.button>
+
           {user ? (
             <Link 
               to={`/${user.role}/dashboard`}
