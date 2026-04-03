@@ -15,7 +15,7 @@ jenkins:
 
   authorizationStrategy:
     loggedInUsersCanDoAnything:
-      allowAnonymousJobStatusPermission: false
+      allowAnonymousRead: false
 
 unclassified:
   location:

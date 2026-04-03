@@ -19,7 +19,7 @@ pipeline {
             agent {
                 docker {
                     image 'node:20-slim'
-                    args '-u root:root'
+                    args '-u root:root --rm'
                 }
             }
             steps {
@@ -34,7 +34,7 @@ pipeline {
             agent {
                 docker {
                     image 'node:20-slim'
-                    args '-u root:root'
+                    args '-u root:root --rm'
                 }
             }
             steps {
@@ -50,7 +50,7 @@ pipeline {
             agent {
                 docker {
                     image 'node:20-slim'
-                    args '-u root:root'
+                    args '-u root:root --rm'
                 }
             }
             steps {

@@ -8,3 +8,6 @@ job-dsl
 credentials-binding
 dark-theme
 pipeline-stage-view
+sse-gateway
+instance-identity
+matrix-auth
