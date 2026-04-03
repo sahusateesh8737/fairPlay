@@ -20,8 +20,8 @@ jenkins:
 unclassified:
   location:
     url: http://localhost:8080/
-  gitHubConfiguration:
-    apiRateLimitChecker: ThrottleForMaintainers
+  # gitHubConfiguration:
+  #   apiRateLimitChecker: ThrottleForMaintainers
   dark-theme-manager:
     darkTheme: true
 
