@@ -7,13 +7,17 @@ services:
       dockerfile: docker/jenkins/Dockerfile
     container_name: jenkins_fairplay
     privileged: true
-    user: root # Allows Jenkins to run Docker commands
+    user: root # Needed for Docker socket access
     ports:
       - "8080:8080"
       - "50000:50000"
+    environment:
+      - CASC_JENKINS_CONFIG=/usr/share/jenkins/ref/jenkins.yaml
     volumes:
       - jenkins_data:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./docker/jenkins/jenkins.yaml:/usr/share/jenkins/ref/jenkins.yaml:ro
+      - npm_cache:/root/.npm # Shared npm cache for performance
     restart: unless-stopped
     networks:
       - fairplay_network
@@ -24,3 +28,4 @@ networks:
 
 volumes:
   jenkins_data:
+  npm_cache:

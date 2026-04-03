@@ -1,0 +1,10 @@
+workflow-aggregator
+docker-workflow
+blueocean
+configuration-as-code
+git
+nodejs
+job-dsl
+credentials-binding
+dark-theme
+pipeline-stage-view

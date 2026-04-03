@@ -1,4 +1,5 @@
 FROM jenkins/jenkins:lts
+
 # Switch to root to install the Docker CLI
 USER root
 
@@ -7,7 +8,8 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     curl \
     ca-certificates \
-    gnupg
+    gnupg \
+    git
 
 # Add Docker's official GPG key
 RUN mkdir -p /etc/apt/keyrings && \
@@ -18,9 +20,18 @@ RUN echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
   $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Install the Docker CLI only (no need for the full engine as we connect via socket)
+# Install the Docker CLI only
 RUN apt-get update && apt-get install -y docker-ce-cli
 
-# Switch back to root temporarily if we want to run as root by default,
-# or back to jenkins if we prefer. Given the compose 'user: root', we stay as root.
+# Disable the initial setup wizard manually
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+
+# Switch back to the jenkins user for plugin installation
+USER jenkins
+
+# Copy and install plugins
+COPY --chown=jenkins:jenkins plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli -f /usr/share/jenkins/ref/plugins.txt
+
+# Post-installation: switch to root if we need to run as root (for socket access)
 USER root
