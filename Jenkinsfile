@@ -1,8 +1,9 @@
 pipeline {
-    agent any
-
-    tools {
-        nodejs 'node-20' // Assuming you have a NodeJS installation named 'node-20' in Jenkins → Manage Jenkins → Global Tool Configuration
+    agent {
+        docker {
+            image 'node:20-slim' // Uses an official Node.js Docker image for the build environment
+            args '-u root:root'  // Ensures the build has permissions to write to the Jenkins workspace
+        }
     }
 
     environment {
@@ -14,6 +15,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // The agent is already inside the container, so we pull code here
                 checkout scm
             }
         }
@@ -30,7 +32,7 @@ pipeline {
         stage('Backend: Test') {
             steps {
                 dir('backend') {
-                    // Provide a temporary DB URL for tests if needed, or mock it
+                    // Provide a temporary DB URL for tests
                     withEnv(['DATABASE_URL=postgresql://user:pass@localhost:5432/test?schema=public']) {
                         sh 'npm test'
                     }
@@ -49,9 +51,12 @@ pipeline {
 
         stage('Docker: Connectivity Check') {
             steps {
-                // Verifies that both apps can be containerized
-                sh 'docker build -t fairplay-backend:latest ./backend'
-                // sh 'docker build -t fairplay-frontend:latest ./fairPlay-frontend' // Uncomment if you have a frontend Dockerfile
+                // This stage runs on the Host (outside the Node container)
+                // Note: The Docker Pipeline plugin handles this by running inside 'agent any' if needed
+                // For this specific stage, we might need a workaround or just run 'docker' commands via the host
+                script {
+                    sh 'docker build -t fairplay-backend:latest ./backend'
+                }
             }
         }
     }
@@ -62,10 +67,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo "Successfully built and tested fairPlay!"
+            echo "Successfully built and tested fairPlay using Docker Agent!"
         }
         failure {
-            echo "Build failed for fairPlay. Please check logs above."
+            echo "Build failed for fairPlay. Check the Docker logs or Node.js output."
         }
     }
 }
