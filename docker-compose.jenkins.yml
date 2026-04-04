@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  jenkins:
+    build:
+      context: ./docker/jenkins
+      dockerfile: Dockerfile
+    container_name: fairplay_jenkins
+    restart: always
+    privileged: true
+    user: root # Run as root to have permission to the mounted docker socket
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_data_v2:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+
+volumes:
+  jenkins_data_v2:
