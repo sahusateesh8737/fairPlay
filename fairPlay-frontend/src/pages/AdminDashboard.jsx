@@ -118,16 +118,16 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#070709] text-gray-300 font-mono flex">
+    <div className="dark min-h-screen bg-background text-foreground font-mono flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-800 bg-[#0a0a0c] flex flex-col">
-        <div className="p-6 border-b border-gray-800">
+      <aside className="w-64 border-r border-border bg-card flex flex-col">
+        <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-red-500/10 border border-red-500/20 rounded flex items-center justify-center">
-              <ShieldAlert className="w-4 h-4 text-red-500" />
+            <div className="w-8 h-8 bg-destructive/10 border border-destructive/20 rounded flex items-center justify-center">
+              <ShieldAlert className="w-4 h-4 text-destructive" />
             </div>
             <div>
-              <h1 className="text-white font-bold tracking-wider text-sm">fP_ADMIN</h1>
+              <h1 className="text-foreground font-bold tracking-wider text-sm">fP_ADMIN</h1>
               <p className="text-[10px] text-green-500 uppercase tracking-widest mt-0.5 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Online
               </p>
@@ -145,18 +145,18 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors ${
                   isActive 
-                    ? 'bg-gray-800/50 text-white border border-gray-700/50' 
-                    : 'hover:bg-gray-800/30 text-gray-400 hover:text-white border border-transparent'
+                    ? 'bg-primary/10 text-primary border border-primary/20' 
+                    : 'hover:bg-muted text-muted-foreground hover:text-foreground border border-transparent'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : ''}`} /> {item.label}
+                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} /> {item.label}
               </button>
             )
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors text-sm">
+        <div className="p-4 border-t border-border">
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors text-sm">
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
@@ -165,18 +165,18 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen">
         {/* Top Header */}
-        <header className="h-20 shrink-0 border-b border-gray-800 flex items-center justify-between px-8 bg-[#0a0a0c]/50">
-          <h2 className="text-xl text-white font-medium capitalize flex items-center gap-3">
+        <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-8 bg-card/50">
+          <h2 className="text-xl text-foreground font-medium capitalize flex items-center gap-3">
             {navItems.find(t => t.id === activeTab)?.label}
           </h2>
           
           <div className="flex items-center gap-4">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input 
                 type="text" 
                 placeholder="Search resources..." 
-                className="bg-[#111115] border border-gray-800 rounded-md py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:border-gray-600 transition-colors w-64 text-white"
+                className="bg-background border border-border rounded-md py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:border-primary transition-colors w-64 text-foreground"
               />
             </div>
             <UserProfile />

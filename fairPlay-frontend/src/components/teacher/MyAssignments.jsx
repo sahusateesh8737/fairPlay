@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileCode, Calendar, Clock, Edit2, Play, Users, Trash2, X, FileTerminal, Radio, PlusCircle 
@@ -51,21 +52,24 @@ const MyAssignments = ({ setActiveTab, searchQuery = '' }) => {
 
   return (
     <>
-      <AnimatePresence>
-        {activeHeatMap && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-background overflow-y-auto p-8"
-          >
-            <AssignmentHeatMap 
-              assignmentId={activeHeatMap.id} 
-              onClose={() => setActiveHeatMap(null)} 
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {activeHeatMap && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[999] bg-background overflow-y-auto p-8"
+            >
+              <AssignmentHeatMap 
+                assignmentId={activeHeatMap.id} 
+                onClose={() => setActiveHeatMap(null)} 
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

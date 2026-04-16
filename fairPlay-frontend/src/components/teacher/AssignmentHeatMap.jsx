@@ -172,8 +172,9 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
       </div>
 
       {/* The Actual Heat Map Grid */}
-      <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="bg-card border-2 border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5 bg-[size:32px_32px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
         
          <div className="grid grid-cols-8 gap-4 mb-2">
             {Array.from({length: COLS}).map((_, i) => (
@@ -265,7 +266,7 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
 
 const SeatBox = ({ seat, onClick }) => {
   if (!seat) return (
-    <div className="aspect-square bg-muted/20 border border-dashed border-border rounded-xl" />
+    <div className="aspect-square bg-muted/40 border border-dashed border-border/80 rounded-xl" />
   );
 
   const status = seat.live.status;
@@ -278,24 +279,24 @@ const SeatBox = ({ seat, onClick }) => {
       whileHover={{ scale: 1.05, zIndex: 10 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`aspect-square rounded-2xl border transition-all flex flex-col items-center justify-center p-2 relative group overflow-hidden ${
-        isSubmitted ? 'bg-green-600 border-green-500 shadow-lg shadow-green-500/20' :
-        isFlagged ? 'bg-orange-500/10 border-orange-500 shadow-md shadow-orange-500/10' :
-        isActive ? 'bg-blue-600/10 border-blue-500 shadow-md shadow-blue-500/10' :
-        'bg-muted/50 border-border shadow-sm'
+      className={`aspect-square rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center p-2 relative group overflow-hidden ${
+        isSubmitted ? 'bg-green-600 border-green-700 shadow-md text-white' :
+        isFlagged ? 'bg-red-500 border-red-600 shadow-md text-white' :
+        isActive ? 'bg-blue-600 border-blue-700 shadow-md text-white' :
+        'bg-background border-border hover:border-primary shadow-sm text-foreground'
       }`}
     >
       {isActive && (
-        <div className="absolute top-1 right-1">
-          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping" />
+        <div className="absolute top-2 right-2">
+          <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
         </div>
       )}
 
-      <span className={`text-[9px] font-black uppercase tracking-tighter ${isSubmitted ? 'text-white' : 'text-muted-foreground/40 group-hover:text-foreground'}`}>
+      <span className={`text-[11px] font-black uppercase tracking-widest ${isSubmitted || isFlagged || isActive ? 'text-white' : 'text-muted-foreground group-hover:text-foreground'}`}>
         {seat.rollNumber || '—'}
       </span>
       
-      <div className={`text-sm font-black mt-1 ${isSubmitted ? 'text-white' : 'text-foreground/20 group-hover:text-foreground/50 transition-colors'}`}>
+      <div className={`text-xs font-black mt-1 ${isSubmitted || isFlagged || isActive ? 'text-white/80' : 'text-muted-foreground/50'}`}>
         {seat.setLabel}
       </div>
 
