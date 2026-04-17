@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
+const { register, requestMetricsMiddleware } = require('./config/prometheus');
 
 // Route Files
 const authRoutes = require('./routes/authRoutes');
@@ -13,7 +14,11 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
+// Enable if behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
+app.set('trust proxy', 1);
+
 // Middlewares
+app.use(requestMetricsMiddleware);
 app.use(helmet());
 app.use(cors({
     origin: [
@@ -25,8 +30,8 @@ app.use(cors({
     credentials: true
 }));
 app.use(morgan('dev'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Global Rate Limiting
 app.get('/', (req, res) => {
@@ -45,6 +50,12 @@ app.use('/api/admin', adminRoutes);
 // Health Check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });
+});
+
+// Prometheus Metrics
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.send(await register.metrics());
 });
 
 // Centralized Error Handler

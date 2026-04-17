@@ -1,10 +1,12 @@
 const express = require('express');
 const { createAssignment, getAssignments, getAssignment, deleteAssignment, updateAssignmentStatus } = require('../controllers/assignmentController');
 const { protect, authorize } = require('../middlewares/auth');
+const { enforceNetworkSecurity } = require('../middlewares/networkSecurity');
 
 const router = express.Router();
 
 router.use(protect);
+router.use(enforceNetworkSecurity);
 
 router.post('/', authorize('teacher', 'admin'), createAssignment);
 router.get('/', getAssignments);
