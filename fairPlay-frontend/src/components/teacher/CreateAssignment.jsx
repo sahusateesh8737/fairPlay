@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileCode, Calendar, CheckCircle2, ChevronDown, Plus, Trash2 } from 'lucide-react';
+import { FileCode, Calendar, CheckCircle2, ChevronDown, Plus, Trash2, Clock } from 'lucide-react';
 import axios from 'axios';
 
 const CreateAssignment = ({ setActiveTab }) => {
@@ -27,7 +27,8 @@ const CreateAssignment = ({ setActiveTab }) => {
     description: '',
     difficulty: 'Medium',
     language: 'JavaScript',
-    maxScore: '100'
+    maxScore: '100',
+    durationMinutes: '60'
   });
   
   const [questions, setQuestions] = useState([
@@ -79,6 +80,7 @@ const CreateAssignment = ({ setActiveTab }) => {
         difficulty: formData.difficulty,
         language: formData.language,
         maxScore: formData.maxScore,
+        durationMinutes: formData.durationMinutes,
         questions: questions.map(q => ({
           prompt: q.prompt,
           boilerplate: q.boilerplate
@@ -216,6 +218,24 @@ const CreateAssignment = ({ setActiveTab }) => {
                   value={formData.language}
                   onChange={(e) => setFormData({...formData, language: e.target.value})}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">Duration (Minutes)</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <input 
+                    required
+                    type="number" 
+                    min="1"
+                    placeholder="e.g., 60"
+                    className="w-full bg-background border border-border rounded-xl py-3 pl-10 pr-4 text-foreground text-sm focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all shadow-sm"
+                    value={formData.durationMinutes}
+                    onChange={(e) => setFormData({...formData, durationMinutes: e.target.value})}
+                  />
+                </div>
               </div>
             </div>
 

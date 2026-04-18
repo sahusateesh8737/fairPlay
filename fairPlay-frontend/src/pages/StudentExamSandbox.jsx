@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Editor from '@monaco-editor/react';
@@ -8,6 +8,7 @@ import { io } from 'socket.io-client';
 
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import SecureTimer from '../components/common/SecureTimer';
 
 const socket = io(`${import.meta.env.VITE_API_BASE_URL}`);
 
@@ -24,6 +25,7 @@ const StudentExamSandbox = () => {
   const [submitting, setSubmitting] = useState(false);
   const [warningMessage, setWarningMessage] = useState(null);
   const [cheatLogs, setCheatLogs] = useState([]);
+  const [serverEndTime, setServerEndTime] = useState(null);
   const [newFileName, setNewFileName] = useState('');
   const [isCreatingFile, setIsCreatingFile] = useState(false);
   const [compileError, setCompileError] = useState('');
@@ -299,6 +301,20 @@ const StudentExamSandbox = () => {
 
       streamRef.current = stream;
 
+      // --- START SERVER SESSION ---
+      try {
+        const sessionRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/submissions/start`, {
+           assignmentId: exam.id 
+        });
+        if (sessionRes.data.success) {
+          console.log("Exam session initialized. End Time:", sessionRes.data.data.endTime);
+          setServerEndTime(sessionRes.data.data.endTime);
+        }
+      } catch (sessErr) {
+        console.error("CRITICAL: Failed to start server session tracking", sessErr);
+        // We continue anyway, but the backend will reject if they try to cheat later
+      }
+
       // Listen for "Stop Sharing" click
       track.onended = () => {
         setIsSecureSessionStarted(false);
@@ -465,7 +481,8 @@ const StudentExamSandbox = () => {
     return () => clearTimeout(timer);
   }, [files, activeFile, assignmentId]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       const finalSubmission = {
@@ -496,7 +513,15 @@ const StudentExamSandbox = () => {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [exam, question, files, cheatLogs, user, assignmentId, navigate, submitting]);
+
+  const handleAutoSubmit = useCallback(() => {
+    if (!submitting && isSecureSessionStarted) {
+      console.log("TIME EXPIRED: Triggering Auto-Submit Engine...");
+      handleSubmit();
+      showWarning("TIME EXPIRED: Final version submitted automatically.");
+    }
+  }, [submitting, isSecureSessionStarted, handleSubmit]);
 
   if (!exam || !question) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-foreground font-medium">Loading Security Environment...</div>;
@@ -589,26 +614,39 @@ const StudentExamSandbox = () => {
           )}
         </div>
         
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={runCode}
-            className="bg-green-600 hover:bg-green-500 text-white font-medium py-2 px-5 rounded-lg transition-colors flex items-center gap-2"
-          >
-            <Play className="w-4 h-4" /> Compile & Run
-          </button>
-          <div className="w-px h-8 bg-border mx-2" />
-          <button 
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
-          >
-            {submitting ? (
-              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-            {submitting ? 'Submitting...' : 'Submit Assessment'}
-          </button>
+        <div className="flex items-center gap-6">
+          {serverEndTime ? (
+            <SecureTimer 
+              serverEndTime={serverEndTime} 
+              onTimeUp={handleAutoSubmit} 
+            />
+          ) : (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-muted/50 text-muted-foreground font-mono text-sm shrink-0">
+              <Clock className="w-4 h-4" /> No Limit
+            </div>
+          )}
+
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={runCode}
+              className="bg-green-600 hover:bg-green-500 text-white font-medium py-2 px-5 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Play className="w-4 h-4" /> Compile & Run
+            </button>
+            <div className="w-px h-8 bg-border mx-2" />
+            <button 
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+            >
+              {submitting ? (
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              {submitting ? 'Submitting...' : 'Submit Assessment'}
+            </button>
+          </div>
         </div>
       </header>
 

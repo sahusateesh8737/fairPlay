@@ -42,6 +42,7 @@ model User {
   addedIps    AllowedIp[]  @relation("AddedBy")
   assignments Assignment[] @relation("TeacherAssignments")
   submissions Submission[]
+  examSessions ExamSession[]
 
   @@map("users")
 }
@@ -70,10 +71,12 @@ model Assignment {
   language        String?      @default("JavaScript")
   maxScore        Int?         @default(100) @map("max_score")
   status          String       @default("draft") // "draft", "active", "closed"
+  durationMinutes Int?         @map("duration_minutes")
   createdAt       DateTime     @default(now())
   
   questions       Question[]
   submissions     Submission[]
+  examSessions    ExamSession[]
 
   @@map("assignments")
 }
@@ -136,4 +139,16 @@ model SystemConfig {
   value String
 
   @@map("system_configs")
+}
+
+model ExamSession {
+  id           Int        @id @default(autoincrement())
+  studentId    Int        @map("student_id")
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  assignmentId Int        @map("assignment_id")
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  startedAt    DateTime   @default(now()) @map("started_at")
+
+  @@unique([studentId, assignmentId])
+  @@map("exam_sessions")
 }

@@ -53,6 +53,56 @@ exports.getSubmission = async (req, res, next) => {
   }
 };
 
+// @desc    Start an exam session (record start time)
+// @route   POST /api/submissions/start
+// @access  Private (Student)
+exports.startExamSession = async (req, res, next) => {
+  try {
+    const { assignmentId } = req.body;
+    const studentId = req.user.id;
+
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: parseInt(assignmentId) }
+    });
+
+    if (!assignment) {
+      return next(new ErrorResponse('Assignment not found', 404));
+    }
+
+    // Upsert session (if they refresh, they keep the original start time)
+    const session = await prisma.examSession.upsert({
+      where: {
+        studentId_assignmentId: {
+          studentId,
+          assignmentId: parseInt(assignmentId)
+        }
+      },
+      update: {}, // Don't update startedAt if it already exists
+      create: {
+        studentId,
+        assignmentId: parseInt(assignmentId)
+      }
+    });
+
+    // Calculate endTime
+    let endTime = null;
+    if (assignment.durationMinutes) {
+      endTime = new Date(session.startedAt.getTime() + assignment.durationMinutes * 60000);
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        startedAt: session.startedAt,
+        endTime,
+        durationMinutes: assignment.durationMinutes
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Update submission grade
 // @route   PUT /api/submissions/:id/grade
 // @access  Private (Teacher/Admin)
@@ -89,6 +139,30 @@ exports.submitCode = async (req, res, next) => {
 
     if (!assignment) {
       return next(new ErrorResponse('Assignment not found', 404));
+    }
+
+    // --- SECURE TIMER VALIDATION ---
+    if (assignment.durationMinutes) {
+      const session = await prisma.examSession.findUnique({
+        where: {
+          studentId_assignmentId: {
+            studentId: req.user.id,
+            assignmentId: parseInt(assignmentId)
+          }
+        }
+      });
+
+      if (!session) {
+        return next(new ErrorResponse('Exam session not started. Please start the exam properly.', 403));
+      }
+
+      const now = new Date();
+      const endTime = new Date(session.startedAt.getTime() + assignment.durationMinutes * 60000);
+      const gracePeriodMs = 30000; // 30 seconds
+
+      if (now.getTime() > endTime.getTime() + gracePeriodMs) {
+        return next(new ErrorResponse('Submission rejected: Time limit exceeded.', 403));
+      }
     }
 
     // Create submission
