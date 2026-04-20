@@ -4,7 +4,8 @@ const {
   getSubmission, 
   updateGrade,
   submitCode,
-  startExamSession
+  startExamSession,
+  getMySubmissions
 } = require('../controllers/submissionController');
 const { protect, authorize } = require('../middlewares/auth');
 const { enforceNetworkSecurity } = require('../middlewares/networkSecurity');
@@ -16,6 +17,7 @@ router.use(protect);
 router.use(enforceNetworkSecurity);
 
 router.post('/start', authorize('student', 'admin'), startExamSession);
+router.get('/student/my-results', authorize('student', 'admin'), getMySubmissions);
 router.post('/', authorize('student', 'admin'), submissionLimiter, submitCode);
 router.get('/assignment/:assignmentId', authorize('teacher', 'admin'), getAssignmentSubmissions);
 router.get('/:id', authorize('teacher', 'admin'), getSubmission);

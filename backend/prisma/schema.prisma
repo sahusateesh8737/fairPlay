@@ -105,6 +105,8 @@ model Submission {
   submittedAt  DateTime         @default(now()) @map("submitted_at")
   score        Decimal?         @db.Decimal(5, 2) @map("final_score")
   
+  teacherFeedback String? @map("teacher_feedback") @db.Text
+  
   files        SubmissionFile[]
   cheatLogs    CheatLog[]
 

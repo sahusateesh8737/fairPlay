@@ -46,7 +46,7 @@ const SubmissionReviewer = () => {
         
         setFiles(fileObj);
         setActiveFile(data.files[0]?.fileName || 'index.jsx');
-        setGrade({ score: data.score || '', feedback: '' });
+        setGrade({ score: data.score || '', feedback: data.teacherFeedback || '' });
         
       } catch (error) {
         console.error("Failed to load submission", error);
@@ -142,7 +142,10 @@ const SubmissionReviewer = () => {
     e.preventDefault();
     setIsSubmittingGrade(true);
     try {
-      await axios.put(`${API_BASE}/submissions/${submissionId}/grade`, grade);
+      await axios.put(`${API_BASE}/submissions/${submissionId}/grade`, {
+        score: grade.score,
+        teacherFeedback: grade.feedback
+      });
       alert('Assessment graded successfully!');
     } catch (error) {
       console.error("Failed to save grade", error);
@@ -301,11 +304,11 @@ const SubmissionReviewer = () => {
                     </div>
                     <div className="flex-[2]">
                         <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 ml-1">Comments / Feedback</label>
-                        <input 
-                          type="text"
+                        <textarea 
+                          rows="1"
                           value={grade.feedback}
                           onChange={(e) => setGrade({...grade, feedback: e.target.value})}
-                          className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-foreground focus:border-primary outline-none transition-all placeholder:text-muted-foreground/30 shadow-sm"
+                          className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-foreground focus:border-primary outline-none transition-all placeholder:text-muted-foreground/30 shadow-sm resize-none"
                           placeholder="Structure is clean. Good use of props."
                         />
                     </div>

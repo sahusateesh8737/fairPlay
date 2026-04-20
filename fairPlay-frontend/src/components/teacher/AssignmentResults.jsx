@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ChevronDown, CheckCircle2, History } from 'lucide-react';
+import { Search, ChevronDown, CheckCircle2, History, BarChart3, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import AssignmentAnalytics from './AssignmentAnalytics';
 
 const AssignmentResults = () => {
   const [assignmentOptions, setAssignmentOptions] = useState([]);
@@ -10,6 +11,7 @@ const AssignmentResults = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [view, setView] = useState('list'); // 'list' or 'analytics'
 
   // 1. Fetch available assignments for the dropdown
   useEffect(() => {
@@ -67,22 +69,66 @@ const AssignmentResults = () => {
           <p className="text-sm text-muted-foreground mt-1">Review student marks, sections, and variation performance.</p>
         </div>
         
-        {/* Assignment Selector */}
-        <div className="relative min-w-[250px]">
-          <select 
-            className="w-full bg-background border border-border rounded-lg py-2 pl-4 pr-10 text-foreground text-sm focus:outline-none focus:border-green-500/50 appearance-none shadow-sm"
-            value={activeAssignment}
-            onChange={(e) => setActiveAssignment(e.target.value)}
-          >
-            {assignmentOptions.map(opt => (
-              <option key={opt.id} value={opt.id} className="text-foreground">{opt.title} ({opt.section?.name || '—'})</option>
-            ))}
-          </select>
-          <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        
+        {/* View Toggle & Assignment Selector */}
+        <div className="flex items-center gap-4">
+          <div className="flex bg-muted rounded-lg p-1 border border-border shrink-0">
+            <button 
+              onClick={() => setView('list')}
+              className={`p-2 rounded-md transition-all ${view === 'list' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setView('analytics')}
+              className={`p-2 rounded-md transition-all ${view === 'analytics' ? 'bg-card text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              <BarChart3 className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="relative min-w-[250px]">
+            <select 
+              className="w-full bg-background border border-border rounded-lg py-2 pl-4 pr-10 text-foreground text-sm focus:outline-none focus:border-green-500/50 appearance-none shadow-sm"
+              value={activeAssignment}
+              onChange={(e) => setActiveAssignment(e.target.value)}
+            >
+              {assignmentOptions.map(opt => (
+                <option key={opt.id} value={opt.id} className="text-foreground">{opt.title} ({opt.section?.name || '—'})</option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          </div>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl">
+      <AnimatePresence mode="wait">
+        {view === 'analytics' ? (
+          <motion.div 
+            key="analytics"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <AssignmentAnalytics 
+              assignmentId={activeAssignment} 
+              csvData={submissions.map(s => ({
+                Student: s.student.name,
+                Email: s.student.email,
+                Section: s.student.section?.name || 'N/A',
+                Score: s.score || 'Ungraded',
+                SubmittedAt: new Date(s.submittedAt).toLocaleString()
+              }))}
+            />
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="list"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-card border border-border rounded-xl overflow-hidden shadow-xl"
+          >
         <div className="p-4 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/20">
           <div className="flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
              <span>Total Submissions: <strong className="text-foreground">{filteredSubmissions.length}</strong></span>
@@ -183,8 +229,10 @@ const AssignmentResults = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
   );
 };
 

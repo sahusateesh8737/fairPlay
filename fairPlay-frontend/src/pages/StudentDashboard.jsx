@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search, ChevronDown, ChevronRight, Code2, Award } from 'lucide-react';
+import { BookOpen, Clock, Play, AlertTriangle, CheckCircle, LogOut, Search, ChevronDown, ChevronRight, Code2, Award, History } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -100,8 +100,16 @@ const StudentDashboard = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative z-[20]">
           <div>
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20">
-              <BookOpen className="w-8 h-8 text-primary" />
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
+                <BookOpen className="w-8 h-8 text-primary" />
+              </div>
+              <button 
+                onClick={() => navigate('/student/results')}
+                className="px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground text-[10px] font-bold uppercase tracking-widest border border-border rounded-xl transition-all flex items-center gap-2"
+              >
+                <History className="w-3.5 h-3.5" /> View Academic History
+              </button>
             </div>
             <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">My Assessments</h1>
             <p className="text-lg text-muted-foreground mb-6">View and take your assigned coding exams.</p>

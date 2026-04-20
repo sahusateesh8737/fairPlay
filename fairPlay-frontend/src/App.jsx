@@ -8,6 +8,8 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentExamSandbox from './pages/StudentExamSandbox';
 import StudentProfile from './pages/StudentProfile';
+import StudentResults from './pages/StudentResults';
+import SubmissionDetailView from './pages/SubmissionDetailView';
 import LiveMonitor from './components/teacher/LiveMonitor';
 import SubmissionReviewer from './components/teacher/SubmissionReviewer';
 import { AuthProvider } from './context/AuthContext';
@@ -81,6 +83,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student', 'admin']}>
                 <StudentExamSandbox />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/student/results" 
+            element={
+              <ProtectedRoute allowedRoles={['student', 'admin']}>
+                <StudentResults />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/student/results/:submissionId" 
+            element={
+              <ProtectedRoute allowedRoles={['student', 'admin']}>
+                <SubmissionDetailView />
               </ProtectedRoute>
             } 
           />

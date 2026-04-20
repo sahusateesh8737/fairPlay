@@ -75,6 +75,9 @@ const StudentExamSandbox = () => {
               if (parsed.files && Object.keys(parsed.files).length > 0) {
                 setFiles(parsed.files);
                 setActiveFile(parsed.activeFile || 'index.jsx');
+                if (parsed.cheatLogs && Array.isArray(parsed.cheatLogs)) {
+                  setCheatLogs(parsed.cheatLogs);
+                }
                 setSavedStatus('saved');
                 return; // Skip boilerplate — restore from save
               }
@@ -469,17 +472,17 @@ const StudentExamSandbox = () => {
 
   // --- AUTO-SAVE to localStorage (debounced 1s) ---
   useEffect(() => {
-    if (Object.keys(files).length === 0) return;
+    if (Object.keys(files).length === 0 && cheatLogs.length === 0) return;
     setSavedStatus('saving');
     const timer = setTimeout(() => {
       try {
         const storageKey = `fairplay_exam_${assignmentId}`;
-        localStorage.setItem(storageKey, JSON.stringify({ files, activeFile }));
+        localStorage.setItem(storageKey, JSON.stringify({ files, activeFile, cheatLogs }));
         setSavedStatus('saved');
       } catch (_) { setSavedStatus(''); }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [files, activeFile, assignmentId]);
+  }, [files, activeFile, cheatLogs, assignmentId]);
 
   const handleSubmit = useCallback(async () => {
     if (submitting) return;

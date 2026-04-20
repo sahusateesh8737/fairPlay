@@ -103,23 +103,55 @@ exports.startExamSession = async (req, res, next) => {
   }
 };
 
-// @desc    Update submission grade
+// @desc    Update submission grade and feedback
 // @route   PUT /api/submissions/:id/grade
 // @access  Private (Teacher/Admin)
 exports.updateGrade = async (req, res, next) => {
   try {
-    const { score } = req.body;
+    const { score, teacherFeedback } = req.body;
 
     const submission = await prisma.submission.update({
       where: { id: parseInt(req.params.id) },
       data: {
-        score: parseFloat(score)
+        score: score !== undefined ? parseFloat(score) : undefined,
+        teacherFeedback: teacherFeedback || undefined
       }
     });
 
     res.status(200).json({
       success: true,
       data: submission
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Get all submissions for the logged-in student
+// @route   GET /api/submissions/student/my-results
+// @access  Private (Student)
+exports.getMySubmissions = async (req, res, next) => {
+  try {
+    const submissions = await prisma.submission.findMany({
+      where: { studentId: req.user.id },
+      include: {
+        assignment: {
+          select: {
+            id: true,
+            title: true,
+            maxScore: true,
+            dueDate: true,
+            language: true,
+            difficulty: true
+          }
+        }
+      },
+      orderBy: { submittedAt: 'desc' }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: submissions
     });
   } catch (err) {
     next(err);
