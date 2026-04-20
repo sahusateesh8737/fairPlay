@@ -106,6 +106,7 @@ model Submission {
   score        Decimal?         @db.Decimal(5, 2) @map("final_score")
   
   teacherFeedback String? @map("teacher_feedback") @db.Text
+  rrwebEvents     String? @map("rrweb_events") @db.Text
   
   files        SubmissionFile[]
   cheatLogs    CheatLog[]

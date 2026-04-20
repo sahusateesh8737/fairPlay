@@ -5,6 +5,7 @@ import Editor from '@monaco-editor/react';
 import { AlertOctagon, Send, Clock, ShieldAlert, Code2, Play, Terminal, MonitorPlay, FilePlus, X, Lock } from 'lucide-react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import * as rrweb from 'rrweb';
 
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -19,6 +20,7 @@ const StudentExamSandbox = () => {
   const navigate = useNavigate();
   const iframeRef = useRef(null);
   const editorRef = useRef(null);
+  const rrwebEventsRef = useRef([]);
   
   const [exam, setExam] = useState(null);
   const [question, setQuestion] = useState(null);
@@ -492,7 +494,8 @@ const StudentExamSandbox = () => {
         assignmentId: exam.id,
         questionId: question.id,
         files: files,
-        cheatLogs: cheatLogs 
+        cheatLogs: cheatLogs,
+        rrwebEvents: JSON.stringify(rrwebEventsRef.current)
       };
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/submissions`, finalSubmission);
       
@@ -525,6 +528,28 @@ const StudentExamSandbox = () => {
       showWarning("TIME EXPIRED: Final version submitted automatically.");
     }
   }, [submitting, isSecureSessionStarted, handleSubmit]);
+
+  // --- START RRWEB RECORDING WHEN EXAM IS SECURE ---
+  useEffect(() => {
+    let stopFn = null;
+    if (isSecureSessionStarted) {
+      stopFn = rrweb.record({
+        emit(event) {
+          rrwebEventsRef.current.push(event);
+        },
+      });
+    } else {
+      if (stopFn) {
+        stopFn();
+        stopFn = null;
+      }
+    }
+    return () => {
+      if (stopFn) {
+        stopFn();
+      }
+    };
+  }, [isSecureSessionStarted]);
 
   if (!exam || !question) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-foreground font-medium">Loading Security Environment...</div>;

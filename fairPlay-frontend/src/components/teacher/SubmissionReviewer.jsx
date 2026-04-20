@@ -7,8 +7,10 @@ import * as Babel from '@babel/standalone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle, AlertOctagon, Clock, User, FileCode, Play, 
-  Send, ChevronLeft, ShieldAlert, MonitorPlay, Code2, Terminal
+  Send, ChevronLeft, ShieldAlert, MonitorPlay, Code2, Terminal, Video
 } from 'lucide-react';
+import rrwebPlayer from 'rrweb-player';
+import 'rrweb-player/dist/style.css';
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL}/api`;
 
@@ -27,8 +29,11 @@ const SubmissionReviewer = () => {
   
   // --- EVIDENCE VIEWER STATE ---
   const [selectedEvidence, setSelectedEvidence] = useState(null);
+  const [rightTab, setRightTab] = useState('render'); // 'render' or 'replay'
 
   const iframeRef = useRef(null);
+  const replayContainerRef = useRef(null);
+  const playerInstanceRef = useRef(null);
 
   useEffect(() => {
     const fetchSubmission = async () => {
@@ -154,6 +159,33 @@ const SubmissionReviewer = () => {
       setIsSubmittingGrade(false);
     }
   };
+
+  // --- RRWEB PLAYER INIT ---
+  useEffect(() => {
+    if (rightTab === 'replay' && submission?.rrwebEvents && replayContainerRef.current) {
+      try {
+        const events = typeof submission.rrwebEvents === 'string' ? JSON.parse(submission.rrwebEvents) : submission.rrwebEvents;
+        if (events && events.length > 1) {
+          if (playerInstanceRef.current) {
+            replayContainerRef.current.innerHTML = '';
+          }
+          playerInstanceRef.current = new rrwebPlayer({
+            target: replayContainerRef.current,
+            props: {
+              events,
+              width: replayContainerRef.current.clientWidth,
+              height: replayContainerRef.current.clientHeight,
+              autoPlay: true,
+            },
+          });
+        } else {
+           replayContainerRef.current.innerHTML = '<div class="flex items-center justify-center h-full text-muted-foreground font-mono text-xs">No recording data available for this session.</div>';
+        }
+      } catch (err) {
+        console.error("Failed to parse rrweb events", err);
+      }
+    }
+  }, [rightTab, submission]);
 
   const evidenceModal = (
     <AnimatePresence>
@@ -329,9 +361,21 @@ const SubmissionReviewer = () => {
           {/* Right Side: Live Renders (50%) */}
           <div className="w-1/2 bg-background flex flex-col overflow-hidden relative">
             <div className="h-10 bg-card border-b border-border flex items-center px-4 justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                  <MonitorPlay className="w-4 h-4 text-green-500" />
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Artifact Render</span>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => setRightTab('render')}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded transition-colors ${rightTab === 'render' ? 'bg-primary/20 text-primary font-black' : 'text-muted-foreground hover:text-foreground font-medum'}`}
+                  >
+                    <MonitorPlay className="w-3.5 h-3.5" />
+                    <span className="text-[10px] uppercase tracking-widest">Live Render</span>
+                  </button>
+                  <button 
+                    onClick={() => setRightTab('replay')}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded transition-colors ${rightTab === 'replay' ? 'bg-orange-500/20 text-orange-500 font-black' : 'text-muted-foreground hover:text-foreground font-medium'}`}
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span className="text-[10px] uppercase tracking-widest">Session Replay</span>
+                  </button>
                 </div>
                 {compileError && (
                   <span className="text-[10px] font-mono text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 animate-pulse">
@@ -340,23 +384,27 @@ const SubmissionReviewer = () => {
                 )}
             </div>
 
-            <div className="flex-1 relative bg-background">
-                {compileError ? (
-                  <div className="absolute inset-0 p-8 flex items-center justify-center">
-                    <div className="w-full max-w-lg bg-red-500/5 border border-red-500/20 rounded-2xl p-6 font-mono">
-                        <div className="flex items-center gap-2 text-red-600 font-bold mb-4 border-b border-red-500/20 pb-3">
-                          <Terminal className="w-4 h-4" /> BUNDLE_FAILURE_LOG
-                        </div>
-                        <p className="text-red-500 text-sm leading-relaxed">{compileError}</p>
+            <div className="flex-1 relative bg-background overflow-hidden">
+                {rightTab === 'render' ? (
+                  compileError ? (
+                    <div className="absolute inset-0 p-8 flex items-center justify-center">
+                      <div className="w-full max-w-lg bg-red-500/5 border border-red-500/20 rounded-2xl p-6 font-mono">
+                          <div className="flex items-center gap-2 text-red-600 font-bold mb-4 border-b border-red-500/20 pb-3">
+                            <Terminal className="w-4 h-4" /> BUNDLE_FAILURE_LOG
+                          </div>
+                          <p className="text-red-500 text-sm leading-relaxed">{compileError}</p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <iframe
+                      ref={iframeRef}
+                      title="submission-preview"
+                      sandbox="allow-scripts"
+                      className="w-full h-full border-none bg-transparent"
+                    />
+                  )
                 ) : (
-                  <iframe
-                    ref={iframeRef}
-                    title="submission-preview"
-                    sandbox="allow-scripts"
-                    className="w-full h-full border-none bg-transparent"
-                  />
+                  <div ref={replayContainerRef} className="w-full h-full absolute inset-0" />
                 )}
             </div>
           </div>

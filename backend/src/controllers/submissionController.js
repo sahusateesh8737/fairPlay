@@ -167,7 +167,7 @@ exports.getMySubmissions = async (req, res, next) => {
 // @access  Private (Student)
 exports.submitCode = async (req, res, next) => {
   try {
-    const { assignmentId, questionId, files, cheatLogs } = req.body;
+    const { assignmentId, questionId, files, cheatLogs, rrwebEvents } = req.body;
 
     // Check if assignment exists
     const assignment = await prisma.assignment.findUnique({
@@ -208,6 +208,7 @@ exports.submitCode = async (req, res, next) => {
         assignmentId: parseInt(assignmentId),
         questionId: questionId ? parseInt(questionId) : null,
         studentId: req.user.id,
+        rrwebEvents: rrwebEvents || null,
         files: {
           create: Object.keys(files).map(fileName => ({
             fileName,
