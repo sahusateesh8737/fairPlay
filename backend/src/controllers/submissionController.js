@@ -44,6 +44,11 @@ exports.getSubmission = async (req, res, next) => {
       return next(new ErrorResponse('Submission not found', 404));
     }
 
+    // Security check: if the user is a student, they can only view their own submission
+    if (req.user.role === 'student' && submission.studentId !== req.user.id) {
+      return next(new ErrorResponse('Not authorized to access this submission', 403));
+    }
+
     res.status(200).json({
       success: true,
       data: submission

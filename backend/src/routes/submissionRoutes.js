@@ -20,7 +20,7 @@ router.post('/start', authorize('student', 'admin'), startExamSession);
 router.get('/student/my-results', authorize('student', 'admin'), getMySubmissions);
 router.post('/', authorize('student', 'admin'), submissionLimiter, submitCode);
 router.get('/assignment/:assignmentId', authorize('teacher', 'admin'), getAssignmentSubmissions);
-router.get('/:id', authorize('teacher', 'admin'), getSubmission);
+router.get('/:id', authorize('teacher', 'admin', 'student'), getSubmission);
 router.put('/:id/grade', authorize('teacher', 'admin'), updateGrade);
 
 module.exports = router;
