@@ -72,6 +72,7 @@ model Assignment {
   maxScore        Int?         @default(100) @map("max_score")
   status          String       @default("draft") // "draft", "active", "closed"
   durationMinutes Int?         @map("duration_minutes")
+  referenceImage  String?      @map("reference_image") @db.Text
   createdAt       DateTime     @default(now())
   
   questions       Question[]

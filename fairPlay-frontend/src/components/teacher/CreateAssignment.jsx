@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileCode, Calendar, CheckCircle2, ChevronDown, Plus, Trash2, Clock } from 'lucide-react';
+import { FileCode, Calendar, CheckCircle2, ChevronDown, Plus, Trash2, Clock, Image as ImageIcon } from 'lucide-react';
 import axios from 'axios';
 
 const CreateAssignment = ({ setActiveTab }) => {
@@ -28,7 +28,8 @@ const CreateAssignment = ({ setActiveTab }) => {
     difficulty: 'Medium',
     language: 'JavaScript',
     maxScore: '100',
-    durationMinutes: '60'
+    durationMinutes: '60',
+    referenceImage: ''
   });
   
   const [questions, setQuestions] = useState([
@@ -62,6 +63,21 @@ const CreateAssignment = ({ setActiveTab }) => {
     setQuestions(updated);
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image too large. Please keep it under 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, referenceImage: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const invalidQuestion = questions.find(q => !q.prompt.trim());
@@ -81,6 +97,7 @@ const CreateAssignment = ({ setActiveTab }) => {
         language: formData.language,
         maxScore: formData.maxScore,
         durationMinutes: formData.durationMinutes,
+        referenceImage: formData.referenceImage,
         questions: questions.map(q => ({
           prompt: q.prompt,
           boilerplate: q.boilerplate
@@ -252,6 +269,39 @@ const CreateAssignment = ({ setActiveTab }) => {
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               ></textarea>
               
+              <div className="mt-4 p-4 border border-dashed border-border rounded-xl bg-background/50">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Optional: Reference Design Overlay</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative group">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload}
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                    />
+                    <div className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg border border-border transition-all text-xs font-bold">
+                      <ImageIcon className="w-4 h-4 text-primary" />
+                      {formData.referenceImage ? 'Change Design' : 'Upload UI Mockup'}
+                    </div>
+                  </div>
+                  {formData.referenceImage && (
+                    <div className="flex items-center gap-2">
+                       <div className="w-10 h-10 rounded border border-border overflow-hidden bg-white">
+                          <img src={formData.referenceImage} alt="Preview" className="w-full h-full object-cover" />
+                       </div>
+                       <button 
+                         type="button" 
+                         onClick={() => setFormData({...formData, referenceImage: ''})}
+                         className="text-[10px] text-red-500 font-bold hover:underline"
+                       >
+                         Remove
+                       </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[9px] text-muted-foreground mt-2 italic">Teachers can overlay this image with adjustable transparency to grade pixel-perfection.</p>
+              </div>
+
               <div className="mt-2 text-right">
                 <input 
                   type="range" min="10" max="1000" step="10"

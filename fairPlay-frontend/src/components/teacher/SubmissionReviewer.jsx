@@ -7,7 +7,7 @@ import * as Babel from '@babel/standalone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CheckCircle, AlertOctagon, Clock, User, FileCode, Play, 
-  Send, ChevronLeft, ShieldAlert, MonitorPlay, Code2, Terminal, Video
+  Send, ChevronLeft, ShieldAlert, MonitorPlay, Code2, Terminal, Video, Layers
 } from 'lucide-react';
 import rrwebPlayer from 'rrweb-player';
 import 'rrweb-player/dist/style.css';
@@ -30,6 +30,8 @@ const SubmissionReviewer = () => {
   // --- EVIDENCE VIEWER STATE ---
   const [selectedEvidence, setSelectedEvidence] = useState(null);
   const [rightTab, setRightTab] = useState('render'); // 'render' or 'replay'
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
 
   const iframeRef = useRef(null);
   const replayContainerRef = useRef(null);
@@ -377,11 +379,36 @@ const SubmissionReviewer = () => {
                     <span className="text-[10px] uppercase tracking-widest">Session Replay</span>
                   </button>
                 </div>
-                {compileError && (
-                  <span className="text-[10px] font-mono text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 animate-pulse">
-                    BUILD_ERROR
-                  </span>
-                )}
+                
+                <div className="flex items-center gap-4">
+                  {rightTab === 'render' && submission?.assignment?.referenceImage && (
+                    <div className="flex items-center gap-3 bg-background/50 px-3 py-1 rounded-full border border-border shadow-sm">
+                      <button 
+                        onClick={() => setShowOverlay(!showOverlay)}
+                        className={`p-1 rounded-md transition-all ${showOverlay ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                        title="Toggle Reference Overlay"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                      </button>
+                      {showOverlay && (
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={overlayOpacity} 
+                          onChange={(e) => setOverlayOpacity(parseInt(e.target.value))}
+                          className="w-16 h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {compileError && (
+                    <span className="text-[10px] font-mono text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 animate-pulse">
+                      BUILD_ERROR
+                    </span>
+                  )}
+                </div>
             </div>
 
             <div className="flex-1 relative bg-background overflow-hidden">
@@ -396,12 +423,26 @@ const SubmissionReviewer = () => {
                       </div>
                     </div>
                   ) : (
-                    <iframe
-                      ref={iframeRef}
-                      title="submission-preview"
-                      sandbox="allow-scripts"
-                      className="w-full h-full border-none bg-transparent"
-                    />
+                    <div className="w-full h-full relative">
+                      <iframe
+                        ref={iframeRef}
+                        title="submission-preview"
+                        sandbox="allow-scripts"
+                        className="w-full h-full border-none bg-transparent"
+                      />
+                      {showOverlay && submission?.assignment?.referenceImage && (
+                        <div 
+                          className="absolute inset-0 pointer-events-none transition-opacity duration-200"
+                          style={{ opacity: overlayOpacity / 100 }}
+                        >
+                          <img 
+                            src={submission.assignment.referenceImage} 
+                            alt="Reference Design"
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
                   )
                 ) : (
                   <div ref={replayContainerRef} className="w-full h-full absolute inset-0" />
