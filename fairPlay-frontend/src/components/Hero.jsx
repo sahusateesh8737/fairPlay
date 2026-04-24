@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Code2, PlayCircle } from 'lucide-react';
+import FlowAnimation from './FlowAnimation';
 
 const Hero = () => {
+  const [isFlowOpen, setIsFlowOpen] = useState(false);
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-32 pb-32">
       {/* Background decoration */}
@@ -52,12 +55,17 @@ const Hero = () => {
             <Code2 className="w-5 h-5 group-hover:rotate-12 transition-transform" />
             Get Started
           </button>
-          <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-secondary border border-border text-foreground font-semibold flex items-center justify-center gap-2 hover:bg-secondary/80 transition-all active:scale-95">
+          <button 
+            onClick={() => setIsFlowOpen(true)}
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-secondary border border-border text-foreground font-semibold flex items-center justify-center gap-2 hover:bg-secondary/80 transition-all active:scale-95"
+          >
             <PlayCircle className="w-5 h-5" />
             See How It Works
           </button>
         </motion.div>
       </div>
+
+      <FlowAnimation isOpen={isFlowOpen} onClose={() => setIsFlowOpen(false)} />
     </section>
   );
 };

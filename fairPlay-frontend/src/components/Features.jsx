@@ -1,27 +1,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Wifi, TerminalSquare, Eye, Zap } from 'lucide-react';
+import { Wifi, MonitorPlay, Layers, Zap } from 'lucide-react';
 
 const features = [
   {
     icon: <Wifi className="w-8 h-8 text-blue-400" />,
     title: 'Campus-Locked Security',
-    description: 'Say goodbye to take-home exam loopholes. Our dynamic IP-whitelisting ensures that assessments can only be accessed and submitted when connected to the authorized college Wi-Fi network.',
+    description: 'Ensure integrity with dynamic IP-whitelisting. Assessments are only accessible when students are connected to the authorized college network.',
   },
   {
-    icon: <TerminalSquare className="w-8 h-8 text-indigo-400" />,
-    title: 'Professional In-Browser IDE',
-    description: 'Powered by the same technology behind VS Code (Monaco Editor), students get a world-class development environment directly in their browser. No local setup, no hidden files—just pure coding.',
+    icon: <MonitorPlay className="w-8 h-8 text-indigo-400" />,
+    title: 'Post-Exam Forensic Playback',
+    description: "Don't just see the code; watch it being built. Teachers can replay every keystroke and mouse movement to detect copy-paste patterns.",
   },
   {
-    icon: <Eye className="w-8 h-8 text-purple-400" />,
-    title: 'Real-Time Proctoring',
-    description: "Keep the focus on the code. Our automated anti-cheat engine disables copy-pasting, strictly monitors browser tab activity, and pushes instant alerts to the teacher's live dashboard.",
+    icon: <Layers className="w-8 h-8 text-purple-400" />,
+    title: 'Pixel-Perfect Grading',
+    description: "Our unique overlay engine allows teachers to toggle reference designs with adjustable transparency to grade frontend accuracy like a pro.",
   },
   {
     icon: <Zap className="w-8 h-8 text-yellow-400" />,
-    title: 'Instant Visual Sandbox',
-    description: "Students shouldn't code in the dark. Our isolated rendering engine compiles React components instantly, allowing students to preview their work safely before hitting submit.",
+    title: 'Real-Time Proctoring',
+    description: "Instant alerts for tab switching, DevTools opening, and screen-sharing violations. Our dashboard keeps teachers updated live.",
   },
 ];
 
