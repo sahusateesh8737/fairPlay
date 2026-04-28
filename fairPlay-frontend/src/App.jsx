@@ -12,6 +12,8 @@ import StudentResults from './pages/StudentResults';
 import SubmissionDetailView from './pages/SubmissionDetailView';
 import LiveMonitor from './components/teacher/LiveMonitor';
 import SubmissionReviewer from './components/teacher/SubmissionReviewer';
+import PracticeHub from './pages/PracticeHub';
+import StudentPracticeSandbox from './pages/StudentPracticeSandbox';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -25,6 +27,8 @@ function App() {
           <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/practice" element={<PracticeHub />} />
+          <Route path="/practice/:id" element={<StudentPracticeSandbox />} />
           
           {/* Protected Routes */}
           <Route path="/admin" element={<AdminAuth />} />

@@ -156,3 +156,14 @@ model ExamSession {
   @@unique([studentId, assignmentId])
   @@map("exam_sessions")
 }
+
+model PracticeProblem {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  difficulty  String   @default("Easy") // "Easy", "Medium", "Hard"
+  boilerplate String?  @db.Text
+  createdAt   DateTime @default(now())
+
+  @@map("practice_problems")
+}

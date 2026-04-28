@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Code2, PlayCircle } from 'lucide-react';
 import FlowAnimation from './FlowAnimation';
 
 const Hero = () => {
   const [isFlowOpen, setIsFlowOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-32 pb-32">
@@ -51,7 +53,10 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 group">
+          <button 
+            onClick={() => navigate('/practice')}
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 group"
+          >
             <Code2 className="w-5 h-5 group-hover:rotate-12 transition-transform" />
             Get Started
           </button>
