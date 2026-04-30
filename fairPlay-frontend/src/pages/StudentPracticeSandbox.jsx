@@ -59,6 +59,68 @@ const StudentPracticeSandbox = () => {
     });
   };
 
+  const iframeContentBase = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+          body { margin: 0; background-color: ${theme === 'dark' ? '#0a0a0c' : '#ffffff'}; color: ${theme === 'dark' ? 'white' : 'black'}; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; font-family: sans-serif; padding: 20px; }
+          #root { width: 100%; max-width: 800px; padding: 20px; box-sizing: border-box; background: ${theme === 'dark' ? '#1a1a1a' : '#f9f9f9'}; border-radius: 12px; }
+        </style>
+      </head>
+      <body>
+        <div id="root"></div>
+        <script>
+          window.addEventListener('error', (e) => {
+            window.parent.postMessage({ type: 'error', message: e.message }, '*');
+          });
+
+          window.addEventListener('message', (event) => {
+            if (event.data.type === 'EXECUTE_CODE') {
+              try {
+                const modulesMap = event.data.modulesMap;
+                const moduleCache = {};
+
+                function myRequire(moduleName) {
+                  if (moduleName === 'react') return window.React;
+                  if (moduleName === 'react-dom/client') return window.ReactDOM;
+                  
+                  let normalizedName = moduleName.startsWith('./') ? moduleName.slice(2) : moduleName;
+                  if (!normalizedName.endsWith('.jsx') && !normalizedName.endsWith('.js')) {
+                    normalizedName += '.jsx';
+                  }
+
+                  if (moduleCache[normalizedName]) return moduleCache[normalizedName].exports;
+
+                  const moduleSource = modulesMap[normalizedName];
+                  if (!moduleSource) throw new Error("Cannot find module '" + moduleName + "'");
+
+                  const module = { exports: {} };
+                  moduleCache[normalizedName] = module;
+
+                  const wrapper = new Function('require', 'module', 'exports', moduleSource);
+                  wrapper(myRequire, module, module.exports);
+
+                  return module.exports;
+                }
+
+                // Clear previous React tree
+                document.getElementById('root').innerHTML = '';
+                
+                myRequire('index.jsx');
+              } catch (e) {
+                window.parent.postMessage({ type: 'error', message: e.toString() }, '*');
+              }
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `;
+
   const runCode = () => {
     setCompileError('');
     
@@ -67,64 +129,10 @@ const StudentPracticeSandbox = () => {
         presets: ['react', 'env'] 
       }).code;
       
-      const modulesInjection = JSON.stringify({ 'index.jsx': transpiled });
+      const modulesMap = { 'index.jsx': transpiled };
 
-      const iframeContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-            <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-              body { margin: 0; background-color: ${theme === 'dark' ? '#0a0a0c' : '#ffffff'}; color: ${theme === 'dark' ? 'white' : 'black'}; display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; font-family: sans-serif; padding: 20px; }
-              #root { width: 100%; max-width: 800px; padding: 20px; box-sizing: border-box; background: ${theme === 'dark' ? '#1a1a1a' : '#f9f9f9'}; border-radius: 12px; }
-            </style>
-          </head>
-          <body>
-            <div id="root"></div>
-            <script>
-              const modulesMap = ${modulesInjection};
-              const moduleCache = {};
-
-              function myRequire(moduleName) {
-                if (moduleName === 'react') return window.React;
-                if (moduleName === 'react-dom/client') return window.ReactDOM;
-                
-                let normalizedName = moduleName.startsWith('./') ? moduleName.slice(2) : moduleName;
-                if (!normalizedName.endsWith('.jsx') && !normalizedName.endsWith('.js')) {
-                  normalizedName += '.jsx';
-                }
-
-                if (moduleCache[normalizedName]) return moduleCache[normalizedName].exports;
-
-                const moduleSource = modulesMap[normalizedName];
-                if (!moduleSource) throw new Error("Cannot find module '" + moduleName + "'");
-
-                const module = { exports: {} };
-                moduleCache[normalizedName] = module;
-
-                const wrapper = new Function('require', 'module', 'exports', moduleSource);
-                wrapper(myRequire, module, module.exports);
-
-                return module.exports;
-              }
-
-              try {
-                window.addEventListener('error', (e) => {
-                  window.parent.postMessage({ type: 'error', message: e.message }, '*');
-                });
-                myRequire('index.jsx');
-              } catch (e) {
-                window.parent.postMessage({ type: 'error', message: e.toString() }, '*');
-              }
-            </script>
-          </body>
-        </html>
-      `;
-      
-      if (iframeRef.current) {
-        iframeRef.current.srcdoc = iframeContent;
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage({ type: 'EXECUTE_CODE', modulesMap }, '*');
       }
     } catch (err) {
       setCompileError(err.toString());
@@ -276,6 +284,7 @@ const StudentPracticeSandbox = () => {
               <iframe
                 ref={iframeRef}
                 title="practice-preview"
+                srcDoc={iframeContentBase}
                 sandbox="allow-scripts allow-same-origin"
                 className="w-full h-full border-none bg-transparent"
               />

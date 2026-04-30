@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Wifi, MonitorPlay, Layers, Zap } from 'lucide-react';
+import AdvancedBackground from './AdvancedBackground';
 
 const features = [
   {
@@ -40,9 +41,14 @@ const itemVariants = {
 
 const Features = () => {
   return (
-    <section className="py-24 bg-muted/30 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none" />
-      <div className="container relative z-10 px-6 mx-auto max-w-6xl">
+    <section className="py-24 bg-muted/30 relative overflow-hidden">
+      {/* 1. Advanced Background (Scanner, Mouse Spotlight, Particles, Binary, Grid) */}
+      <div className="absolute inset-0 z-0">
+        <AdvancedBackground />
+      </div>
+
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background pointer-events-none z-10" />
+      <div className="container relative z-20 px-6 mx-auto max-w-6xl">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Code2, ChevronRight, Clock, Star, Activity, AlertCircle } from 'lucide-react';
+import { Code2, ChevronRight, ChevronLeft, Clock, Star, Activity, AlertCircle } from 'lucide-react';
 
 const PracticeHub = () => {
   const [problems, setProblems] = useState([]);
@@ -31,7 +31,14 @@ const PracticeHub = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground py-20 px-6">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative">
+        <button 
+          onClick={() => navigate('/')} 
+          className="absolute top-0 left-0 p-2 hover:bg-muted rounded-full transition-colors group flex items-center gap-2 text-muted-foreground hover:text-foreground font-medium text-sm"
+        >
+          <ChevronLeft className="w-5 h-5" /> Back to Home
+        </button>
+
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
