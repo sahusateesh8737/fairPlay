@@ -40,7 +40,7 @@ app.get('/', (req, res) => {
     res.status(200).json({ message: 'Welcome to fairPlay API' });
 });
 const { globalLimiter } = require('./middlewares/rateLimiter');
-app.use('/api', globalLimiter);
+// app.use('/api', globalLimiter);
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
