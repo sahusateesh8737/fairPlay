@@ -1,16 +1,28 @@
-const prisma = require('../config/prisma');
-const ErrorResponse = require('../utils/ErrorResponse');
+const { redisClient, connectRedis } = require('../config/redis');
 
 // @desc    Get analytics for a specific assignment
 // @route   GET /api/analytics/assignment/:id
 // @access  Private (Teacher/Admin)
 exports.getAssignmentAnalytics = async (req, res, next) => {
   try {
-    const assignmentId = parseInt(req.params.id);
+    const assignmentId = req.params.id;
+    const cacheKey = `analytics:assignment:${assignmentId}`;
+
+    await connectRedis();
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.status(200).json({
+        success: true,
+        data: JSON.parse(cachedData),
+        fromCache: true
+      });
+    }
+
+    const id = parseInt(assignmentId);
 
     // 1. Fetch assignment and its max score
     const assignment = await prisma.assignment.findUnique({
-      where: { id: assignmentId },
+      where: { id },
       select: { maxScore: true, title: true }
     });
 
@@ -20,7 +32,7 @@ exports.getAssignmentAnalytics = async (req, res, next) => {
 
     // 2. Fetch all submissions for this assignment
     const submissions = await prisma.submission.findMany({
-      where: { assignmentId },
+      where: { assignmentId: id },
       select: {
         score: true,
         cheatLogs: {
@@ -30,7 +42,6 @@ exports.getAssignmentAnalytics = async (req, res, next) => {
     });
 
     // 3. Calculate Score Distribution (Histogram)
-    // Intervals: 0-20%, 21-40%, 41-60%, 61-80%, 81-100%
     const maxScore = assignment.maxScore || 100;
     const distribution = [
       { range: '0-20%', count: 0 },
@@ -63,14 +74,21 @@ exports.getAssignmentAnalytics = async (req, res, next) => {
       value: integrityMap[type]
     }));
 
+    const result = {
+      assignmentTitle: assignment.title,
+      totalSubmissions: submissions.length,
+      distribution,
+      integrityData
+    };
+
+    // Cache results for 5 minutes
+    await redisClient.set(cacheKey, JSON.stringify(result), {
+      EX: 300
+    });
+
     res.status(200).json({
       success: true,
-      data: {
-        assignmentTitle: assignment.title,
-        totalSubmissions: submissions.length,
-        distribution,
-        integrityData
-      }
+      data: result
     });
   } catch (err) {
     next(err);

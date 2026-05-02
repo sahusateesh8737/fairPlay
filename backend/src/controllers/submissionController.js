@@ -1,3 +1,5 @@
+const { redisClient, connectRedis } = require('../config/redis');
+const { getIO } = require('../config/socket');
 const prisma = require('../config/prisma');
 const ErrorResponse = require('../utils/ErrorResponse');
 
@@ -6,14 +8,32 @@ const ErrorResponse = require('../utils/ErrorResponse');
 // @access  Private (Teacher/Admin)
 exports.getAssignmentSubmissions = async (req, res, next) => {
   try {
+    const assignmentId = req.params.assignmentId;
+    const cacheKey = `assignment:submissions:${assignmentId}`;
+
+    await connectRedis();
+    const cachedData = await redisClient.get(cacheKey);
+    if (cachedData) {
+      return res.status(200).json({
+        success: true,
+        data: JSON.parse(cachedData),
+        fromCache: true
+      });
+    }
+
     const submissions = await prisma.submission.findMany({
-      where: { assignmentId: parseInt(req.params.assignmentId) },
+      where: { assignmentId: parseInt(assignmentId) },
       include: {
         student: { select: { id: true, name: true, email: true, section: { select: { name: true } } } },
         question: { select: { id: true, prompt: true } },
         _count: { select: { cheatLogs: true } }
       },
       orderBy: { submittedAt: 'desc' }
+    });
+
+    // Cache for 5 minutes
+    await redisClient.set(cacheKey, JSON.stringify(submissions), {
+      EX: 300
     });
 
     res.status(200).json({
@@ -162,6 +182,7 @@ exports.getMySubmissions = async (req, res, next) => {
     next(err);
   }
 };
+
 // @desc    Submit code for an assignment
 // @route   POST /api/submissions
 // @access  Private (Student)
@@ -227,6 +248,25 @@ exports.submitCode = async (req, res, next) => {
         }
       }
     });
+
+    // --- REAL-TIME UPDATES ---
+    try {
+      const io = getIO();
+      const monitorRoom = `monitor_${assignmentId}`;
+      
+      io.to(monitorRoom).emit('student_status_update', {
+          studentId: req.user.id,
+          status: 'SUBMITTED',
+          timestamp: new Date().toLocaleTimeString()
+      });
+
+      // Invalidate assignment caches so the next refresh shows the new submission
+      await connectRedis();
+      await redisClient.del(`assignment:${assignmentId}`);
+      await redisClient.del(`assignment:submissions:${assignmentId}`);
+    } catch (socketErr) {
+      console.error('Socket notification failed during submission:', socketErr.message);
+    }
 
     res.status(201).json({
       success: true,

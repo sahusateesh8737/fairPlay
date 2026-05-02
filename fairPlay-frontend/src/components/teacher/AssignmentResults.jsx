@@ -12,6 +12,10 @@ const AssignmentResults = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [view, setView] = useState('list'); // 'list' or 'analytics'
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 25;
 
   // 1. Fetch available assignments for the dropdown
   useEffect(() => {
@@ -42,6 +46,7 @@ const AssignmentResults = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
         setSubmissions(res.data.data);
+        setCurrentPage(1); // Reset to page 1 on new assignment
       } catch (err) {
         console.error("Failed to fetch submissions", err);
       } finally {
@@ -51,12 +56,23 @@ const AssignmentResults = () => {
     fetchSubmissions();
   }, [activeAssignment]);
 
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   // Filter functionality
   const filteredSubmissions = submissions.filter(s => 
     s.student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (s.student.section?.name && s.student.section.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredSubmissions.length / rowsPerPage);
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = filteredSubmissions.slice(indexOfFirstRow, indexOfLastRow);
 
   return (
     <div className="space-y-6">
@@ -68,7 +84,6 @@ const AssignmentResults = () => {
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Review student marks, sections, and variation performance.</p>
         </div>
-        
         
         {/* View Toggle & Assignment Selector */}
         <div className="flex items-center gap-4">
@@ -131,9 +146,9 @@ const AssignmentResults = () => {
           >
         <div className="p-4 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/20">
           <div className="flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-             <span>Total Submissions: <strong className="text-foreground">{filteredSubmissions.length}</strong></span>
+             <span>Total: <strong className="text-foreground">{filteredSubmissions.length}</strong></span>
              <div className="w-px h-4 bg-border hidden sm:block"></div>
-             <span>Sections: <strong className="text-foreground font-mono">{new Set(filteredSubmissions.map(s => s.student.section?.name)).size}</strong></span>
+             <span>Page: <strong className="text-foreground font-mono">{currentPage} / {totalPages || 1}</strong></span>
           </div>
           <div className="relative w-full sm:w-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -141,7 +156,7 @@ const AssignmentResults = () => {
                type="text" 
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
-               placeholder="Search name, email, or section..." 
+               placeholder="Search results..." 
                className="w-full sm:w-72 bg-background border border-border rounded-md py-2 pl-9 pr-4 text-sm focus:outline-none focus:border-border transition-all text-foreground placeholder:text-muted-foreground/30 shadow-sm"
             />
           </div>
@@ -153,15 +168,15 @@ const AssignmentResults = () => {
               <tr>
                 <th className="px-6 py-5 font-black">Student</th>
                 <th className="px-6 py-5 font-black">Section</th>
-                <th className="px-6 py-5 font-black">Assigned Variation</th>
+                <th className="px-6 py-5 font-black">Variation</th>
                 <th className="px-6 py-5 font-black">Score</th>
                 <th className="px-6 py-5 font-black text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {loading ? (
-                  <tr>
+                  <tr key="loading">
                     <td colSpan="5" className="px-6 py-20 text-center">
                       <div className="flex flex-col items-center justify-center text-muted-foreground">
                         <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
@@ -169,14 +184,14 @@ const AssignmentResults = () => {
                       </div>
                     </td>
                   </tr>
-                ) : filteredSubmissions.length === 0 ? (
-                  <tr>
+                ) : currentRows.length === 0 ? (
+                  <tr key="empty">
                     <td colSpan="5" className="px-6 py-12 text-center text-muted-foreground italic text-sm">
                       No results found matching "{searchTerm}".
                     </td>
                   </tr>
                 ) : (
-                  filteredSubmissions.map((s) => (
+                  currentRows.map((s) => (
                     <motion.tr 
                       key={s.id}
                       initial={{ opacity: 0 }}
@@ -198,9 +213,6 @@ const AssignmentResults = () => {
                            <span className="w-fit px-2 py-0.5 rounded text-[10px] uppercase font-black bg-purple-500/10 text-purple-500 border border-purple-500/20 font-mono">
                              Var {s.question?.id || 'N/A'}
                            </span>
-                           <span className="text-muted-foreground text-[10px] truncate max-w-[150px] italic" title={s.question?.prompt}>
-                             {s.question?.prompt?.substring(0, 30) || 'General Assessment'}...
-                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-5">
@@ -215,7 +227,6 @@ const AssignmentResults = () => {
                           <Link 
                             to={`/teacher/review/${s.id}`}
                             className="px-4 py-2 hover:bg-green-500/10 hover:text-green-600 border border-transparent hover:border-green-500/20 rounded-xl text-muted-foreground transition-all flex items-center gap-2 group/btn" 
-                            title="View Submission"
                           >
                             <History className="w-3.5 h-3.5 transition-transform group-hover/btn:-rotate-12" />
                             <span className="text-[10px] font-black uppercase tracking-widest">View</span>
@@ -229,6 +240,45 @@ const AssignmentResults = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="p-4 border-t border-border bg-muted/20 flex items-center justify-between">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-background border border-border rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted transition-colors text-foreground"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-2">
+              {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                let pageNum;
+                if (totalPages <= 5) pageNum = i + 1;
+                else if (currentPage <= 3) pageNum = i + 1;
+                else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                else pageNum = currentPage - 2 + i;
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === pageNum ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-background border border-border rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-muted transition-colors text-foreground"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </motion.div>
     )}
   </AnimatePresence>

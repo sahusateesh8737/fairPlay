@@ -1,19 +1,46 @@
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { redisClient } = require('./redis');
 
 let io;
 
-const initSocket = (server) => {
-    io = new Server(server, {
-        cors: {
-            origin: [
-                "http://localhost:5173",
-                "https://fair-play-liart.vercel.app",
-                process.env.CLIENT_URL
-            ].filter(Boolean),
-            methods: ["GET", "POST"],
-            credentials: true
-        }
-    });
+const initSocket = async (server) => {
+    try {
+        // Create pub/sub clients for Redis Adapter
+        const pubClient = redisClient.duplicate();
+        const subClient = redisClient.duplicate();
+
+        await Promise.all([pubClient.connect(), subClient.connect()]);
+        
+        io = new Server(server, {
+            cors: {
+                origin: [
+                    "http://localhost:5173",
+                    "https://fair-play-liart.vercel.app",
+                    process.env.CLIENT_URL
+                ].filter(Boolean),
+                methods: ["GET", "POST"],
+                credentials: true
+            }
+        });
+
+        io.adapter(createAdapter(pubClient, subClient));
+        console.log('📡 Socket.io Redis Adapter integrated');
+    } catch (err) {
+        console.warn('⚠️  Could not initialize Socket.io Redis Adapter. Falling back to local adapter.');
+        
+        io = new Server(server, {
+            cors: {
+                origin: [
+                    "http://localhost:5173",
+                    "https://fair-play-liart.vercel.app",
+                    process.env.CLIENT_URL
+                ].filter(Boolean),
+                methods: ["GET", "POST"],
+                credentials: true
+            }
+        });
+    }
 
     io.on('connection', (socket) => {
         console.log('A user connected:', socket.id);
@@ -49,14 +76,26 @@ const initSocket = (server) => {
         });
 
         // Live progress update from student to teacher
-        socket.on('student_progress_update', ({ assignmentId, studentId, progress, currentQuestion, tabStatus }) => {
-            io.to(`monitor_${assignmentId}`).emit('receive_progress_update', {
+        socket.on('student_progress_update', async ({ assignmentId, studentId, progress, currentQuestion, tabStatus }) => {
+            const data = {
                 studentId,
                 progress,
                 currentQuestion,
                 tabStatus, // 'ACTIVE' or 'FLAGGED'
                 timestamp: new Date().toLocaleTimeString()
-            });
+            };
+
+            // 1. Broadcast to all teachers in the monitoring room
+            io.to(`monitor_${assignmentId}`).emit('receive_progress_update', data);
+
+            // 2. Store in Redis Hash for persistence (so teachers don't lose data on refresh)
+            try {
+                await redisClient.hSet(`active_exam:${assignmentId}:progress`, studentId, JSON.stringify(data));
+                // Set expiry for 24 hours just in case
+                await redisClient.expire(`active_exam:${assignmentId}:progress`, 86400);
+            } catch (err) {
+                console.error('Failed to store live progress in Redis:', err.message);
+            }
         });
 
         // Legacy: Section Monitor (can be kept for general section chat/etc)

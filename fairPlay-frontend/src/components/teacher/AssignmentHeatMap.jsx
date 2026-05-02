@@ -26,16 +26,14 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [assignRes, studentRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments/${assignmentId}`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/auth/students`) // We'll filter this by section in a real app
-        ]);
-
+        const assignRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/assignments/${assignmentId}`);
         const activeAssign = assignRes.data.data;
         setAssignment(activeAssign);
 
-        // Filter students belonging to this assignment's section
-        const sectionStudents = studentRes.data.data.filter(s => s.sectionId === activeAssign.targetSectionId);
+        // Fetch ONLY students belonging to this assignment's section to drastically reduce loading time
+        const sectionName = activeAssign.section?.name || 'all';
+        const studentRes = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/auth/students?sectionName=${sectionName}`);
+        const sectionStudents = studentRes.data.data;
         
         // Sort by Roll Number if available, else name
         const sortedStudents = sectionStudents.sort((a, b) => {
@@ -56,6 +54,20 @@ const AssignmentHeatMap = ({ assignmentId, onClose }) => {
             timestamp: new Date(sub.submittedAt).toLocaleTimeString()
           };
         });
+
+        // Overlay with live progress from Redis (for students currently in the exam)
+        if (assignRes.data.liveProgress) {
+            Object.keys(assignRes.data.liveProgress).forEach(studentId => {
+                // Only override if the student hasn't submitted yet
+                if (initialStates[studentId]?.status !== 'SUBMITTED') {
+                    initialStates[studentId] = {
+                        ...assignRes.data.liveProgress[studentId],
+                        status: assignRes.data.liveProgress[studentId].tabStatus === 'FLAGGED' ? 'FLAGGED' : 'ACTIVE'
+                    };
+                }
+            });
+        }
+
         setLiveStates(initialStates);
 
         // Join Monitoring Room
