@@ -123,9 +123,14 @@ exports.getAssignments = async (req, res, next) => {
 
     // Cache the result for 5 minutes
     if (cacheKey && assignments) {
-      await redisClient.set(cacheKey, JSON.stringify(assignments), {
-        EX: 300 // 5 minutes
-      });
+      try {
+        await redisClient.set(cacheKey, JSON.stringify(assignments), {
+          EX: 300 // 5 minutes
+        });
+        console.log(`💾 Cache SET for key: ${cacheKey}`);
+      } catch (err) {
+        console.error('Redis SET error:', err.message);
+      }
     }
 
     res.status(200).json({
