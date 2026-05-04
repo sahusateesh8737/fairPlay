@@ -1,23 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Share2, Search, TrendingUp, Clock, Star, Download, ChevronRight } from 'lucide-react';
+import { BookOpen, Search, TrendingUp, Star, Cpu, Globe, ShieldCheck, Hash } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import AdvancedBackground from '../components/AdvancedBackground';
 
 const PrepHomePage = () => {
   const categories = [
-    { name: 'SQL Mastery', count: 12, color: 'from-blue-500 to-cyan-400', path: '/placement-prep/sql' },
-    { name: 'Data Structures', count: 24, color: 'from-purple-500 to-pink-500', path: '#' },
-    { name: 'System Design', count: 8, color: 'from-amber-500 to-orange-500', path: '#' },
-    { name: 'Python Basics', count: 15, color: 'from-emerald-500 to-teal-500', path: '#' },
+    { name: 'SQL Mastery', count: 12, icon: <BookOpen />, color: 'from-blue-500 to-cyan-400', path: '/placement-prep/sql' },
+    { name: 'Operating Systems', count: 18, icon: <Cpu />, color: 'from-red-500 to-orange-400', path: '#' },
+    { name: 'Computer Networks', count: 22, icon: <Globe />, color: 'from-blue-600 to-indigo-400', path: '#' },
+    { name: 'Data Structures', count: 24, icon: <Hash />, color: 'from-purple-500 to-pink-500', path: '#' },
+    { name: 'Industry Ethics', count: 6, icon: <ShieldCheck />, color: 'from-emerald-600 to-teal-400', path: '#' },
+    { name: 'Combinatorics', count: 10, icon: <TrendingUp />, color: 'from-pink-600 to-rose-400', path: '#' },
   ];
 
-  const recentNotes = [
-    { title: 'Window Functions Deep Dive', author: 'Sateesh Sahu', date: '2 hours ago', likes: 124, category: 'SQL' },
-    { title: 'AVL Trees Visual Guide', author: 'Rahul Verma', date: '5 hours ago', likes: 89, category: 'DSA' },
-    { title: 'Redis Caching Patterns', author: 'Priya Das', date: 'Yesterday', likes: 215, category: 'Backend' },
-  ];
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -83,7 +80,7 @@ const PrepHomePage = () => {
                       className="p-6 rounded-2xl bg-muted/30 border border-border/50 hover:border-primary/50 transition-all cursor-pointer group/item"
                     >
                       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} mb-4 flex items-center justify-center text-white`}>
-                        <BookOpen className="w-6 h-6" />
+                        {cat.icon}
                       </div>
                       <h4 className="font-bold mb-1 group-hover/item:text-primary transition-colors">{cat.name}</h4>
                       <p className="text-xs text-muted-foreground">{cat.count} modules</p>
@@ -95,97 +92,6 @@ const PrepHomePage = () => {
           </motion.div>
         </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Feed */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl font-bold">Trending Notes</h2>
-              <button className="text-primary font-semibold flex items-center gap-1 hover:underline">
-                View all <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-            
-            {recentNotes.map((note, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="glass-card p-6 rounded-3xl hover:bg-muted/30 transition-all cursor-pointer group border-l-4 border-l-transparent hover:border-l-primary"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-3 inline-block">
-                      {note.category}
-                    </span>
-                    <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{note.title}</h3>
-                  </div>
-                  <button className="p-2 rounded-xl hover:bg-surface transition-colors">
-                    <Download className="w-5 h-5 text-muted-foreground" />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                        {note.author[0]}
-                      </div>
-                      <span>{note.author}</span>
-                    </div>
-                    <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {note.date}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-primary font-bold">
-                    <Star className="w-4 h-4 fill-primary" /> {note.likes}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-8">
-            <div className="glass-card p-8 rounded-3xl bg-primary/5 border-primary/20">
-              <Share2 className="w-12 h-12 text-primary mb-6" />
-              <h3 className="text-2xl font-bold mb-4 text-white">Share Your Notes</h3>
-              <p className="text-muted-foreground mb-8 leading-relaxed">
-                Help your fellow students by sharing your study materials. Top contributors get featured on the global leaderboard.
-              </p>
-              <button className="w-full bg-primary text-white py-4 rounded-2xl font-bold hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/30">
-                Upload Document
-              </button>
-            </div>
-
-            <div className="glass-card p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-orange-400" />
-                Upcoming Exams
-              </h3>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex flex-col items-center justify-center text-orange-500">
-                    <span className="text-xs font-bold leading-none">MAY</span>
-                    <span className="text-lg font-bold leading-none mt-1">15</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold">Database Management</h4>
-                    <p className="text-xs text-muted-foreground">Final Semester Exam</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex flex-col items-center justify-center text-blue-500">
-                    <span className="text-xs font-bold leading-none">JUN</span>
-                    <span className="text-lg font-bold leading-none mt-1">02</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold">Network Security</h4>
-                    <p className="text-xs text-muted-foreground">Unit Test II</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );
