@@ -39,6 +39,13 @@ const Navbar = () => {
 
         {/* Theme Toggle & Auth Actions */}
         <div className="flex items-center gap-2 md:gap-4">
+          <Link
+            to="/placement-prep/sql"
+            className="hidden md:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Placement Prep
+          </Link>
+
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
