@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master SQL Joins - Interactive Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-darker: #050810;
+            --bg-card: rgba(20, 30, 60, 0.4);
+            --bg-glass: rgba(15, 25, 50, 0.6);
+            --accent-cyan: #00d9ff;
+            --accent-purple: #9d4edd;
+            --accent-green: #00f77d;
+            --accent-orange: #ff6b35;
+            --accent-pink: #ff006e;
+            --text-light: #e0e7ff;
+            --text-muted: #a8b5d4;
+            --border-glow: rgba(0, 217, 255, 0.2);
+            --shadow-glow: 0 0 40px rgba(0, 217, 255, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f3a 50%, var(--bg-darker) 100%);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% {
+                text-shadow: 0 0 10px rgba(0, 217, 255, 0.5), 0 0 20px rgba(157, 78, 221, 0.3);
+            }
+            50% {
+                text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(157, 78, 221, 0.5);
+            }
+        }
+
+        @keyframes slide-in-left {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slide-in-right {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes table-merge {
+            0% {
+                transform: scale(0.8) translateX(-30px);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes glow-border {
+            0% {
+                border-color: rgba(0, 217, 255, 0.3);
+            }
+            50% {
+                border-color: rgba(0, 217, 255, 0.8);
+            }
+            100% {
+                border-color: rgba(0, 217, 255, 0.3);
+            }
+        }
+
+        @keyframes highlight-row {
+            0% {
+                background-color: transparent;
+            }
+            50% {
+                background-color: rgba(0, 217, 255, 0.2);
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            padding: 80px 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        section:nth-child(n) {
+            animation-delay: 0.2s;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            padding: 60px 20px;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 217, 255, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            animation: glow-pulse 3s ease-in-out infinite;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 50px;
+            align-items: center;
+        }
+
+        .table-box {
+            background: var(--bg-glass);
+            border: 2px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 20px;
+            min-width: 200px;
+            backdrop-filter: blur(10px);
+            animation: table-merge 1.2s ease-out;
+        }
+
+        .table-box:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .table-box:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .table-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .table-row {
+            font-size: 0.85rem;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 217, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .arrow {
+            font-size: 2rem;
+            color: var(--accent-green);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        /* ===== SECTION STYLES ===== */
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: var(--accent-cyan);
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 40px;
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 2px;
+        }
+
+        .glass-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .glass-card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--shadow-glow), 0 0 20px rgba(157, 78, 221, 0.1);
+            transform: translateY(-5px);
+        }
+
+        /* ===== JOIN TYPES GRID ===== */
+        .joins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .join-card {
+            background: var(--bg-glass);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .join-card:nth-child(1) { animation-delay: 0.1s; border-color: var(--accent-cyan); }
+        .join-card:nth-child(2) { animation-delay: 0.2s; border-color: var(--accent-purple); }
+        .join-card:nth-child(3) { animation-delay: 0.3s; border-color: var(--accent-green); }
+        .join-card:nth-child(4) { animation-delay: 0.4s; border-color: var(--accent-orange); }
+
+        .join-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-green));
+        }
+
+        .join-card:hover {
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-8px);
+        }
+
+        .join-type {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .join-description {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            color: var(--accent-green);
+            margin: 15px 0;
+        }
+
+        /* ===== COMPARISON TABLE ===== */
+        .comparison-table {
+            width: 100%;
+            background: var(--bg-glass);
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-glow);
+            margin: 30px 0;
+        }
+
+        .comparison-table th {
+            background: rgba(0, 217, 255, 0.15);
+            color: var(--accent-cyan);
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-glow);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .comparison-table td {
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(0, 217, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        /* ===== SCENARIO SECTION ===== */
+        .scenario-card {
+            background: var(--bg-glass);
+            border: 2px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scenario-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(157, 78, 221, 0.1), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 30px rgba(157, 78, 221, 0.2);
+        }
+
+        .scenario-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--bg-dark);
+        }
+
+        .scenario-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .scenario-section {
+            margin: 15px 0;
+        }
+
+        .scenario-label {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .scenario-content {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* ===== PRACTICE & INTERVIEW ===== */
+        .qa-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .qa-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .qa-card:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 25px rgba(255, 107, 53, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .qa-number {
+            color: var(--accent-orange);
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .qa-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .qa-answer {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .qa-card.active .qa-answer {
+            max-height: 500px;
+        }
+
+        /* ===== MISTAKES SECTION ===== */
+        .mistake-item {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 0, 110, 0.1));
+            border-left: 4px solid var(--accent-orange);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .mistake-title {
+            color: var(--accent-orange);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .mistake-description {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        /* ===== QUICK REVISION ===== */
+        .revision-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .revision-item {
+            background: var(--bg-glass);
+            border: 2px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .revision-item:hover {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 30px rgba(0, 247, 125, 0.15);
+            transform: scale(1.05);
+        }
+
+        .revision-key {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        .revision-value {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-glow);
+            margin-top: 80px;
+        }
+
+        footer p {
+            margin: 10px 0;
+            font-size: 0.95rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .hero-visual {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .table-box {
+                min-width: 150px;
+                padding: 15px;
+            }
+
+            .joins-grid, .qa-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+<style>
+    :root {
+        /* Primary Backgrounds */
+        --bg: #080b14 !important;
+        --bg-from: #080b14 !important;
+        --bg-to: #080b14 !important;
+        --bg2: #0c101d !important;
+        --bg-secondary: #0c101d !important;
+        --bg3: #111626 !important;
+        
+        /* Surface & Cards */
+        --surface: rgba(255,255,255,0.04) !important;
+        --bg-card: rgba(255,255,255,0.04) !important;
+        --card-bg: rgba(255,255,255,0.04) !important;
+        --card: #0f1423 !important;
+        --card2: #161c2e !important;
+        --glass: rgba(255,255,255,0.06) !important;
+        
+        /* Borders */
+        --border: rgba(255,255,255,0.08) !important;
+        --glass-border: rgba(255,255,255,0.1) !important;
+        --border2: rgba(255,255,255,0.15) !important;
+        
+        /* Text */
+        --text: #e2e8f0 !important;
+        --text-primary: #e2e8f0 !important;
+        --text-secondary: #94a3b8 !important;
+        --text-muted: #64748b !important;
+        --muted: #64748b !important;
+        
+        /* Brand & Accents */
+        --primary: #5B9CFF !important;
+        --primary-dark: #3B7DE8 !important;
+        --accent: #22d3ee !important;
+        --cyan: #22d3ee !important;
+        --accent-cyan: #22d3ee !important;
+        --purple: #a855f7 !important;
+        --accent-purple: #a855f7 !important;
+        --emerald: #34d399 !important;
+        --accent-green: #34d399 !important;
+        --rose: #fb7185 !important;
+        --accent-pink: #fb7185 !important;
+        --amber: #fbbf24 !important;
+        --accent-yellow: #fbbf24 !important;
+    }
+
+    /* GLOBAL TEXT OVERRIDES */
+    h1, h2, h3, h4, h5, h6, p, li, span, div, section, article {
+        color: var(--text);
+    }
+    
+    .text-secondary, .subtitle, .muted, .section-desc, .hero-subtitle {
+        color: var(--text-secondary) !important;
+    }
+
+    /* FIX GRADIENT TITLES (Like in Day 5) */
+    .hero-title, [class*="title"] {
+        background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--purple) 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    /* FIX HARDCODED LIGHT CARDS & BADGES */
+    .type-card, .mistake-card, .flow-box, .badge, .float-card, .card, .thinking-box, .flow-visual, .practice-card, .interview-q, .flow-inner, .flow-output {
+        background: var(--bg2) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text) !important;
+    }
+
+    .type-card-blue, .badge-blue, .flow-inner, .practice-card { 
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)) !important; 
+        border: 1px solid rgba(59,130,246,0.3) !important;
+    }
+    .type-card-purple, .badge-purple, .flow-output, .interview-q { 
+        background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)) !important; 
+        border: 1px solid rgba(168,85,247,0.3) !important;
+    }
+    .type-card-green, .badge-green { 
+        background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)) !important; 
+        border: 1px solid rgba(52,211,153,0.3) !important;
+    }
+    .type-card-orange { 
+        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)) !important; 
+        border: 1px solid rgba(245,158,11,0.3) !important;
+    }
+    
+    .pnum, .iq-toggle {
+        color: var(--primary) !important;
+    }
+
+    .iq-q, .iq-answer, .practice-card p {
+        color: var(--text) !important;
+    }
+    
+    /* Ensure code blocks stay dark */
+    .code-block {
+        background: #000 !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    h4[style*="color"], .pnum[style*="color"] {
+        color: var(--primary) !important;
+    }
+
+    .nav { display: none !important; }
+    body { 
+        padding-top: 0 !important; 
+        background: var(--bg) !important;
+        color: var(--text) !important;
+    }
+    body::before { display: none !important; }
+</style>
+</head>
+<body>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Master SQL Joins</h1>
+            <p>Combine data like a pro for real-world applications</p>
+            
+            <div class="hero-visual">
+                <div class="table-box">
+                    <div class="table-title">Customers</div>
+                    <div class="table-row">ID: 1</div>
+                    <div class="table-row">Name: Alice</div>
+                    <div class="table-row">ID: 2</div>
+                    <div class="table-row">Name: Bob</div>
+                </div>
+
+                <div class="arrow">+</div>
+
+                <div class="table-box">
+                    <div class="table-title">Orders</div>
+                    <div class="table-row">OrderID: 101</div>
+                    <div class="table-row">CustID: 1</div>
+                    <div class="table-row">OrderID: 102</div>
+                    <div class="table-row">CustID: 2</div>
+                </div>
+
+                <div class="arrow">=</div>
+
+                <div class="table-box">
+                    <div class="table-title">Result</div>
+                    <div class="table-row">Combined Data</div>
+                    <div class="table-row">Matched Rows</div>
+                    <div class="table-row">Single Table</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== WHAT ARE JOINS ===== -->
+    <section class="container" style="animation-delay: 0.4s;">
+        <h2 class="section-title">What Are SQL Joins?</h2>
+        
+        <div class="glass-card">
+            <h3 style="color: var(--accent-cyan); font-size: 1.3rem; margin-bottom: 15px;">Definition</h3>
+            <p style="font-size: 1.05rem; margin-bottom: 25px;">SQL Joins combine rows from two or more tables based on related columns. They're fundamental to relational databases and allow you to retrieve data that spans multiple tables seamlessly.</p>
+
+            <h3 style="color: var(--accent-purple); font-size: 1.3rem; margin-bottom: 15px; margin-top: 25px;">Real-World Examples</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="background: rgba(0, 217, 255, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-cyan);">
+                    <div style="font-weight: 600; margin-bottom: 8px;">👥 E-commerce</div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">Customers + Orders = Customer purchase history</div>
+                </div>
+                <div style="background: rgba(157, 78, 221, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-purple);">
+                    <div style="font-weight: 600; margin-bottom: 8px;">🎓 Education</div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">Students + Courses = Enrollment data</div>
+                </div>
+                <div style="background: rgba(0, 247, 125, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-green);">
+                    <div style="font-weight: 600; margin-bottom: 8px;">🏢 HR System</div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">Employees + Departments = Employee info with dept</div>
+                </div>
+                <div style="background: rgba(255, 107, 53, 0.1); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent-orange);">
+                    <div style="font-weight: 600; margin-bottom: 8px;">🏦 Banking</div>
+                    <div style="font-size: 0.9rem; color: var(--text-muted);">Users + Transactions = Account activity</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== JOIN TYPES ===== -->
+    <section class="container" style="animation-delay: 0.6s;">
+        <h2 class="section-title">The Four Join Types</h2>
+        
+        <div class="joins-grid">
+            <!-- INNER JOIN -->
+            <div class="join-card">
+                <div class="join-type">INNER JOIN</div>
+                <div class="join-description">Returns only the matching records from both tables. Like the intersection of two sets.</div>
+                <div style="color: var(--accent-cyan); font-size: 1.2rem; text-align: center; margin: 15px 0;">A ∩ B</div>
+                <div class="code-block">SELECT * FROM Customers c
+INNER JOIN Orders o 
+ON c.id = o.customer_id;</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-glow);">
+                    ✓ Best when you need matching data only
+                </div>
+            </div>
+
+            <!-- LEFT JOIN -->
+            <div class="join-card">
+                <div class="join-type">LEFT JOIN</div>
+                <div class="join-description">Returns all records from the left table, plus matching records from the right table.</div>
+                <div style="color: var(--accent-purple); font-size: 1.2rem; text-align: center; margin: 15px 0;">A ∪ (A ∩ B)</div>
+                <div class="code-block">SELECT * FROM Customers c
+LEFT JOIN Orders o 
+ON c.id = o.customer_id;</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-glow);">
+                    ✓ Unmatched rows show NULL
+                </div>
+            </div>
+
+            <!-- RIGHT JOIN -->
+            <div class="join-card">
+                <div class="join-type">RIGHT JOIN</div>
+                <div class="join-description">Returns all records from the right table, plus matching records from the left table.</div>
+                <div style="color: var(--accent-green); font-size: 1.2rem; text-align: center; margin: 15px 0;">B ∪ (A ∩ B)</div>
+                <div class="code-block">SELECT * FROM Customers c
+RIGHT JOIN Orders o 
+ON c.id = o.customer_id;</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-glow);">
+                    ✓ Less common than LEFT JOIN
+                </div>
+            </div>
+
+            <!-- FULL JOIN -->
+            <div class="join-card">
+                <div class="join-type">FULL JOIN</div>
+                <div class="join-description">Returns all records from both tables. Combines LEFT and RIGHT joins.</div>
+                <div style="color: var(--accent-orange); font-size: 1.2rem; text-align: center; margin: 15px 0;">A ∪ B</div>
+                <div class="code-block">SELECT * FROM Customers c
+FULL JOIN Orders o 
+ON c.id = o.customer_id;</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-glow);">
+                    ✓ Shows all data with NULLs
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== COMPARISON TABLE ===== -->
+    <section class="container" style="animation-delay: 0.8s;">
+        <h2 class="section-title">Quick Comparison</h2>
+        
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Join Type</th>
+                    <th>What It Returns</th>
+                    <th>When to Use</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="color: var(--accent-cyan); font-weight: 600;">INNER JOIN</td>
+                    <td>Only matching rows from both tables</td>
+                    <td>When you need data that exists in both tables</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--accent-purple); font-weight: 600;">LEFT JOIN</td>
+                    <td>All left table + matching right rows</td>
+                    <td>When you need all data from left, with optional right data</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--accent-green); font-weight: 600;">RIGHT JOIN</td>
+                    <td>All right table + matching left rows</td>
+                    <td>When you need all data from right, with optional left data</td>
+                </tr>
+                <tr>
+                    <td style="color: var(--accent-orange); font-weight: 600;">FULL JOIN</td>
+                    <td>All rows from both tables</td>
+                    <td>When you need to see all data from both tables</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ===== REAL-WORLD SCENARIOS ===== -->
+    <section class="container" style="animation-delay: 1s;">
+        <h2 class="section-title">Real-World Scenarios 🔥</h2>
+        
+        <!-- Scenario 1: E-commerce -->
+        <div class="scenario-card">
+            <div class="scenario-number">1</div>
+            <div class="scenario-title">🛍️ E-commerce: Find Customers with Orders</div>
+            
+            <div class="scenario-section">
+                <div class="scenario-label">Problem</div>
+                <div class="scenario-content">List all customers who have placed orders, along with their order details. You only care about customers with orders.</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Tables</div>
+                <div class="code-block">Customers: id, name, email
+Orders: order_id, customer_id, amount, date</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">SQL Query</div>
+                <div class="code-block">SELECT c.id, c.name, c.email, 
+       o.order_id, o.amount, o.date
+FROM Customers c
+INNER JOIN Orders o ON c.id = o.customer_id
+ORDER BY o.date DESC;</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Why INNER JOIN?</div>
+                <div class="scenario-content">We only want customers with orders. INNER JOIN filters to show only matching records, discarding customers without orders.</div>
+            </div>
+        </div>
+
+        <!-- Scenario 2: Education -->
+        <div class="scenario-card">
+            <div class="scenario-number">2</div>
+            <div class="scenario-title">🎓 Education: Enrolled Students</div>
+            
+            <div class="scenario-section">
+                <div class="scenario-label">Problem</div>
+                <div class="scenario-content">Get all enrolled students with their course information. A student enrolled in multiple courses should appear on multiple rows.</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Tables</div>
+                <div class="code-block">Students: student_id, name, email, gpa
+Enrollments: enrollment_id, student_id, course_id
+Courses: course_id, course_name, professor</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">SQL Query</div>
+                <div class="code-block">SELECT s.student_id, s.name, s.gpa,
+       c.course_name, c.professor
+FROM Students s
+INNER JOIN Enrollments e ON s.student_id = e.student_id
+INNER JOIN Courses c ON e.course_id = c.course_id
+ORDER BY s.name;</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Why Multiple JOINs?</div>
+                <div class="scenario-content">We need data from 3 tables. Chain multiple INNER JOINs to bring all data together. Only enrolled students appear in results.</div>
+            </div>
+        </div>
+
+        <!-- Scenario 3: HR System -->
+        <div class="scenario-card">
+            <div class="scenario-number">3</div>
+            <div class="scenario-title">👨‍💼 HR System: Employees with Missing Departments</div>
+            
+            <div class="scenario-section">
+                <div class="scenario-label">Problem</div>
+                <div class="scenario-content">Find ALL employees (with or without departments assigned). Show NULL for employees not assigned to any department.</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Tables</div>
+                <div class="code-block">Employees: emp_id, name, salary, dept_id
+Departments: dept_id, dept_name, budget</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">SQL Query</div>
+                <div class="code-block">SELECT e.emp_id, e.name, e.salary,
+       d.dept_name, d.budget
+FROM Employees e
+LEFT JOIN Departments d ON e.dept_id = d.dept_id
+ORDER BY e.name;</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Why LEFT JOIN?</div>
+                <div class="scenario-content">All employees matter! LEFT JOIN shows all employees from the left table, with NULL for unassigned dept_name and budget. Perfect for data audits.</div>
+            </div>
+        </div>
+
+        <!-- Scenario 4: Product Inventory -->
+        <div class="scenario-card">
+            <div class="scenario-number">4</div>
+            <div class="scenario-title">📦 E-commerce: Orders with Product Info</div>
+            
+            <div class="scenario-section">
+                <div class="scenario-label">Problem</div>
+                <div class="scenario-content">Get order details with product names, descriptions, and current prices. Only show orders with valid products.</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Tables</div>
+                <div class="code-block">Orders: order_id, customer_id, order_date
+OrderItems: item_id, order_id, product_id, quantity
+Products: product_id, name, description, price</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">SQL Query</div>
+                <div class="code-block">SELECT o.order_id, o.order_date,
+       p.name, p.description, oi.quantity,
+       (oi.quantity * p.price) AS total_price
+FROM Orders o
+INNER JOIN OrderItems oi ON o.order_id = oi.order_id
+INNER JOIN Products p ON oi.product_id = p.product_id
+ORDER BY o.order_date DESC;</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Why INNER JOINs?</div>
+                <div class="scenario-content">Every item must have a product and order. INNER JOINs ensure data integrity—orphaned records are excluded.</div>
+            </div>
+        </div>
+
+        <!-- Scenario 5: Banking -->
+        <div class="scenario-card">
+            <div class="scenario-number">5</div>
+            <div class="scenario-title">🏦 Banking: Transactions with User Data</div>
+            
+            <div class="scenario-section">
+                <div class="scenario-label">Problem</div>
+                <div class="scenario-content">Generate transaction reports showing user info for all transactions (including those from deleted accounts). Show account details even if user is gone.</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Tables</div>
+                <div class="code-block">Users: user_id, name, email, account_status
+Accounts: account_id, user_id, balance, type
+Transactions: trans_id, account_id, amount, date, type</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">SQL Query</div>
+                <div class="code-block">SELECT u.user_id, u.name, u.email,
+       a.account_id, a.balance,
+       t.amount, t.date, t.type
+FROM Transactions t
+INNER JOIN Accounts a ON t.account_id = a.account_id
+LEFT JOIN Users u ON a.user_id = u.user_id
+ORDER BY t.date DESC;</div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="scenario-label">Why Mixed JOINs?</div>
+                <div class="scenario-content">INNER JOIN Accounts ensures every transaction has a valid account. LEFT JOIN Users allows us to see transactions even if the user was deleted.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PRACTICE QUESTIONS ===== -->
+    <section class="container" style="animation-delay: 1.2s;">
+        <h2 class="section-title">Practice Questions</h2>
+        
+        <div class="qa-container">
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Question 1</div>
+                <div class="qa-question">Write an INNER JOIN query to find customers who placed orders</div>
+                <div class="qa-answer">
+                    <div class="code-block">SELECT c.*, o.*
+FROM Customers c
+INNER JOIN Orders o ON c.customer_id = o.customer_id;</div>
+                    <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">Returns only customers with at least one order. Unmatched customers are excluded.</div>
+                </div>
+            </div>
+
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Question 2</div>
+                <div class="qa-question">Write a LEFT JOIN to show all employees and their departments (if assigned)</div>
+                <div class="qa-answer">
+                    <div class="code-block">SELECT e.emp_id, e.name, 
+       d.dept_name
+FROM Employees e
+LEFT JOIN Departments d ON e.dept_id = d.dept_id;</div>
+                    <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">All employees appear. NULL for dept_name if not assigned. Perfect for audits!</div>
+                </div>
+            </div>
+
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Question 3</div>
+                <div class="qa-question">How do you find customers WITHOUT orders using LEFT JOIN?</div>
+                <div class="qa-answer">
+                    <div class="code-block">SELECT c.customer_id, c.name
+FROM Customers c
+LEFT JOIN Orders o ON c.customer_id = o.customer_id
+WHERE o.customer_id IS NULL;</div>
+                    <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">The WHERE clause filters for NULL values in the Orders table, finding unmatched customers.</div>
+                </div>
+            </div>
+
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Question 4</div>
+                <div class="qa-question">Write a query using multiple JOINs (3 tables)</div>
+                <div class="qa-answer">
+                    <div class="code-block">SELECT s.name, c.course_name, p.name
+FROM Students s
+INNER JOIN Enrollments e ON s.student_id = e.student_id
+INNER JOIN Courses c ON e.course_id = c.course_id
+INNER JOIN Professors p ON c.prof_id = p.prof_id;</div>
+                    <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">Chain multiple JOINs to get data from 4 tables. Each JOIN adds another condition.</div>
+                </div>
+            </div>
+
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Question 5</div>
+                <div class="qa-question">When would you use a FULL JOIN?</div>
+                <div class="qa-answer">
+                    <div class="code-block">SELECT *
+FROM TableA a
+FULL OUTER JOIN TableB b ON a.id = b.id;</div>
+                    <div style="margin-top: 10px; color: var(--text-muted); font-size: 0.9rem;">FULL JOIN shows all rows from both tables. Use for reconciliation, data audits, or when you need complete visibility of both datasets.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== INTERVIEW QUESTIONS ===== -->
+    <section class="container" style="animation-delay: 1.4s;">
+        <h2 class="section-title">Interview Questions</h2>
+        
+        <div class="qa-container">
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Interview Q1</div>
+                <div class="qa-question">What's the difference between INNER and LEFT JOIN?</div>
+                <div class="qa-answer">
+                    <div style="color: var(--text-muted); line-height: 1.8;">
+                        <strong style="color: var(--accent-cyan);">INNER JOIN:</strong> Returns only rows that match in both tables. If a customer has no orders, they won't appear.<br><br>
+                        <strong style="color: var(--accent-purple);">LEFT JOIN:</strong> Returns all rows from the left table, even if there's no match in the right table. Unmatched rows show NULL values.<br><br>
+                        <strong>Example:</strong> INNER JOIN shows "customers with orders" while LEFT JOIN shows "all customers, with order info where available."
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Interview Q2</div>
+                <div class="qa-question">When would you use a FULL JOIN?</div>
+                <div class="qa-answer">
+                    <div style="color: var(--text-muted); line-height: 1.8;">
+                        Use FULL JOIN when you need all rows from both tables, regardless of matches. Common scenarios:<br><br>
+                        • <strong>Data Reconciliation:</strong> Finding discrepancies between two datasets<br>
+                        • <strong>Audits:</strong> Ensuring no data is lost during migration<br>
+                        • <strong>Reporting:</strong> Showing complete picture of two related tables<br><br>
+                        <strong>Note:</strong> Not all databases support FULL JOIN. In MySQL, you simulate it using UNION of LEFT and RIGHT JOINs.
+                    </div>
+                </div>
+            </div>
+
+            <div class="qa-card" onclick="toggleAnswer(event)">
+                <div class="qa-number">Interview Q3</div>
+                <div class="qa-question">JOIN vs Subquery: Which is better?</div>
+                <div class="qa-answer">
+                    <div style="color: var(--text-muted); line-height: 1.8;">
+                        <strong style="color: var(--accent-green);">JOINs are usually better because:</strong><br>
+                        • More readable and maintainable<br>
+                        • Better performance (optimizers work better)<br>
+                        • Simpler syntax for multiple tables<br><br>
+                        <strong style="color: var(--accent-orange);">Use Subqueries when:</strong><br>
+                        • You need intermediate aggregation<br>
+                        • Filtering before joining<br>
+                        • Complex nested conditions<br><br>
+                        <strong>Best Practice:</strong> Use JOINs first, subqueries when you need specific logic.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== COMMON MISTAKES ===== -->
+    <section class="container" style="animation-delay: 1.6s;">
+        <h2 class="section-title">Common Mistakes to Avoid</h2>
+        
+        <div class="mistake-item">
+            <div class="mistake-title">❌ Missing ON Condition</div>
+            <div class="mistake-description">Without a proper ON clause, you get a Cartesian product (every row combined with every row)</div>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; color: var(--accent-orange); font-family: monospace; font-size: 0.85rem;">
+                SELECT * FROM Customers INNER JOIN Orders; -- WRONG! No ON clause
+            </div>
+        </div>
+
+        <div class="mistake-item">
+            <div class="mistake-title">❌ Wrong Join Type Selection</div>
+            <div class="mistake-description">Using INNER JOIN when you need LEFT JOIN (or vice versa) causes data loss or incorrect results</div>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; color: var(--accent-orange); font-family: monospace; font-size: 0.85rem;">
+                -- Wrong: Misses customers with no orders<br>
+                SELECT * FROM Customers INNER JOIN Orders ON...
+            </div>
+        </div>
+
+        <div class="mistake-item">
+            <div class="mistake-title">❌ Cartesian Product Explosion</div>
+            <div class="mistake-description">Joining multiple tables without proper conditions creates millions of rows unexpectedly</div>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; color: var(--accent-orange); font-family: monospace; font-size: 0.85rem;">
+                -- If Customers=1000, Orders=10000, Products=5000<br>
+                -- Result could be 50 billion rows without proper ON conditions!
+            </div>
+        </div>
+
+        <div class="mistake-item">
+            <div class="mistake-title">❌ Forgetting Table Aliases</div>
+            <div class="mistake-description">With multiple tables, ambiguous column names cause errors. Always use aliases!</div>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; color: var(--accent-orange); font-family: monospace; font-size: 0.85rem;">
+                -- Wrong: Which id? Customers.id or Orders.id?<br>
+                SELECT id FROM Customers JOIN Orders ON...
+            </div>
+        </div>
+
+        <div class="mistake-item">
+            <div class="mistake-title">❌ NULL Handling Confusion</div>
+            <div class="mistake-description">Forgetting that unmatched rows from LEFT/RIGHT/FULL JOINs contain NULL values</div>
+            <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; color: var(--accent-orange); font-family: monospace; font-size: 0.85rem;">
+                -- Wrong: NULL != NULL, so this won't find unmatched rows<br>
+                WHERE order_id = NULL; -- Use IS NULL instead!
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== QUICK REVISION ===== -->
+    <section class="container" style="animation-delay: 1.8s;">
+        <h2 class="section-title">Quick Revision Cheat Sheet</h2>
+        
+        <div class="revision-grid">
+            <div class="revision-item">
+                <div class="revision-key">INNER</div>
+                <div class="revision-value">Matching records only (A ∩ B)</div>
+            </div>
+            <div class="revision-item">
+                <div class="revision-key">LEFT</div>
+                <div class="revision-value">All left + matching right (A ∪ A∩B)</div>
+            </div>
+            <div class="revision-item">
+                <div class="revision-key">RIGHT</div>
+                <div class="revision-value">All right + matching left (B ∪ A∩B)</div>
+            </div>
+            <div class="revision-item">
+                <div class="revision-key">FULL</div>
+                <div class="revision-value">All rows from both tables (A ∪ B)</div>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-glass); border: 1px solid var(--border-glow); border-radius: 12px; padding: 30px; margin-top: 30px; backdrop-filter: blur(15px);">
+            <h3 style="color: var(--accent-green); font-size: 1.2rem; margin-bottom: 15px;">Key Takeaways</h3>
+            <ul style="list-style: none; color: var(--text-muted); line-height: 2;">
+                <li>✅ Choose the right JOIN based on your business logic</li>
+                <li>✅ Always include proper ON conditions to avoid Cartesian products</li>
+                <li>✅ Use table aliases for clarity with multiple tables</li>
+                <li>✅ LEFT JOIN is the most common in real-world applications</li>
+                <li>✅ Remember NULL values in unmatched rows from OUTER JOINs</li>
+                <li>✅ You can chain multiple JOINs for complex queries</li>
+                <li>✅ JOINs are generally faster than subqueries</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <p>🎯 Master SQL Joins with interactive examples and real-world scenarios</p>
+        <p>💡 Practice, learn, and ace your SQL interviews</p>
+        <p style="margin-top: 20px; color: var(--text-muted); font-size: 0.85rem;">Day 4: SQL Joins Learning Module</p>
+    </footer>
+
+    <script>
+        function toggleAnswer(event) {
+            const card = event.currentTarget;
+            card.classList.toggle('active');
+        }
+
+        // Smooth scroll behavior already in CSS
+        // Add subtle parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY;
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+
+        // Stagger animation for sections
+        const sections = document.querySelectorAll('section');
+        sections.forEach((section, index) => {
+            if (index > 0) {
+                section.style.setProperty('--delay', `${index * 0.2}s`);
+            }
+        });
+    </script>
+</body>
+</html>

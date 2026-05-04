@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 6 — Window Functions · SQL Mastery</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060612;
+  --bg2:#0c0c1e;
+  --bg3:#111128;
+  --card:#13132a;
+  --card2:#1a1a35;
+  --border:#ffffff12;
+  --border2:#ffffff22;
+  --blue:#4f8eff;
+  --purple:#a855f7;
+  --green:#22d3a0;
+  --amber:#f59e0b;
+  --pink:#f472b6;
+  --red:#f87171;
+  --cyan:#06b6d4;
+  --text:#e8e8ff;
+  --muted:#6b7280;
+  --muted2:#9ca3af;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Outfit',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+  line-height:1.7;
+}
+
+/* CANVAS BACKGROUND */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.4}
+
+/* MAIN LAYOUT */
+.page{position:relative;z-index:1}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:4rem 2rem;
+  position:relative;overflow:hidden;
+}
+.hero-glow{
+  position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(79,142,255,.15) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:glowPulse 4s ease-in-out infinite;
+}
+@keyframes glowPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
+.day-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,rgba(79,142,255,.15),rgba(168,85,247,.15));
+  border:1px solid rgba(79,142,255,.3);
+  padding:.4rem 1.2rem;border-radius:100px;
+  font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:2rem;
+  animation:fadeUp .8s ease both;
+}
+.day-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero h1{
+  font-family: 'Inter', system-ui, sans-serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:800;
+  line-height:1.0;margin-bottom:1.5rem;
+  animation:fadeUp .8s .1s ease both;
+}
+.hero h1 .line1{display:block;color:var(--text)}
+.hero h1 .line2{
+  display:block;
+  background:linear-gradient(135deg,var(--blue),var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{
+  font-size:1.1rem;color:var(--muted2);max-width:520px;margin:0 auto 3rem;
+  animation:fadeUp .8s .2s ease both;
+}
+.hero-chips{
+  display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp .8s .3s ease both;
+}
+.chip{
+  background:var(--card);border:1px solid var(--border2);
+  padding:.35rem .9rem;border-radius:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted2);
+  transition:all .2s;
+}
+.chip:hover{border-color:var(--blue);color:var(--blue);background:rgba(79,142,255,.08)}
+.scroll-hint{
+  position:absolute;bottom:2rem;
+  animation:bounce 2s infinite;opacity:.4;font-size:.8rem;letter-spacing:.08em;
+}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STICKY NAV ── */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(6,6,18,.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:.7rem 2rem;
+  display:flex;gap:.2rem;overflow-x:auto;scrollbar-width:none;
+}
+.nav::-webkit-scrollbar{display:none}
+.nav a{
+  white-space:nowrap;color:var(--muted);text-decoration:none;
+  font-size:.78rem;font-weight:500;padding:.35rem .8rem;border-radius:6px;
+  transition:all .2s;
+}
+.nav a:hover{color:var(--blue);background:rgba(79,142,255,.1)}
+
+/* ── CONTAINER ── */
+.container{max-width:1000px;margin:0 auto;padding:5rem 1.5rem}
+
+/* ── SECTION TITLE ── */
+.sec-title{
+  display:flex;align-items:center;gap:1rem;margin-bottom:2.5rem;
+  opacity:0;transform:translateY(20px);transition:all .6s ease;
+}
+.sec-title.visible{opacity:1;transform:translateY(0)}
+.sec-icon{
+  width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.sec-title h2{font-family: 'Inter', system-ui, sans-serif;font-size:1.8rem;font-weight:700}
+.sec-label{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.2rem}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:1.75rem;margin-bottom:1.25rem;
+  opacity:0;transform:translateY(20px);transition:all .5s ease;
+}
+.card.visible{opacity:1;transform:translateY(0)}
+.card:hover{border-color:var(--border2);transform:translateY(-2px) !important;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card-glow-blue{box-shadow:0 0 0 1px rgba(79,142,255,.2) inset}
+.card-glow-purple{box-shadow:0 0 0 1px rgba(168,85,247,.2) inset}
+.card-glow-green{box-shadow:0 0 0 1px rgba(34,211,160,.2) inset}
+
+/* ── THINK BOX ── */
+.think-box{
+  background:linear-gradient(135deg,rgba(79,142,255,.08),rgba(168,85,247,.05));
+  border:1px solid rgba(79,142,255,.25);border-radius:14px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;
+  position:relative;overflow:hidden;
+  opacity:0;transform:translateX(-20px);transition:all .6s ease;
+}
+.think-box.visible{opacity:1;transform:translateX(0)}
+.think-box::before{
+  content:'';position:absolute;top:0;left:0;width:4px;height:100%;
+  background:linear-gradient(180deg,var(--blue),var(--purple));
+}
+.think-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);margin-bottom:.6rem}
+.think-box p{color:var(--muted2);font-size:.97rem}
+
+/* ── CODE BLOCKS ── */
+.code-wrap{
+  background:#080820;border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;margin:1rem 0;
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 1rem;border-bottom:1px solid var(--border);
+  background:rgba(255,255,255,.02);
+}
+.code-dots{display:flex;gap:.4rem}
+.code-dots span{width:10px;height:10px;border-radius:50%}
+.code-lang{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.code-body{padding:1.25rem 1.5rem;overflow-x:auto}
+.code-body code{
+  font-family:'IBM Plex Mono',monospace;font-size:.87rem;
+  line-height:1.8;color:#c9d1d9;white-space:pre;display:block;
+}
+.kw{color:#ff79c6}.fn{color:#50fa7b}.cm{color:#6272a4;font-style:italic}
+.str{color:#f1fa8c}.num{color:#bd93f9}.op{color:#ff79c6}.tbl{color:#8be9fd}
+.hl{background:rgba(79,142,255,.15);display:inline-block;width:100%;border-radius:3px}
+
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);margin:1rem 0}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{
+  background:rgba(255,255,255,.04);color:var(--muted2);
+  font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  padding:.75rem 1rem;text-align:left;border-bottom:1px solid var(--border);
+}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--border);color:var(--muted2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.td-yes{color:var(--green);font-weight:600}
+.td-no{color:var(--red);font-weight:600}
+
+/* ── COMPARISON GRID ── */
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+@media(max-width:640px){.cmp-grid{grid-template-columns:1fr}}
+
+/* ── LIVE DEMO ── */
+.demo-box{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;margin-bottom:1.5rem;
+}
+.demo-header{
+  padding:1rem 1.5rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:.75rem;
+  background:linear-gradient(135deg,rgba(79,142,255,.06),rgba(168,85,247,.04));
+}
+.demo-badge{
+  font-size:.68rem;font-weight:700;padding:.25rem .7rem;border-radius:100px;
+  background:rgba(79,142,255,.15);color:var(--blue);
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.demo-body{padding:1.5rem}
+.demo-controls{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.btn{
+  padding:.5rem 1.2rem;border-radius:8px;border:1px solid var(--border2);
+  background:transparent;color:var(--muted2);font-family:'Outfit',sans-serif;font-size:.85rem;
+  cursor:pointer;transition:all .2s;font-weight:500;
+}
+.btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(79,142,255,.08)}
+.btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-green.active{background:var(--green);border-color:var(--green);color:#000}
+.btn-purple.active{background:var(--purple);border-color:var(--purple)}
+
+/* ── ANIMATED TABLE ── */
+.anim-table-wrap{overflow-x:auto}
+.anim-table{width:100%;border-collapse:collapse;font-size:.85rem;font-family:'IBM Plex Mono',monospace}
+.anim-table th{
+  background:rgba(255,255,255,.04);color:var(--muted);font-size:.7rem;
+  text-transform:uppercase;letter-spacing:.06em;padding:.6rem .9rem;
+  border-bottom:1px solid var(--border);
+}
+.anim-table td{
+  padding:.6rem .9rem;border-bottom:1px solid var(--border);
+  color:var(--muted2);transition:all .4s ease;
+}
+.anim-table tr:last-child td{border-bottom:none}
+.anim-table .highlight-row td{
+  background:rgba(79,142,255,.1);color:var(--blue);
+}
+.anim-table .highlight-green td{background:rgba(34,211,160,.1);color:var(--green)}
+.anim-table .highlight-purple td{background:rgba(168,85,247,.1);color:var(--purple)}
+.anim-table .highlight-amber td{background:rgba(245,158,11,.1);color:var(--amber)}
+.result-col{font-weight:600;font-size:.9rem}
+
+/* ── RANK VISUALIZER ── */
+.rank-viz{
+  display:flex;gap:1rem;align-items:flex-end;justify-content:center;
+  padding:2rem;min-height:200px;
+}
+.rank-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:.5rem;flex:1;max-width:80px}
+.rank-bar{
+  width:100%;border-radius:8px 8px 0 0;
+  transition:height .8s cubic-bezier(.34,1.56,.64,1);
+  position:relative;display:flex;align-items:flex-start;justify-content:center;
+  padding-top:.4rem;font-size:.75rem;font-weight:700;color:white;
+}
+.rank-label{font-size:.72rem;color:var(--muted);text-align:center}
+.rank-name{font-weight:600;font-size:.85rem;color:var(--text)}
+.rank-score{font-size:.72rem;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+
+/* ── PARTITION VISUALIZER ── */
+.partition-viz{position:relative;padding:1rem 0}
+.partition-group{
+  border:2px dashed transparent;border-radius:12px;padding:.75rem;margin-bottom:.75rem;
+  transition:all .5s ease;
+}
+.partition-group.active-partition{border-color:rgba(79,142,255,.4);background:rgba(79,142,255,.04)}
+.partition-group.active-mumbai{border-color:rgba(168,85,247,.4);background:rgba(168,85,247,.04)}
+.partition-group-label{
+  font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:.5rem;padding:.2rem .6rem;border-radius:4px;display:inline-block;
+}
+
+/* ── WINDOW ANIMATION ── */
+.window-container{position:relative;overflow:hidden;border-radius:12px}
+.window-overlay{
+  position:absolute;border:2px solid var(--blue);border-radius:8px;
+  background:rgba(79,142,255,.06);pointer-events:none;
+  transition:all .5s cubic-bezier(.4,0,.2,1);z-index:10;
+}
+
+/* ── SCENARIO CARDS ── */
+.scenario{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  overflow:hidden;margin-bottom:2rem;
+  opacity:0;transform:translateY(30px);transition:all .6s ease;
+}
+.scenario.visible{opacity:1;transform:translateY(0)}
+.scenario-head{
+  padding:1.25rem 1.75rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;gap:1rem;
+  background:linear-gradient(135deg,rgba(255,255,255,.02),transparent);
+}
+.s-num{
+  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:.9rem;flex-shrink:0;
+}
+.scenario-body{padding:1.5rem 1.75rem}
+.step-list{list-style:none;counter-reset:sc}
+.step-list li{
+  counter-increment:sc;display:flex;gap:.7rem;margin-bottom:.5rem;
+  font-size:.9rem;color:var(--muted2);align-items:flex-start;
+}
+.step-list li::before{
+  content:counter(sc);background:rgba(79,142,255,.15);color:var(--blue);
+  width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;flex-shrink:0;margin-top:3px;
+}
+
+/* ── PRACTICE ── */
+.practice-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.practice-grid{grid-template-columns:1fr}}
+.p-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.25rem;cursor:pointer;transition:all .25s;
+  opacity:0;transform:scale(.95);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s;
+}
+.p-card.visible{opacity:1;transform:scale(1)}
+.p-card:hover{border-color:rgba(79,142,255,.3);box-shadow:0 4px 24px rgba(79,142,255,.1)}
+.p-num{font-size:.68rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;font-family:'IBM Plex Mono',monospace}
+.p-card p{font-size:.9rem;color:var(--muted2)}
+.diff{display:inline-block;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:4px;margin-top:.6rem;text-transform:uppercase;letter-spacing:.05em}
+.diff-med{background:rgba(245,158,11,.15);color:var(--amber)}
+.diff-hard{background:rgba(248,113,113,.15);color:var(--red)}
+
+/* ── INTERVIEW Q ── */
+.iq{
+  background:linear-gradient(135deg,rgba(168,85,247,.06),rgba(79,142,255,.04));
+  border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem;
+  opacity:0;transform:translateX(-20px);transition:all .5s ease;
+}
+.iq.visible{opacity:1;transform:translateX(0)}
+.iq-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);margin-bottom:.4rem}
+.iq-q{font-weight:600;font-size:1rem;color:var(--text);margin-bottom:.6rem}
+.iq-a{font-size:.9rem;color:var(--muted2);line-height:1.7}
+.iq-a code{font-family:'IBM Plex Mono',monospace;font-size:.82em;background:rgba(255,255,255,.06);padding:.1em .4em;border-radius:3px;color:var(--green)}
+
+/* ── MISTAKE BOX ── */
+.mistake{
+  background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.2);
+  border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem;
+}
+.mistake-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--red);margin-bottom:.4rem}
+.mistake h3{font-size:1rem;font-weight:600;color:var(--text);margin-bottom:.5rem}
+.mistake p{font-size:.9rem;color:var(--muted2)}
+
+/* ── REVISION ── */
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.75rem}
+.rev-item{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1rem;display:flex;gap:.75rem;align-items:flex-start;
+  transition:all .25s;
+  opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease,border-color .2s;
+}
+.rev-item.visible{opacity:1;transform:translateY(0)}
+.rev-item:hover{border-color:var(--border2)}
+.rev-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.rev-item p{font-size:.87rem;color:var(--muted2);line-height:1.55}
+.rev-item strong{color:var(--text)}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:4rem 0}
+
+/* ── BIG QUOTE ── */
+.big-quote{
+  font-family: 'Inter', system-ui, sans-serif;font-size:1.4rem;font-weight:700;
+  color:transparent;background:linear-gradient(135deg,var(--blue),var(--purple));
+  -webkit-background-clip:text;background-clip:text;
+  border-left:3px solid var(--blue);padding:.75rem 1.5rem;margin:2rem 0;
+  line-height:1.4;
+}
+
+/* ── INLINE CODE ── */
+.ic{font-family:'IBM Plex Mono',monospace;font-size:.83em;background:rgba(255,255,255,.07);padding:.1em .45em;border-radius:4px;color:var(--green)}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:4rem 2rem;color:var(--muted);font-size:.85rem}
+.footer strong{color:var(--muted2)}
+
+/* GLOW EFFECTS */
+.glow-blue{text-shadow:0 0 20px rgba(79,142,255,.5)}
+.glow-green{color:var(--green);text-shadow:0 0 20px rgba(34,211,160,.4)}
+
+/* PULSE DOT */
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulseAnim 2s infinite;vertical-align:middle;margin-right:.4rem}
+@keyframes pulseAnim{0%,100%{box-shadow:0 0 0 0 rgba(34,211,160,.4)}70%{box-shadow:0 0 0 8px rgba(34,211,160,0)}}
+
+/* HIGHLIGHT PULSE */
+@keyframes rowFlash{0%{background:rgba(79,142,255,.3)}100%{background:rgba(79,142,255,.08)}}
+.row-flash{animation:rowFlash .5s ease forwards}
+
+/* TYPING CURSOR */
+.typing::after{content:'|';animation:cursor .7s infinite;color:var(--blue)}
+@keyframes cursor{0%,100%{opacity:1}50%{opacity:0}}
+
+/* NEON TAG */
+.neon-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:.72rem;padding:.2rem .6rem;border-radius:4px;font-weight:600;
+}
+.tag-blue{background:rgba(79,142,255,.12);color:var(--blue);border:1px solid rgba(79,142,255,.2)}
+.tag-green{background:rgba(34,211,160,.12);color:var(--green);border:1px solid rgba(34,211,160,.2)}
+.tag-purple{background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.2)}
+.tag-amber{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2)}
+.tag-red{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}}
+
+/* PROSE */
+.prose{font-size:.97rem;color:var(--muted2);line-height:1.8;margin-bottom:.75rem}
+</style>
+
+<style>
+    :root {
+        /* Primary Backgrounds */
+        --bg: #080b14 !important;
+        --bg-from: #080b14 !important;
+        --bg-to: #080b14 !important;
+        --bg2: #0c101d !important;
+        --bg-secondary: #0c101d !important;
+        --bg3: #111626 !important;
+        
+        /* Surface & Cards */
+        --surface: rgba(255,255,255,0.04) !important;
+        --bg-card: rgba(255,255,255,0.04) !important;
+        --card-bg: rgba(255,255,255,0.04) !important;
+        --card: #0f1423 !important;
+        --card2: #161c2e !important;
+        --glass: rgba(255,255,255,0.06) !important;
+        
+        /* Borders */
+        --border: rgba(255,255,255,0.08) !important;
+        --glass-border: rgba(255,255,255,0.1) !important;
+        --border2: rgba(255,255,255,0.15) !important;
+        
+        /* Text */
+        --text: #e2e8f0 !important;
+        --text-primary: #e2e8f0 !important;
+        --text-secondary: #94a3b8 !important;
+        --text-muted: #64748b !important;
+        --muted: #64748b !important;
+        
+        /* Brand & Accents */
+        --primary: #5B9CFF !important;
+        --primary-dark: #3B7DE8 !important;
+        --accent: #22d3ee !important;
+        --cyan: #22d3ee !important;
+        --accent-cyan: #22d3ee !important;
+        --purple: #a855f7 !important;
+        --accent-purple: #a855f7 !important;
+        --emerald: #34d399 !important;
+        --accent-green: #34d399 !important;
+        --rose: #fb7185 !important;
+        --accent-pink: #fb7185 !important;
+        --amber: #fbbf24 !important;
+        --accent-yellow: #fbbf24 !important;
+    }
+
+    /* GLOBAL TEXT OVERRIDES */
+    h1, h2, h3, h4, h5, h6, p, li, span, div, section, article {
+        color: var(--text);
+    }
+    
+    .text-secondary, .subtitle, .muted, .section-desc, .hero-subtitle {
+        color: var(--text-secondary) !important;
+    }
+
+    /* FIX GRADIENT TITLES (Like in Day 5) */
+    .hero-title, [class*="title"] {
+        background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--purple) 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    /* FIX HARDCODED LIGHT CARDS & BADGES */
+    .type-card, .mistake-card, .flow-box, .badge, .float-card, .card, .thinking-box, .flow-visual, .practice-card, .interview-q, .flow-inner, .flow-output {
+        background: var(--bg2) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text) !important;
+    }
+
+    .type-card-blue, .badge-blue, .flow-inner, .practice-card { 
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)) !important; 
+        border: 1px solid rgba(59,130,246,0.3) !important;
+    }
+    .type-card-purple, .badge-purple, .flow-output, .interview-q { 
+        background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)) !important; 
+        border: 1px solid rgba(168,85,247,0.3) !important;
+    }
+    .type-card-green, .badge-green { 
+        background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)) !important; 
+        border: 1px solid rgba(52,211,153,0.3) !important;
+    }
+    .type-card-orange { 
+        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)) !important; 
+        border: 1px solid rgba(245,158,11,0.3) !important;
+    }
+    
+    .pnum, .iq-toggle {
+        color: var(--primary) !important;
+    }
+
+    .iq-q, .iq-answer, .practice-card p {
+        color: var(--text) !important;
+    }
+    
+    /* Ensure code blocks stay dark */
+    .code-block {
+        background: #000 !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    h4[style*="color"], .pnum[style*="color"] {
+        color: var(--primary) !important;
+    }
+
+    .nav { display: none !important; }
+    body { 
+        padding-top: 0 !important; 
+        background: var(--bg) !important;
+        color: var(--text) !important;
+    }
+    body::before { display: none !important; }
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════ HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+  <div class="day-badge"><span class="dot"></span> Advanced SQL · Day 6 of 30</div>
+  <h1>
+    <span class="line1">Window</span>
+    <span class="line2">Functions</span>
+  </h1>
+  <p class="hero-sub">The most powerful SQL feature. Live animations. Real examples. Interview-ready mastery — from zero to expert.</p>
+  <div class="hero-chips">
+    <span class="chip">ROW_NUMBER()</span>
+    <span class="chip">RANK()</span>
+    <span class="chip">DENSE_RANK()</span>
+    <span class="chip">SUM() OVER()</span>
+    <span class="chip">PARTITION BY</span>
+    <span class="chip">Live Demos</span>
+  </div>
+  <div class="scroll-hint">↓ scroll to learn</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ NAV -->
+<div class="nav">
+  <a href="#intuition">🧠 Intuition</a>
+  <a href="#whatis">📘 What Is</a>
+  <a href="#partition">🔑 Partition</a>
+  <a href="#orderby">📊 Order By</a>
+  <a href="#functions">⭐ Functions</a>
+  <a href="#comparison">🔥 Compare</a>
+  <a href="#scenarios">🚨 Scenarios</a>
+  <a href="#practice">🧪 Practice</a>
+  <a href="#interview">🎯 Interview</a>
+  <a href="#mistakes">⚠️ Mistakes</a>
+  <a href="#revision">⚡ Revision</a>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════ SECTION 1 -->
+<div id="intuition">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(79,142,255,.2),rgba(168,85,247,.2))">🧠</div>
+  <div>
+    <div class="sec-label">Section 01</div>
+    <h2>Intuition First — The Real Problem</h2>
+  </div>
+</div>
+
+<div class="think-box reveal">
+  <div class="think-label">💡 Real Scenario</div>
+  <p>You're a data analyst at a school. Manager asks: <strong style="color:var(--text)">"Show me the top 3 students per city — with their name, marks, and rank within that city."</strong> You instinctively reach for GROUP BY... but that's where most people get stuck.</p>
+</div>
+
+<!-- LIVE GROUP BY vs WINDOW DEMO -->
+<div class="demo-box reveal card">
+  <div class="demo-header">
+    <span class="pulse"></span>
+    <strong>Live Demo</strong>
+    <span class="demo-badge">Interactive</span>
+    <span style="font-size:.82rem;color:var(--muted)">See the difference in real-time</span>
+  </div>
+  <div class="demo-body">
+    <div class="demo-controls">
+      <button class="btn active" onclick="showApproach('groupby',this)">❌ GROUP BY Approach</button>
+      <button class="btn" onclick="showApproach('window',this)">✅ Window Function</button>
+    </div>
+    <div id="approach-groupby">
+      <div class="code-wrap">
+        <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL — GROUP BY</span></div>
+        <div class="code-body"><code><span class="kw">SELECT</span> city, <span class="fn">MAX</span>(marks) <span class="kw">AS</span> max_marks
+<span class="kw">FROM</span> <span class="tbl">students</span>
+<span class="kw">GROUP BY</span> city;
+<span class="cm">-- ☠️ All student names GONE
+-- ☠️ Only 2 rows left (1 per city)
+-- ☠️ Can't rank individual students</span></code></div>
+      </div>
+      <div class="tbl-wrap">
+        <table><thead><tr><th>City</th><th>max_marks</th><th style="color:var(--red)">Student Name?</th></tr></thead>
+        <tbody>
+          <tr><td>Delhi</td><td>90</td><td style="color:var(--red)">❌ Lost</td></tr>
+          <tr><td>Mumbai</td><td>92</td><td style="color:var(--red)">❌ Lost</td></tr>
+        </tbody></table>
+      </div>
+      <p style="font-size:.85rem;color:var(--red);margin-top:.5rem">⚠️ 6 students → collapsed to 2 rows. Individual data destroyed.</p>
+    </div>
+    <div id="approach-window" style="display:none">
+      <div class="code-wrap">
+        <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL — Window Function</span></div>
+        <div class="code-body"><code><span class="kw">SELECT</span> name, city, marks,
+  <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> city
+    <span class="kw">ORDER BY</span> marks <span class="kw">DESC</span>
+  ) <span class="kw">AS</span> city_rank
+<span class="kw">FROM</span> <span class="tbl">students</span>;</code></div>
+      </div>
+      <div class="tbl-wrap">
+        <table id="window-result-table"><thead><tr><th>Name</th><th>City</th><th>Marks</th><th>City Rank</th></tr></thead>
+        <tbody></tbody></table>
+      </div>
+      <p style="font-size:.85rem;color:var(--green);margin-top:.5rem">✅ All 6 rows intact + rank added. Zero data lost.</p>
+    </div>
+  </div>
+</div>
+
+<div class="big-quote">"Window functions: see the whole forest AND rank every individual tree — simultaneously."</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 2 -->
+<div id="whatis">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(79,142,255,.2))">📘</div>
+  <div>
+    <div class="sec-label">Section 02</div>
+    <h2>What Is a Window Function?</h2>
+  </div>
+</div>
+
+<!-- ANATOMY ANIMATED -->
+<div class="card reveal card-glow-blue">
+  <p style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:1rem">Anatomy — hover each part</p>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:1.05rem;display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;line-height:2.2">
+    <span class="anatomy-part" data-tip="The window function: ROW_NUMBER, RANK, SUM, AVG etc." style="color:#50fa7b;cursor:help;border-bottom:2px solid rgba(80,250,123,.3);padding-bottom:1px">FUNCTION()</span>
+    <span style="color:var(--muted)"> </span>
+    <span class="anatomy-part" data-tip="The magic keyword — turns any aggregate into a window function!" style="color:#ff79c6;cursor:help;border-bottom:2px solid rgba(255,121,198,.3);padding-bottom:1px">OVER</span>
+    <span style="color:var(--muted)">(</span>
+    <span class="anatomy-part" data-tip="PARTITION BY: divide rows into groups WITHOUT collapsing them" style="color:#8be9fd;cursor:help;border-bottom:2px solid rgba(139,233,253,.3);padding-bottom:1px">PARTITION BY</span>
+    <span style="color:var(--muted2)"> col1 </span>
+    <span class="anatomy-part" data-tip="ORDER BY: defines ranking order WITHIN each partition" style="color:#f1fa8c;cursor:help;border-bottom:2px solid rgba(241,250,140,.3);padding-bottom:1px">ORDER BY</span>
+    <span style="color:var(--muted2)"> col2</span>
+    <span style="color:var(--muted)">)</span>
+  </div>
+  <div id="anatomy-tip" style="margin-top:1rem;min-height:40px;padding:.6rem 1rem;background:rgba(79,142,255,.08);border-radius:8px;font-size:.87rem;color:var(--blue);display:none;transition:all .2s"></div>
+</div>
+
+<div class="tbl-wrap reveal" style="margin-bottom:1.5rem">
+  <table>
+    <thead><tr><th>Feature</th><th>GROUP BY</th><th>Window Function</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:var(--text)">Rows kept?</strong></td><td class="td-no">❌ Collapsed</td><td class="td-yes">✅ All rows kept</td></tr>
+      <tr><td><strong style="color:var(--text)">Output rows</strong></td><td style="color:var(--muted2)">Reduced (1 per group)</td><td style="color:var(--muted2)">Same as input</td></tr>
+      <tr><td><strong style="color:var(--text)">Can rank within groups?</strong></td><td class="td-no">❌ Not possible</td><td class="td-yes">✅ Yes — core use case</td></tr>
+      <tr><td><strong style="color:var(--text)">Running totals?</strong></td><td class="td-no">❌ Not naturally</td><td class="td-yes">✅ With ORDER BY in OVER()</td></tr>
+      <tr><td><strong style="color:var(--text)">Use in WHERE?</strong></td><td style="color:var(--muted2)">HAVING for aggregates</td><td style="color:var(--amber)">⚠️ Only via CTE/subquery</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 3 -->
+<div id="partition">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(34,211,160,.2),rgba(79,142,255,.2))">🔑</div>
+  <div>
+    <div class="sec-label">Section 03 — Core Concept</div>
+    <h2>PARTITION BY — Live Visualizer</h2>
+  </div>
+</div>
+
+<div class="think-box reveal">
+  <div class="think-label">💡 Mental Model</div>
+  <p><strong style="color:var(--text)">PARTITION BY city</strong> = "For THIS row, pretend only rows from the same city exist when calculating — but show ALL rows in the output." The groups are invisible walls, not row-collapsers.</p>
+</div>
+
+<!-- PARTITION LIVE DEMO -->
+<div class="demo-box reveal">
+  <div class="demo-header">
+    <span class="pulse"></span>
+    <strong>Partition Visualizer</strong>
+    <span class="demo-badge">Live</span>
+  </div>
+  <div class="demo-body">
+    <p class="prose" style="margin-bottom:1rem">Click a city to see which rows are "in the window" for that row's calculation:</p>
+    <div class="demo-controls">
+      <button class="btn active btn-green" onclick="highlightPartition('all',this)">Show All</button>
+      <button class="btn" onclick="highlightPartition('Delhi',this)">🔵 Delhi Window</button>
+      <button class="btn" onclick="highlightPartition('Mumbai',this)">🟣 Mumbai Window</button>
+    </div>
+    <div class="anim-table-wrap">
+      <table class="anim-table" id="partition-table">
+        <thead><tr><th>#</th><th>Name</th><th>City</th><th>Marks</th><th>SUM(marks) OVER(PARTITION BY city)</th></tr></thead>
+        <tbody>
+          <tr data-city="Delhi"><td>1</td><td>Arjun</td><td>Delhi</td><td>90</td><td class="result-col" style="color:var(--blue)">175</td></tr>
+          <tr data-city="Delhi"><td>2</td><td>Priya</td><td>Delhi</td><td>85</td><td class="result-col" style="color:var(--blue)">175</td></tr>
+          <tr data-city="Mumbai"><td>3</td><td>Riya</td><td>Mumbai</td><td>92</td><td class="result-col" style="color:var(--purple)">165</td></tr>
+          <tr data-city="Mumbai"><td>4</td><td>Karan</td><td>Mumbai</td><td>73</td><td class="result-col" style="color:var(--purple)">165</td></tr>
+          <tr data-city="Delhi"><td>5</td><td>Neha</td><td>Delhi</td><td>—</td><td class="result-col" style="color:var(--blue)">175</td></tr>
+          <tr data-city="Mumbai"><td>6</td><td>Ravi</td><td>Mumbai</td><td>—</td><td class="result-col" style="color:var(--purple)">165</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="partition-info" style="margin-top:.75rem;font-size:.85rem;color:var(--muted2);padding:.6rem 1rem;background:var(--bg3);border-radius:8px">
+      💡 Select a city above to see which rows are "inside the window" for that partition
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 4 -->
+<div id="orderby">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(34,211,160,.2))">📊</div>
+  <div>
+    <div class="sec-label">Section 04</div>
+    <h2>ORDER BY Inside OVER()</h2>
+  </div>
+</div>
+
+<!-- RUNNING TOTAL LIVE DEMO -->
+<div class="demo-box reveal">
+  <div class="demo-header">
+    <span class="pulse"></span>
+    <strong>Running Total Animator</strong>
+    <span class="demo-badge">Step by Step</span>
+  </div>
+  <div class="demo-body">
+    <p class="prose">Watch how SUM builds up row by row when ORDER BY is inside OVER():</p>
+    <div class="demo-controls">
+      <button class="btn active" onclick="startRunningTotal()">▶ Run Animation</button>
+      <button class="btn" onclick="resetRunningTotal()">↺ Reset</button>
+    </div>
+    <div class="anim-table-wrap">
+      <table class="anim-table" id="running-table">
+        <thead><tr><th>Month</th><th>Sales</th><th>Running Total</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>January</td><td>₹50,000</td><td id="rt-0" style="font-family:'IBM Plex Mono',monospace;color:var(--muted)">—</td><td id="rs-0" style="color:var(--muted)">waiting...</td></tr>
+          <tr><td>February</td><td>₹30,000</td><td id="rt-1" style="font-family:'IBM Plex Mono',monospace;color:var(--muted)">—</td><td id="rs-1" style="color:var(--muted)">waiting...</td></tr>
+          <tr><td>March</td><td>₹45,000</td><td id="rt-2" style="font-family:'IBM Plex Mono',monospace;color:var(--muted)">—</td><td id="rs-2" style="color:var(--muted)">waiting...</td></tr>
+          <tr><td>April</td><td>₹60,000</td><td id="rt-3" style="font-family:'IBM Plex Mono',monospace;color:var(--muted)">—</td><td id="rs-3" style="color:var(--muted)">waiting...</td></tr>
+          <tr><td>May</td><td>₹35,000</td><td id="rt-4" style="font-family:'IBM Plex Mono',monospace;color:var(--muted)">—</td><td id="rs-4" style="color:var(--muted)">waiting...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="rt-explain" style="margin-top:.75rem;font-size:.85rem;padding:.6rem 1rem;background:var(--bg3);border-radius:8px;color:var(--muted2)">
+      Click "Run Animation" to watch the running total build up step-by-step
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 5 -->
+<div id="functions">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(168,85,247,.2))">⭐</div>
+  <div>
+    <div class="sec-label">Section 05 — Deep Dive</div>
+    <h2>The 5 Key Window Functions</h2>
+  </div>
+</div>
+
+<!-- RANKING VISUALIZER BAR CHART -->
+<div class="demo-box reveal">
+  <div class="demo-header">
+    <span class="pulse"></span>
+    <strong>Ranking Functions — Live Bar Chart Visualizer</strong>
+    <span class="demo-badge">Interactive</span>
+  </div>
+  <div class="demo-body">
+    <p class="prose">Same data, different functions — watch the ranks change:</p>
+    <div class="demo-controls">
+      <button class="btn active" onclick="showRankType('row_number',this)">ROW_NUMBER()</button>
+      <button class="btn" onclick="showRankType('rank',this)">RANK()</button>
+      <button class="btn" onclick="showRankType('dense_rank',this)">DENSE_RANK()</button>
+    </div>
+    <div id="rank-chart" class="rank-viz"></div>
+    <div id="rank-explain" style="padding:.75rem 1rem;background:var(--bg3);border-radius:8px;font-size:.87rem;color:var(--muted2);margin-top:.5rem"></div>
+    <div class="tbl-wrap" style="margin-top:1rem">
+      <table><thead><tr><th>Name</th><th>Marks</th><th id="rank-col-header" style="color:var(--blue)">ROW_NUMBER()</th></tr></thead>
+      <tbody id="rank-result-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- SUM / AVG DEMO -->
+<div class="demo-box reveal">
+  <div class="demo-header">
+    <span class="pulse"></span>
+    <strong>SUM() and AVG() OVER() — Comparison Visualizer</strong>
+    <span class="demo-badge">Live</span>
+  </div>
+  <div class="demo-body">
+    <div class="demo-controls">
+      <button class="btn active" onclick="showAggType('partition',this)">SUM — Partition Total</button>
+      <button class="btn" onclick="showAggType('running',this)">SUM — Running Total</button>
+      <button class="btn" onclick="showAggType('avg',this)">AVG — Dept Benchmark</button>
+    </div>
+    <div class="code-wrap" id="agg-code-block">
+      <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL</span></div>
+      <div class="code-body"><code id="agg-code-text"></code></div>
+    </div>
+    <div class="anim-table-wrap">
+      <table class="anim-table"><thead><tr><th>Name</th><th>Dept</th><th>Salary</th><th id="agg-col-header" style="color:var(--amber)">Result</th></tr></thead>
+      <tbody id="agg-result-tbody"></tbody></table>
+    </div>
+    <div id="agg-explain" style="margin-top:.75rem;padding:.6rem 1rem;background:var(--bg3);border-radius:8px;font-size:.85rem;color:var(--muted2)"></div>
+  </div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 6 -->
+<div id="comparison">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(248,113,113,.2),rgba(245,158,11,.2))">🔥</div>
+  <div>
+    <div class="sec-label">Section 06 — Very Important</div>
+    <h2>ROW_NUMBER vs RANK vs DENSE_RANK</h2>
+  </div>
+</div>
+
+<div class="think-box reveal">
+  <div class="think-label">💡 Key Question</div>
+  <p><strong style="color:var(--text)">Two students tie with same marks. What happens to their rank?</strong> The answer is different for each function — and THIS is what interviewers test.</p>
+</div>
+
+<!-- LIVE SIDE BY SIDE COMPARISON -->
+<div class="demo-box reveal">
+  <div class="demo-header">
+    <span class="pulse"></span>
+    <strong>All Three — Side by Side</strong>
+    <span class="demo-badge">Live Comparison</span>
+  </div>
+  <div class="demo-body">
+    <p class="prose">Data: 4 employees. Notice Anil & Bob both earn ₹90,000 — a tie at position 1.</p>
+    <div class="tbl-wrap">
+      <table><thead>
+        <tr><th>Name</th><th>Salary</th><th style="color:var(--blue)">ROW_NUMBER()</th><th style="color:var(--purple)">RANK()</th><th style="color:var(--green)">DENSE_RANK()</th></tr>
+      </thead><tbody id="compare-tbody"></tbody></table>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-top:1rem">
+      <div style="background:rgba(79,142,255,.08);border:1px solid rgba(79,142,255,.2);border-radius:10px;padding:1rem">
+        <div style="color:var(--blue);font-weight:700;font-size:.85rem;margin-bottom:.4rem">ROW_NUMBER()</div>
+        <p style="font-size:.8rem;color:var(--muted2)">Always unique. Ties get different numbers arbitrarily. Best for deduplication.</p>
+      </div>
+      <div style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:1rem">
+        <div style="color:var(--purple);font-weight:700;font-size:.85rem;margin-bottom:.4rem">RANK()</div>
+        <p style="font-size:.8rem;color:var(--muted2)">Ties share rank. Next rank skips. Two 1st → no 2nd. Like Olympic medals.</p>
+      </div>
+      <div style="background:rgba(34,211,160,.08);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:1rem">
+        <div style="color:var(--green);font-weight:700;font-size:.85rem;margin-bottom:.4rem">DENSE_RANK()</div>
+        <p style="font-size:.8rem;color:var(--muted2)">Ties share rank. NO gaps. Best for "Nth highest value" queries.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 7 -->
+<div id="scenarios">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(248,113,113,.2),rgba(168,85,247,.2))">🚨</div>
+  <div>
+    <div class="sec-label">Section 07 — Interview Problems</div>
+    <h2>6 Real Interview Scenarios</h2>
+  </div>
+</div>
+<p class="prose reveal">Study the THINKING, not just the query. This is how you ace interviews.</p>
+
+<!-- SCENARIO 1 -->
+<div class="scenario reveal">
+  <div class="scenario-head">
+    <div class="s-num" style="background:linear-gradient(135deg,var(--blue),#2563eb);color:#fff">1</div>
+    <div>
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Top 3 Students in Each City</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Most common window function interview question</p>
+    </div>
+    <span class="neon-tag tag-blue" style="margin-left:auto;flex-shrink:0">ROW_NUMBER</span>
+  </div>
+  <div class="scenario-body">
+    <ul class="step-list" style="margin-bottom:1rem">
+      <li>Need a rank within each city → use <span class="ic">PARTITION BY city</span></li>
+      <li>Higher marks = lower rank number → <span class="ic">ORDER BY marks DESC</span></li>
+      <li>Want exactly top 3 per city → use <span class="ic">ROW_NUMBER</span> (unique per row)</li>
+      <li>Window functions can't be in WHERE → wrap in CTE, then filter</li>
+    </ul>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL — Solution</span></div>
+      <div class="code-body"><code><span class="kw">WITH</span> ranked_students <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    name, city, marks,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(
+      <span class="kw">PARTITION BY</span> city
+      <span class="kw">ORDER BY</span> marks <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> <span class="tbl">students</span>
+)
+<span class="kw">SELECT</span> name, city, marks, rn
+<span class="kw">FROM</span> ranked_students
+<span class="kw">WHERE</span> rn <span class="op">&lt;=</span> <span class="num">3</span>
+<span class="kw">ORDER BY</span> city, rn;</code>
+      </div>
+    </div>
+    <div style="background:rgba(34,211,160,.05);border:1px solid rgba(34,211,160,.2);border-radius:10px;padding:1rem;margin-top:.75rem">
+      <p style="font-size:.85rem;color:var(--green);font-weight:600;margin-bottom:.3rem">⚡ Interviewer Follow-up:</p>
+      <p style="font-size:.85rem;color:var(--muted2)">If two students tie for 3rd, RANK() would give both rank 3 (returning 4 students per city). ROW_NUMBER strictly returns exactly 3. Choose based on business requirement!</p>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO 2 -->
+<div class="scenario reveal">
+  <div class="scenario-head">
+    <div class="s-num" style="background:linear-gradient(135deg,var(--purple),#6d28d9);color:#fff">2</div>
+    <div>
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Rank Employees by Salary in Department</h3>
+      <p style="font-size:.85rem;color:var(--muted)">HR analytics — compensation benchmarking</p>
+    </div>
+    <span class="neon-tag tag-purple" style="margin-left:auto;flex-shrink:0">DENSE_RANK</span>
+  </div>
+  <div class="scenario-body">
+    <ul class="step-list" style="margin-bottom:1rem">
+      <li>Each department = separate window → <span class="ic">PARTITION BY dept</span></li>
+      <li>Rank highest salary first → <span class="ic">ORDER BY salary DESC</span></li>
+      <li>Use DENSE_RANK to handle equal salaries without gaps</li>
+    </ul>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL</span></div>
+      <div class="code-body"><code><span class="kw">SELECT</span>
+  name, dept, salary,
+  <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> dept
+    <span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>
+  ) <span class="kw">AS</span> salary_rank
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">ORDER BY</span> dept, salary_rank;</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO 3 -->
+<div class="scenario reveal">
+  <div class="scenario-head">
+    <div class="s-num" style="background:linear-gradient(135deg,var(--green),#059669);color:#000">3</div>
+    <div>
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Second Highest Salary (Clean Method)</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Classic trick question — DENSE_RANK is the right tool</p>
+    </div>
+    <span class="neon-tag tag-green" style="margin-left:auto;flex-shrink:0">DENSE_RANK</span>
+  </div>
+  <div class="scenario-body">
+    <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:1rem;margin-bottom:1rem">
+      <p style="font-size:.87rem;color:var(--amber)"><strong>Why DENSE_RANK and not ROW_NUMBER?</strong> If 3 people all earn ₹90,000 (max), ROW_NUMBER would give one of them rank 2 — which is wrong. DENSE_RANK gives all of them rank 1, then the next distinct salary gets rank 2. That's the actual 2nd highest.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL — Works for ANY Nth highest</span></div>
+      <div class="code-body"><code><span class="kw">WITH</span> salary_ranked <span class="kw">AS</span> (
+  <span class="kw">SELECT</span>
+    name, salary,
+    <span class="fn">DENSE_RANK</span>() <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>) <span class="kw">AS</span> dr
+  <span class="kw">FROM</span> <span class="tbl">employees</span>
+)
+<span class="kw">SELECT</span> name, salary
+<span class="kw">FROM</span> salary_ranked
+<span class="kw">WHERE</span> dr <span class="op">=</span> <span class="num">2</span>;   <span class="cm">-- Change to N for Nth highest</span></code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO 4 -->
+<div class="scenario reveal">
+  <div class="scenario-head">
+    <div class="s-num" style="background:linear-gradient(135deg,var(--amber),#d97706);color:#000">4</div>
+    <div>
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Running Total of Sales</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Finance/analytics — cumulative revenue per region</p>
+    </div>
+    <span class="neon-tag tag-amber" style="margin-left:auto;flex-shrink:0">SUM OVER</span>
+  </div>
+  <div class="scenario-body">
+    <ul class="step-list" style="margin-bottom:1rem">
+      <li>Separate calculation per region → <span class="ic">PARTITION BY region</span></li>
+      <li>Accumulate in date order → <span class="ic">ORDER BY sale_date</span></li>
+      <li>SUM with ORDER BY = running total (not partition total)</li>
+    </ul>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL</span></div>
+      <div class="code-body"><code><span class="kw">SELECT</span>
+  sale_date, region, amount,
+  <span class="fn">SUM</span>(amount) <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> region
+    <span class="kw">ORDER BY</span> sale_date
+  ) <span class="kw">AS</span> running_total,
+  <span class="fn">AVG</span>(amount) <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> region
+  ) <span class="kw">AS</span> region_avg
+<span class="kw">FROM</span> <span class="tbl">sales</span>
+<span class="kw">ORDER BY</span> region, sale_date;</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO 5 -->
+<div class="scenario reveal">
+  <div class="scenario-head">
+    <div class="s-num" style="background:linear-gradient(135deg,var(--red),#dc2626);color:#fff">5</div>
+    <div>
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Find Duplicate Records</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Data cleaning — the elegant deduplication pattern</p>
+    </div>
+    <span class="neon-tag tag-red" style="margin-left:auto;flex-shrink:0">ROW_NUMBER</span>
+  </div>
+  <div class="scenario-body">
+    <div style="background:rgba(79,142,255,.06);border:1px solid rgba(79,142,255,.2);border-radius:10px;padding:1rem;margin-bottom:1rem">
+      <p style="font-size:.87rem;color:var(--blue)"><strong>The Trick:</strong> Assign ROW_NUMBER partitioned by columns that define "uniqueness". Any row with rn &gt; 1 is a duplicate. Keep rn = 1.</p>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><div class="code-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div><span class="code-lang">SQL — Duplicate Detection</span></div>
+      <div class="code-body"><code><span class="kw">WITH</span> dupes <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> *,
+    <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(
+      <span class="kw">PARTITION BY</span> email, name
+      <span class="kw">ORDER BY</span> created_at        <span class="cm">-- keep oldest record</span>
+    ) <span class="kw">AS</span> rn
+  <span class="kw">FROM</span> <span class="tbl">users</span>
+)
+<span class="cm">-- View duplicates</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> dupes <span class="kw">WHERE</span> rn <span class="op">&gt;</span> <span class="num">1</span>;
+
+<span class="cm">-- Delete duplicates</span>
+<span class="kw">DELETE FROM</span> dupes <span class="kw">WHERE</span> rn <span class="op">&gt;</span> <span class="num">1</span>;</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENARIO 6 -->
+<div class="scenario reveal">
+  <div class="scenario-head">
+    <div class="s-num" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff">6</div>
+    <div>
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Highest Salary Per Department (With All Details)</h3>
+      <p style="font-size:.85rem;color:var(--muted)">The GROUP BY trap — window function to the rescue</p>
+    </div>
+    <span class="neon-tag tag-blue" style="margin-left:auto;flex-shrink:0">RANK</span>
+  </div>
+  <div class="scenario-body">
+    <div class="two-col">
+      <div>
+        <p style="font-size:.8rem;color:var(--red);font-weight:600;margin-bottom:.4rem">❌ Wrong — loses names</p>
+        <div class="code-wrap">
+          <div class="code-body"><code style="font-size:.8rem"><span class="kw">SELECT</span> dept,
+  <span class="fn">MAX</span>(salary)
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">GROUP BY</span> dept;
+<span class="cm">-- No names!</span></code></div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:.8rem;color:var(--green);font-weight:600;margin-bottom:.4rem">✅ Correct — keeps all details</p>
+        <div class="code-wrap">
+          <div class="code-body"><code style="font-size:.8rem"><span class="kw">WITH</span> r <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> *,
+    <span class="fn">RANK</span>() <span class="kw">OVER</span>(
+      <span class="kw">PARTITION BY</span> dept
+      <span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>
+    ) <span class="kw">AS</span> rnk
+  <span class="kw">FROM</span> <span class="tbl">employees</span>
+)
+<span class="kw">SELECT</span> name, dept, salary
+<span class="kw">FROM</span> r
+<span class="kw">WHERE</span> rnk <span class="op">=</span> <span class="num">1</span>;</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- end scenarios -->
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 8 -->
+<div id="practice">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(34,211,160,.2),rgba(245,158,11,.2))">🧪</div>
+  <div>
+    <div class="sec-label">Section 08 — Try It Yourself</div>
+    <h2>Practice Questions</h2>
+  </div>
+</div>
+<p class="prose reveal">Medium–Hard. Solve before peeking at solutions.</p>
+<div class="practice-grid reveal">
+  <div class="p-card"><div class="p-num">Problem 01</div><p>Table <strong style="color:var(--text)">orders(order_id, customer_id, order_date, amount)</strong> — Find each customer's 3 most recent orders + cumulative amount spent up to each order.</p><span class="diff diff-hard">Hard</span></div>
+  <div class="p-card"><div class="p-num">Problem 02</div><p>Table <strong style="color:var(--text)">employees(emp_id, name, dept, salary)</strong> — For each dept, show each employee + what % of dept's total salary they represent.</p><span class="diff diff-med">Medium</span></div>
+  <div class="p-card"><div class="p-num">Problem 03</div><p>Table <strong style="color:var(--text)">scores(player_id, game_id, score)</strong> — Find players who scored above their personal average in more than 3 games.</p><span class="diff diff-hard">Hard</span></div>
+  <div class="p-card"><div class="p-num">Problem 04</div><p>Table <strong style="color:var(--text)">products(id, category, price, rating)</strong> — Rank products by rating within category. Find top-rated products priced below category average.</p><span class="diff diff-hard">Hard</span></div>
+  <div class="p-card"><div class="p-num">Problem 05</div><p>Table <strong style="color:var(--text)">login_events(user_id, login_date)</strong> — Find all users who logged in on 3+ consecutive days. (Hint: ROW_NUMBER + date arithmetic)</p><span class="diff diff-hard">Hard</span></div>
+  <div class="p-card"><div class="p-num">Problem 06</div><p>Table <strong style="color:var(--text)">transactions(txn_id, account_id, txn_date, amount)</strong> — Show running balance and flag rows where balance goes negative.</p><span class="diff diff-med">Medium</span></div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 9 -->
+<div id="interview">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(79,142,255,.2))">🎯</div>
+  <div>
+    <div class="sec-label">Section 09 — Conceptual + Tricky</div>
+    <h2>Interview Questions</h2>
+  </div>
+</div>
+
+<div class="iq reveal">
+  <div class="iq-label">Question 01</div>
+  <div class="iq-q">What is the difference between window functions and GROUP BY?</div>
+  <div class="iq-a">GROUP BY aggregates rows into ONE row per group — you lose individual row details. Window functions calculate across a group but <strong style="color:var(--text)">keep all original rows intact</strong>. You can have an employee-level row that also shows the department aggregate. GROUP BY only shows the group aggregate row.</div>
+</div>
+
+<div class="iq reveal">
+  <div class="iq-label">Question 02 — Tricky</div>
+  <div class="iq-q">Can you use a window function in a WHERE clause? Why or why not?</div>
+  <div class="iq-a"><strong style="color:var(--red)">No — and this causes a very common error.</strong> SQL's order of execution is: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY. Window functions are evaluated in the SELECT phase, after WHERE. So you <strong style="color:var(--text)">cannot reference a window function alias in WHERE</strong>. Solution: wrap in a CTE: <code>WITH cte AS (SELECT *, ROW_NUMBER() OVER(...) AS rn FROM t) SELECT * FROM cte WHERE rn = 1</code></div>
+</div>
+
+<div class="iq reveal">
+  <div class="iq-label">Question 03</div>
+  <div class="iq-q">When would you use RANK() vs DENSE_RANK()?</div>
+  <div class="iq-a">Use <strong style="color:var(--purple)">RANK()</strong> when gaps matter — like sports competitions (two 1st place means no 2nd place medal is awarded). The rank number reflects "how many people scored better than me." Use <strong style="color:var(--green)">DENSE_RANK()</strong> when you want "what is this person's unique performance tier" — like finding the 2nd highest salary. DENSE_RANK is usually better for analytics queries.</div>
+</div>
+
+<div class="iq reveal">
+  <div class="iq-label">Question 04 — Tricky</div>
+  <div class="iq-q">What does SUM() OVER() return differently WITH vs WITHOUT ORDER BY?</div>
+  <div class="iq-a"><strong style="color:var(--blue)">Without ORDER BY:</strong> Returns the total of the entire partition as a constant on every row (same number for everyone in that group).<br><br><strong style="color:var(--blue)">With ORDER BY:</strong> Returns a running cumulative sum — each row shows the sum from partition start up to and including the current row. This is because ORDER BY inside OVER() implicitly adds <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>.</div>
+</div>
+
+<div class="iq reveal">
+  <div class="iq-label">Question 05 — Performance</div>
+  <div class="iq-q">Do window functions have performance implications?</div>
+  <div class="iq-a">Yes. Each different OVER() clause requires a separate sort pass over the data. Optimizations: (1) Combine window functions with the same PARTITION BY + ORDER BY into one pass. (2) Filter data in a CTE before applying window functions to reduce rows. (3) Ensure PARTITION BY columns are indexed on large tables. (4) In distributed systems (Spark, BigQuery), window functions trigger expensive shuffle operations — minimize partition cardinality.</div>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 10 -->
+<div id="mistakes">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(248,113,113,.2),rgba(245,158,11,.2))">⚠️</div>
+  <div>
+    <div class="sec-label">Section 10</div>
+    <h2>Common Mistakes</h2>
+  </div>
+</div>
+
+<div class="mistake reveal">
+  <div class="mistake-label">❌ Mistake 1</div>
+  <h3>Confusing PARTITION BY with GROUP BY</h3>
+  <p>GROUP BY physically merges rows. PARTITION BY divides logically but keeps all rows. Never use both simultaneously expecting PARTITION to override GROUP BY behavior.</p>
+  <div class="code-wrap" style="margin-top:.75rem">
+    <div class="code-body"><code><span class="cm">-- ❌ WRONG — GROUP BY collapses rows</span>
+<span class="kw">SELECT</span> dept, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">ORDER BY</span> salary)
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">GROUP BY</span> dept;
+
+<span class="cm">-- ✅ RIGHT — Use PARTITION BY inside OVER()</span>
+<span class="kw">SELECT</span> dept, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> dept <span class="kw">ORDER BY</span> salary)
+<span class="kw">FROM</span> <span class="tbl">employees</span>;</code></div>
+  </div>
+</div>
+
+<div class="mistake reveal">
+  <div class="mistake-label">❌ Mistake 2</div>
+  <h3>Missing ORDER BY for Ranking Functions</h3>
+  <p>ROW_NUMBER(), RANK(), DENSE_RANK() without ORDER BY in OVER() produce undefined/random results. The database has no idea what order to assign numbers in.</p>
+  <div class="code-wrap" style="margin-top:.75rem">
+    <div class="code-body"><code><span class="cm">-- ❌ WRONG — undefined result</span>
+<span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> dept)
+
+<span class="cm">-- ✅ RIGHT</span>
+<span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(<span class="kw">PARTITION BY</span> dept <span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>)</code></div>
+  </div>
+</div>
+
+<div class="mistake reveal">
+  <div class="mistake-label">❌ Mistake 3</div>
+  <h3>Using Window Function in WHERE Clause</h3>
+  <p>SQL processes WHERE before evaluating window functions. You'll get an error. Always wrap in CTE or subquery first.</p>
+  <div class="code-wrap" style="margin-top:.75rem">
+    <div class="code-body"><code><span class="cm">-- ❌ WRONG — Error!</span>
+<span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(...) <span class="kw">AS</span> rn
+<span class="kw">FROM</span> <span class="tbl">students</span>
+<span class="kw">WHERE</span> rn <span class="op">&lt;=</span> <span class="num">3</span>;
+
+<span class="cm">-- ✅ RIGHT — CTE pattern</span>
+<span class="kw">WITH</span> cte <span class="kw">AS</span> (
+  <span class="kw">SELECT</span> *, <span class="fn">ROW_NUMBER</span>() <span class="kw">OVER</span>(...) <span class="kw">AS</span> rn <span class="kw">FROM</span> <span class="tbl">students</span>
+)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> cte <span class="kw">WHERE</span> rn <span class="op">&lt;=</span> <span class="num">3</span>;</code></div>
+  </div>
+</div>
+
+<div class="mistake reveal">
+  <div class="mistake-label">❌ Mistake 4</div>
+  <h3>Using ROW_NUMBER for "Nth Highest" Problems</h3>
+  <p>If multiple rows tie for 1st place, ROW_NUMBER arbitrarily assigns one of them rank 2 — which is NOT the 2nd highest value. DENSE_RANK is the correct choice for "find the Nth highest salary" type problems.</p>
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════════════ SECTION 11 -->
+<div id="revision">
+<div class="sec-title reveal">
+  <div class="sec-icon" style="background:linear-gradient(135deg,rgba(79,142,255,.2),rgba(34,211,160,.2))">⚡</div>
+  <div>
+    <div class="sec-label">Section 11 — Memory Bullets</div>
+    <h2>Quick Revision</h2>
+  </div>
+</div>
+<div class="rev-grid">
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(79,142,255,.15)">📐</div><p><strong>Window function</strong> = calc over group WITHOUT collapsing rows</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(168,85,247,.15)">🔮</div><p><strong>OVER()</strong> = turns any aggregate into a window function</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(34,211,160,.15)">🪟</div><p><strong>PARTITION BY</strong> = logical GROUP BY that keeps all rows</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(245,158,11,.15)">📊</div><p><strong>ORDER BY in OVER()</strong> = enables ranking + running totals</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(79,142,255,.15)">1️⃣</div><p><strong>ROW_NUMBER</strong> = always unique. Best for dedup & strict top-N</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(168,85,247,.15)">🥈</div><p><strong>RANK</strong> = tie → same rank, SKIPS next. Olympic-style</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(34,211,160,.15)">🎯</div><p><strong>DENSE_RANK</strong> = tie → same rank, NO gaps. Nth-highest queries</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(248,113,113,.15)">🚫</div><p><strong>No window in WHERE.</strong> Use CTE then filter outer query</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(245,158,11,.15)">💰</div><p><strong>SUM OVER(ORDER BY)</strong> = running total, not partition total</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(79,142,255,.15)">🔍</div><p><strong>Dedup pattern:</strong> ROW_NUMBER PARTITION BY unique cols → rn > 1 are dupes</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(34,211,160,.15)">📝</div><p><strong>Top-N template:</strong> CTE with ROW_NUMBER + WHERE rn ≤ N</p></div>
+  <div class="rev-item"><div class="rev-icon" style="background:rgba(168,85,247,.15)">⚡</div><p><strong>Execution order:</strong> Window functions run in SELECT phase, after WHERE</p></div>
+</div>
+
+<div class="big-quote" style="margin-top:2.5rem">"When you need both individual row detail AND group-level calculation in one query — that's your signal to use a window function."</div>
+</div>
+
+</div><!-- /container -->
+
+<div class="footer">
+  <p>Day 6 of 30 · SQL Mastery Series</p>
+  <p style="margin-top:.4rem"><strong>Next →</strong> Day 7: CTEs, Subqueries & Query Optimization</p>
+  <p style="margin-top:1rem;font-size:.75rem;color:var(--muted)">Think before you write · Understand, don't memorize · Practice daily</p>
+</div>
+
+</div><!-- /page -->
+
+<script>
+/* ══════════════════════════════════════════════════════
+   CANVAS PARTICLE BACKGROUND
+══════════════════════════════════════════════════════ */
+const canvas=document.getElementById('bgCanvas');
+const ctx=canvas.getContext('2d');
+let W,H,particles=[];
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+class Particle{
+  constructor(){this.reset()}
+  reset(){
+    this.x=Math.random()*W;this.y=Math.random()*H;
+    this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;
+    this.size=Math.random()*1.5+.5;
+    this.alpha=Math.random()*.5+.1;
+    this.color=Math.random()>.5?'79,142,255':'168,85,247';
+  }
+  update(){
+    this.x+=this.vx;this.y+=this.vy;
+    if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset();
+  }
+  draw(){
+    ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${this.color},${this.alpha})`;ctx.fill();
+  }
+}
+for(let i=0;i<80;i++)particles.push(new Particle());
+function animParticles(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{p.update();p.draw()});
+  // draw connections
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<120){
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle=`rgba(79,142,255,${.06*(1-dist/120)})`;
+        ctx.lineWidth=.5;ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+/* ══════════════════════════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════════════════════════ */
+const revealEls=document.querySelectorAll('.reveal,.card,.think-box,.scenario,.iq,.mistake,.rev-item,.p-card');
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}
+  });
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+revealEls.forEach(el=>{io.observe(el)});
+
+/* stagger delays for grids */
+document.querySelectorAll('.rev-item').forEach((el,i)=>el.style.transitionDelay=(i*.06)+'s');
+document.querySelectorAll('.p-card').forEach((el,i)=>el.style.transitionDelay=(i*.08)+'s');
+
+/* ══════════════════════════════════════════════════════
+   SECTION 1: APPROACH DEMO
+══════════════════════════════════════════════════════ */
+const windowData=[
+  {name:'Arjun',city:'Delhi',marks:90,rank:1,color:'blue'},
+  {name:'Priya',city:'Delhi',marks:85,rank:2,color:'blue'},
+  {name:'Neha',city:'Delhi',marks:78,rank:3,color:'blue'},
+  {name:'Riya',city:'Mumbai',marks:92,rank:1,color:'purple'},
+  {name:'Karan',city:'Mumbai',marks:73,rank:2,color:'purple'},
+  {name:'Ravi',city:'Mumbai',marks:68,rank:3,color:'purple'},
+];
+function showApproach(type,btn){
+  document.querySelectorAll('.demo-controls .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('approach-groupby').style.display=type==='groupby'?'block':'none';
+  document.getElementById('approach-window').style.display=type==='window'?'block':'none';
+  if(type==='window'){
+    const tbody=document.querySelector('#window-result-table tbody');
+    tbody.innerHTML='';
+    windowData.forEach((row,i)=>{
+      const tr=document.createElement('tr');
+      const c=row.color==='blue'?'var(--blue)':'var(--purple)';
+      tr.style.opacity='0';tr.style.transform='translateX(-10px)';
+      tr.innerHTML=`<td>${row.name}</td><td style="color:${c}">${row.city}</td><td>${row.marks}</td><td style="font-weight:700;color:${c}">${row.rank}</td>`;
+      tbody.appendChild(tr);
+      setTimeout(()=>{tr.style.transition='all .3s ease';tr.style.opacity='1';tr.style.transform='translateX(0)'},i*120);
+    });
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   SECTION 2: ANATOMY HOVER
+══════════════════════════════════════════════════════ */
+document.querySelectorAll('.anatomy-part').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    const tip=document.getElementById('anatomy-tip');
+    tip.textContent=el.dataset.tip;
+    tip.style.display='block';
+  });
+  el.addEventListener('mouseleave',()=>{
+    document.getElementById('anatomy-tip').style.display='none';
+  });
+});
+
+/* ══════════════════════════════════════════════════════
+   SECTION 3: PARTITION VISUALIZER
+══════════════════════════════════════════════════════ */
+function highlightPartition(city,btn){
+  document.querySelectorAll('.demo-controls .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const rows=document.querySelectorAll('#partition-table tbody tr');
+  const info=document.getElementById('partition-info');
+  rows.forEach(r=>{
+    r.classList.remove('highlight-row','highlight-purple');
+    r.querySelectorAll('td').forEach(td=>td.style.opacity='0.35');
+  });
+  if(city==='all'){
+    rows.forEach(r=>r.querySelectorAll('td').forEach(td=>td.style.opacity='1'));
+    info.innerHTML='💡 Select a city to see which rows are "inside the window" for that partition';
+    info.style.color='var(--muted2)';
+    return;
+  }
+  let total=0,count=0;
+  rows.forEach(r=>{
+    if(r.dataset.city===city){
+      r.querySelectorAll('td').forEach(td=>td.style.opacity='1');
+      if(city==='Delhi')r.classList.add('highlight-row');
+      else r.classList.add('highlight-purple');
+      const marks=parseInt(r.cells[3].textContent);
+      if(!isNaN(marks)){total+=marks;count++;}
+    }
+  });
+  const c=city==='Delhi'?'var(--blue)':'var(--purple)';
+  info.innerHTML=`<span style="color:${c}">🪟 ${city} window is active.</span> ${count} rows in this partition. SUM = <strong style="color:${c}">${total}</strong>. Every row in this city sees this same sum.`;
+}
+
+/* ══════════════════════════════════════════════════════
+   SECTION 4: RUNNING TOTAL ANIMATOR
+══════════════════════════════════════════════════════ */
+const salesData=[50000,30000,45000,60000,35000];
+const months=['January','February','March','April','May'];
+let rtAnim=null;
+function startRunningTotal(){
+  resetRunningTotal();
+  let running=0,i=0;
+  rtAnim=setInterval(()=>{
+    if(i>=salesData.length){clearInterval(rtAnim);return;}
+    running+=salesData[i];
+    const cell=document.getElementById('rt-'+i);
+    const status=document.getElementById('rs-'+i);
+    cell.textContent='₹'+running.toLocaleString('en-IN');
+    cell.style.color='var(--green)';cell.style.fontWeight='700';
+    const rows=document.querySelectorAll('#running-table tbody tr');
+    rows[i].classList.add('highlight-green');
+    status.textContent=i===0?'🟢 Start':'+ ₹'+salesData[i].toLocaleString('en-IN');
+    status.style.color='var(--green)';
+    const explain=document.getElementById('rt-explain');
+    explain.innerHTML=`<span style="color:var(--green)">✓ Row ${i+1} (${months[i]}): Running total = ${running.toLocaleString('en-IN')}. SUM includes all rows from Row 1 up to this row.</span>`;
+    i++;
+  },700);
+}
+function resetRunningTotal(){
+  if(rtAnim)clearInterval(rtAnim);
+  for(let i=0;i<5;i++){
+    const c=document.getElementById('rt-'+i);const s=document.getElementById('rs-'+i);
+    if(c){c.textContent='—';c.style.color='var(--muted)';c.style.fontWeight='400';}
+    if(s){s.textContent='waiting...';s.style.color='var(--muted)';}
+  }
+  document.querySelectorAll('#running-table tbody tr').forEach(r=>r.classList.remove('highlight-green'));
+  document.getElementById('rt-explain').textContent='Click "Run Animation" to watch the running total build up step-by-step';
+}
+
+/* ══════════════════════════════════════════════════════
+   SECTION 5: RANKING VISUALIZER
+══════════════════════════════════════════════════════ */
+const rankData=[
+  {name:'Anil',marks:95},{name:'Bob',marks:95},
+  {name:'Sona',marks:88},{name:'Priya',marks:82},{name:'Raj',marks:75}
+];
+const rankColors=['#4f8eff','#4f8eff','#a855f7','#22d3a0','#f59e0b'];
+function getRanks(type){
+  let rnMap={row_number:[],rank:[],dense_rank:[]};
+  let rn=1,rank=1,dr=1,prevScore=null;
+  rankData.forEach((d,i)=>{
+    rnMap.row_number.push(rn++);
+    if(prevScore!==null&&d.marks<prevScore){rank=i+1;dr++;}
+    rnMap.rank.push(rank);rnMap.dense_rank.push(dr);
+    prevScore=d.marks;
+  });
+  return rnMap[type];
+}
+const rankExplains={
+  row_number:'ROW_NUMBER(): Each row gets a UNIQUE number regardless of ties. Anil & Bob both have 95 marks but get different numbers (1 and 2). Use for deduplication.',
+  rank:'RANK(): Anil & Bob both get rank 1 (tie). Next rank is 3 — rank 2 is SKIPPED. Like Olympic medals: two golds, no silver.',
+  dense_rank:'DENSE_RANK(): Anil & Bob both get rank 1. Next rank is 2 — NO gap. Best for "find the 2nd highest value" type queries.'
+};
+function showRankType(type,btn){
+  document.querySelectorAll('.demo-controls .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const ranks=getRanks(type);
+  const maxH=160;const maxMark=95;
+  const chart=document.getElementById('rank-chart');
+  chart.innerHTML='';
+  rankData.forEach((d,i)=>{
+    const h=Math.round((d.marks/maxMark)*maxH);
+    const wrap=document.createElement('div');
+    wrap.className='rank-bar-wrap';
+    const bar=document.createElement('div');
+    bar.className='rank-bar';
+    bar.style.height='0px';
+    bar.style.background=`linear-gradient(180deg,${rankColors[i]},${rankColors[i]}88)`;
+    bar.style.minHeight='20px';
+    bar.textContent=ranks[i];
+    const name=document.createElement('div');name.className='rank-name';name.textContent=d.name;
+    const score=document.createElement('div');score.className='rank-score';score.textContent=d.marks;
+    wrap.appendChild(bar);wrap.appendChild(name);wrap.appendChild(score);
+    chart.appendChild(wrap);
+    setTimeout(()=>{bar.style.height=h+'px';},i*80);
+  });
+  document.getElementById('rank-explain').textContent=rankExplains[type];
+  const header=document.getElementById('rank-col-header');
+  const labels={row_number:'ROW_NUMBER()',rank:'RANK()',dense_rank:'DENSE_RANK()'};
+  header.textContent=labels[type];
+  const colors={row_number:'var(--blue)',rank:'var(--purple)',dense_rank:'var(--green)'};
+  header.style.color=colors[type];
+  const tbody=document.getElementById('rank-result-tbody');
+  tbody.innerHTML='';
+  rankData.forEach((d,i)=>{
+    const tr=document.createElement('tr');
+    tr.style.opacity='0';
+    tr.innerHTML=`<td>${d.name}</td><td style="font-family:'IBM Plex Mono',monospace">${d.marks}</td><td style="font-weight:700;color:${colors[type]};font-family:'IBM Plex Mono',monospace">${ranks[i]}</td>`;
+    tbody.appendChild(tr);
+    setTimeout(()=>{tr.style.transition='opacity .3s';tr.style.opacity='1';},i*80);
+  });
+}
+showRankType('row_number',document.querySelector('#functions .demo-controls .btn'));
+
+/* ══════════════════════════════════════════════════════
+   SECTION 5: AGG VISUALIZER
+══════════════════════════════════════════════════════ */
+const empData=[
+  {name:'Alice',dept:'Eng',salary:90000},
+  {name:'Bob',dept:'Eng',salary:75000},
+  {name:'Carol',dept:'Eng',salary:60000},
+  {name:'Dave',dept:'HR',salary:50000},
+  {name:'Eve',dept:'HR',salary:45000},
+];
+const aggCodes={
+  partition:`<span class="kw">SELECT</span> name, dept, salary,
+  <span class="fn">SUM</span>(salary) <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> dept
+    <span class="cm">-- No ORDER BY → whole partition total</span>
+  ) <span class="kw">AS</span> dept_total
+<span class="kw">FROM</span> <span class="tbl">employees</span>;`,
+  running:`<span class="kw">SELECT</span> name, dept, salary,
+  <span class="fn">SUM</span>(salary) <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> dept
+    <span class="kw">ORDER BY</span> salary <span class="kw">DESC</span>  <span class="cm">-- ORDER BY → running total</span>
+  ) <span class="kw">AS</span> running_total
+<span class="kw">FROM</span> <span class="tbl">employees</span>;`,
+  avg:`<span class="kw">SELECT</span> name, dept, salary,
+  <span class="fn">AVG</span>(salary) <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> dept
+  ) <span class="kw">AS</span> dept_avg,
+  salary - <span class="fn">AVG</span>(salary) <span class="kw">OVER</span>(
+    <span class="kw">PARTITION BY</span> dept
+  ) <span class="kw">AS</span> diff_from_avg
+<span class="kw">FROM</span> <span class="tbl">employees</span>;`
+};
+const aggExplains={
+  partition:'Without ORDER BY: every row in the same dept sees the SAME total. Engineering total = 225,000. HR total = 95,000.',
+  running:'With ORDER BY: each row sees the cumulative sum UP TO that row within its dept partition.',
+  avg:'Compare each employee salary against their department average. See who is above/below average.'
+};
+function showAggType(type,btn){
+  document.querySelectorAll('#functions .demo-controls:last-of-type .btn').forEach(b=>b.classList.remove('active'));
+  // actually find all demo controls
+  btn.classList.add('active');
+  document.getElementById('agg-code-text').innerHTML=aggCodes[type];
+  document.getElementById('agg-explain').textContent=aggExplains[type];
+  const header=document.getElementById('agg-col-header');
+  const labels={partition:'dept_total',running:'running_total',avg:'diff_from_avg'};
+  header.textContent=labels[type];
+  // compute dept totals/avgs
+  const deptSum={Eng:225000,HR:95000};
+  const deptAvg={Eng:75000,HR:47500};
+  const tbody=document.getElementById('agg-result-tbody');
+  tbody.innerHTML='';
+  let deptRunning={Eng:0,HR:0};
+  empData.forEach((d,i)=>{
+    const tr=document.createElement('tr');
+    let result,color='var(--amber)';
+    if(type==='partition'){result=deptSum[d.dept].toLocaleString('en-IN');color='var(--amber)';}
+    else if(type==='running'){deptRunning[d.dept]+=d.salary;result=deptRunning[d.dept].toLocaleString('en-IN');color='var(--blue)';}
+    else{
+      const diff=d.salary-deptAvg[d.dept];
+      result=(diff>=0?'+':'')+(diff/1000).toFixed(0)+'K';
+      color=diff>=0?'var(--green)':'var(--red)';
+    }
+    tr.style.opacity='0';
+    const dc=d.dept==='Eng'?'var(--blue)':'var(--purple)';
+    tr.innerHTML=`<td>${d.name}</td><td style="color:${dc}">${d.dept}</td><td style="font-family:'IBM Plex Mono',monospace">₹${(d.salary/1000).toFixed(0)}K</td><td style="font-weight:700;color:${color};font-family:'IBM Plex Mono',monospace">${result}</td>`;
+    tbody.appendChild(tr);
+    setTimeout(()=>{tr.style.transition='opacity .3s';tr.style.opacity='1';},i*100);
+  });
+}
+// init
+const aggBtns=document.querySelectorAll('#functions .demo-box:last-of-type .demo-controls .btn');
+showAggType('partition',aggBtns[0]);
+aggBtns.forEach((btn,i)=>{
+  const types=['partition','running','avg'];
+  btn.onclick=function(){showAggType(types[i],this)};
+});
+
+/* ══════════════════════════════════════════════════════
+   SECTION 6: COMPARISON TABLE
+══════════════════════════════════════════════════════ */
+const cmpData=[
+  {name:'Anil',salary:90000},{name:'Bob',salary:90000},
+  {name:'Carol',salary:75000},{name:'Dave',salary:60000}
+];
+(function buildCompare(){
+  const tbody=document.getElementById('compare-tbody');
+  const marks=cmpData.map(d=>d.salary);
+  let rn=1,rank=1,dr=1,prev=null;
+  cmpData.forEach((d,i)=>{
+    const rnVal=rn++;
+    let rankVal=rank,drVal=dr;
+    if(prev!==null&&d.salary<prev){rank=i+1;dr++;}
+    if(i===0){}
+    const tr=document.createElement('tr');
+    // recompute properly
+    tr.innerHTML=''; // placeholder
+    tbody.appendChild(tr);
+    prev=d.salary;
+  });
+  // redo cleanly
+  tbody.innerHTML='';
+  let rnC=1,rankC,drC;
+  cmpData.forEach((d,i)=>{
+    const rnVal=rnC++;
+    if(i===0){rankC=1;drC=1;}
+    else if(d.salary<cmpData[i-1].salary){rankC=rnVal;drC++;}
+    const tr=document.createElement('tr');
+    const isTied=i>0&&d.salary===cmpData[i-1].salary;
+    const tie=isTied?'🔗 tie':'';
+    tr.innerHTML=`
+      <td style="font-weight:600;color:var(--text)">${d.name}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">₹${(d.salary/1000).toFixed(0)}K ${tie}</td>
+      <td style="font-weight:700;color:var(--blue);font-family:'IBM Plex Mono',monospace">${rnVal}</td>
+      <td style="font-weight:700;color:var(--purple);font-family:'IBM Plex Mono',monospace">${rankC}${i===2?'<span style="font-size:.7rem;color:var(--muted)"> (skipped 2)</span>':''}</td>
+      <td style="font-weight:700;color:var(--green);font-family:'IBM Plex Mono',monospace">${drC}</td>`;
+    tbody.appendChild(tr);
+  });
+})();
+
+/* ══════════════════════════════════════════════════════
+   BUTTON ACTIVE STATE HELPERS
+══════════════════════════════════════════════════════ */
+// generic toggle for demo-controls inside each demo-box
+document.querySelectorAll('.demo-box').forEach(box=>{
+  box.querySelectorAll('.demo-controls .btn').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      this.closest('.demo-controls').querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+</script>
+</body>
+</html>

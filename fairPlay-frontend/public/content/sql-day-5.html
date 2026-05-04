@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 5: Mastering Subqueries — SQL Mastery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-from: #f0f4ff;
+  --bg-to: #faf5ff;
+  --primary: #5B9CFF;
+  --primary-light: #EEF4FF;
+  --primary-dark: #3B7DE8;
+  --secondary: #A78BFA;
+  --secondary-light: #F3EFFF;
+  --accent: #34D399;
+  --accent-light: #ECFDF5;
+  --highlight: #F59E0B;
+  --highlight-light: #FFFBEB;
+  --danger: #F87171;
+  --danger-light: #FEF2F2;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --border: rgba(148,163,184,0.2);
+  --card-bg: rgba(255,255,255,0.75);
+  --card-shadow: 0 4px 24px rgba(91,156,255,0.08), 0 1px 4px rgba(0,0,0,0.05);
+  --card-shadow-hover: 0 12px 40px rgba(91,156,255,0.16), 0 2px 8px rgba(0,0,0,0.06);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--bg-from) 0%, #f8f0ff 50%, var(--bg-to) 100%);
+  min-height: 100vh;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.nav-brand {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.1rem; color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-brand .day-badge {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff; font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.72rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+}
+.nav-links {
+  display: flex; gap: 4px; list-style: none;
+}
+.nav-links a {
+  text-decoration: none; color: var(--text-secondary);
+  font-size: 0.875rem; font-weight: 500;
+  padding: 6px 14px; border-radius: 8px;
+  transition: all 0.2s;
+}
+.nav-links a:hover {
+  background: var(--primary-light); color: var(--primary);
+}
+.nav-progress {
+  display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted);
+}
+.progress-bar {
+  width: 80px; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 62.5%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 4px;
+  animation: progressGlow 2s ease-in-out infinite alternate;
+}
+@keyframes progressGlow {
+  from { box-shadow: 0 0 4px var(--primary); }
+  to { box-shadow: 0 0 10px var(--secondary); }
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 80px 2rem 100px;
+  text-align: center;
+}
+.hero-bg-shapes {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.shape {
+  position: absolute; border-radius: 50%;
+  filter: blur(60px); opacity: 0.18;
+}
+.shape-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -80px; animation: float1 8s ease-in-out infinite; }
+.shape-2 { width: 300px; height: 300px; background: var(--secondary); top: -50px; right: -60px; animation: float2 10s ease-in-out infinite; }
+.shape-3 { width: 200px; height: 200px; background: var(--accent); bottom: -80px; left: 40%; animation: float1 12s ease-in-out infinite reverse; }
+@keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(20px,-20px); } }
+@keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-15px,25px); } }
+
+.hero-inner { position: relative; max-width: 800px; margin: 0 auto; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(91,156,255,0.1); border: 1px solid rgba(91,156,255,0.25);
+  color: var(--primary); font-size: 0.8rem; font-weight: 600;
+  padding: 6px 16px; border-radius: 20px;
+  margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.hero-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  line-height: 1.1; margin-bottom: 16px;
+  background: linear-gradient(135deg, #1e293b 0%, var(--primary) 50%, var(--secondary) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-subtitle {
+  font-size: 1.2rem; color: var(--text-secondary);
+  margin-bottom: 40px; font-weight: 400;
+}
+.hero-badges {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 12px;
+  font-size: 0.82rem; font-weight: 600;
+  backdrop-filter: blur(10px);
+  border: 1px solid transparent;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.badge:hover { transform: translateY(-2px); }
+.badge-blue { background: rgba(91,156,255,0.12); color: var(--primary-dark); border-color: rgba(91,156,255,0.3); }
+.badge-purple { background: rgba(167,139,250,0.12); color: #7C3AED; border-color: rgba(167,139,250,0.3); }
+.badge-green { background: rgba(52,211,153,0.12); color: #059669; border-color: rgba(52,211,153,0.3); }
+
+/* floating cards behind hero */
+.float-card {
+  position: absolute;
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 0.78rem; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(91,156,255,0.12);
+  animation: floatCard 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.float-card-1 { left: 2%; top: 20%; animation-delay: 0s; color: var(--primary); }
+.float-card-2 { right: 2%; top: 30%; animation-delay: 2s; color: var(--secondary); }
+.float-card-3 { left: 5%; bottom: 10%; animation-delay: 4s; color: #059669; }
+@keyframes floatCard {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ── MAIN LAYOUT ── */
+.main { max-width: 1000px; margin: 0 auto; padding: 0 2rem 100px; }
+
+/* ── SECTION TITLES ── */
+.section-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.2rem; margin-bottom: 8px; line-height: 1.2;
+}
+.section-desc { color: var(--text-secondary); margin-bottom: 36px; font-size: 1rem; }
+.section-gap { margin-top: 80px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow-hover);
+}
+.card-grid { display: grid; gap: 20px; }
+.card-grid-2 { grid-template-columns: 1fr 1fr; }
+.card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* ── THINKING BOX ── */
+.thinking-box {
+  background: linear-gradient(135deg, rgba(91,156,255,0.06) 0%, rgba(167,139,250,0.08) 100%);
+  border: 1.5px solid rgba(91,156,255,0.2);
+  border-radius: var(--radius);
+  padding: 28px;
+  position: relative; overflow: hidden;
+}
+.thinking-box::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+.thinking-box-header {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 0.9rem; color: var(--primary);
+  margin-bottom: 16px;
+}
+.thinking-steps { display: flex; flex-direction: column; gap: 12px; }
+.thinking-step {
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff; font-size: 0.75rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.step-text { font-size: 0.92rem; color: var(--text-secondary); padding-top: 4px; }
+.step-text strong { color: var(--text-primary); }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: #0F172A;
+  border-radius: var(--radius-sm);
+  padding: 20px 24px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.82rem; line-height: 1.8;
+  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+  transition: box-shadow 0.25s;
+}
+.code-block:hover {
+  box-shadow: 0 0 0 2px rgba(91,156,255,0.3);
+}
+.code-block .kw { color: #7DD3FC; }
+.code-block .fn { color: #A5F3FC; }
+.code-block .str { color: #86EFAC; }
+.code-block .cm { color: #64748B; font-style: italic; }
+.code-block .num { color: #FCA5A5; }
+.code-block .op { color: #C4B5FD; }
+.code-block .tbl { color: #FDE68A; }
+.code-block .col { color: #F0ABFC; }
+
+.code-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(91,156,255,0.1); color: var(--primary);
+  font-size: 0.72rem; font-weight: 600;
+  padding: 4px 12px; border-radius: 6px;
+  margin-bottom: 10px; font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ── ANALOGY CARD ── */
+.analogy-card {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border: 1.5px solid rgba(245,158,11,0.25);
+  border-radius: var(--radius); padding: 24px;
+  position: relative;
+}
+.analogy-icon { font-size: 2rem; margin-bottom: 10px; }
+.analogy-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #92400E; }
+.analogy-card p { font-size: 0.9rem; color: #78350F; }
+
+/* ── TYPE CARDS ── */
+.type-card {
+  border-radius: var(--radius-sm); padding: 22px;
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: default;
+}
+.type-card:hover { transform: translateY(-4px); }
+.type-card .type-icon { font-size: 1.6rem; margin-bottom: 10px; }
+.type-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+.type-card p { font-size: 0.82rem; opacity: 0.8; margin-bottom: 12px; }
+.type-card-blue { background: linear-gradient(135deg, #EEF4FF, #E0EAFF); border: 1px solid rgba(91,156,255,0.25); }
+.type-card-purple { background: linear-gradient(135deg, #F3EFFF, #EDE9FE); border: 1px solid rgba(167,139,250,0.3); }
+.type-card-green { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 1px solid rgba(52,211,153,0.3); }
+.type-card-orange { background: linear-gradient(135deg, #FFFBEB, #FEF3C7); border: 1px solid rgba(245,158,11,0.3); }
+
+/* ── FLOW VISUAL ── */
+.flow-visual {
+  display: flex; align-items: center; gap: 0;
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: var(--radius); padding: 28px;
+  box-shadow: var(--card-shadow);
+}
+.flow-box {
+  flex: 1; text-align: center; padding: 18px;
+  border-radius: var(--radius-sm);
+}
+.flow-box h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+.flow-box p { font-size: 0.78rem; color: var(--text-secondary); }
+.flow-inner { background: linear-gradient(135deg, #EEF4FF, #E0EAFF); border: 1.5px solid rgba(91,156,255,0.3); }
+.flow-output { background: linear-gradient(135deg, #F3EFFF, #EDE9FE); border: 1.5px solid rgba(167,139,250,0.3); }
+.flow-outer { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); border: 1.5px solid rgba(52,211,153,0.3); }
+.flow-arrow {
+  font-size: 1.3rem; color: var(--text-muted); padding: 0 8px; flex-shrink: 0;
+}
+
+/* ── FRAMEWORK SECTION ── */
+.framework-steps {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.fw-step {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: var(--radius-sm); padding: 22px;
+  box-shadow: var(--card-shadow);
+  display: flex; gap: 16px; align-items: flex-start;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.fw-step:hover { transform: translateY(-3px); box-shadow: var(--card-shadow-hover); }
+.fw-num {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1rem; color: #fff;
+}
+.fw-num-1 { background: linear-gradient(135deg, var(--primary), #3B7DE8); }
+.fw-num-2 { background: linear-gradient(135deg, var(--secondary), #7C3AED); }
+.fw-num-3 { background: linear-gradient(135deg, var(--accent), #059669); }
+.fw-num-4 { background: linear-gradient(135deg, var(--highlight), #D97706); }
+.fw-step h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+.fw-step p { font-size: 0.82rem; color: var(--text-secondary); }
+
+/* ── CORRELATED VISUAL ── */
+.correlated-loop {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.loop-row {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(91,156,255,0.05); border: 1px solid rgba(91,156,255,0.15);
+  border-radius: var(--radius-sm); padding: 12px 16px;
+  font-size: 0.85rem;
+  transition: background 0.2s, transform 0.2s;
+  animation: loopFade 3s ease-in-out infinite;
+}
+.loop-row:nth-child(2) { animation-delay: 1s; }
+.loop-row:nth-child(3) { animation-delay: 2s; }
+@keyframes loopFade { 0%,100% { opacity:0.6; } 50% { opacity:1; background: rgba(91,156,255,0.1); } }
+.loop-icon { font-size: 1.1rem; }
+.loop-arrow-right { color: var(--primary); font-weight: 700; }
+.loop-result { margin-left: auto; background: rgba(52,211,153,0.15); color: #059669; padding: 3px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+
+/* ── COMPARISON TABLE ── */
+.compare-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  font-size: 0.88rem;
+}
+.compare-table th {
+  background: linear-gradient(135deg, rgba(91,156,255,0.1), rgba(167,139,250,0.1));
+  padding: 14px 20px; text-align: left; font-weight: 700;
+  font-size: 0.82rem; color: var(--text-secondary); letter-spacing: 0.05em;
+}
+.compare-table th:first-child { border-radius: 10px 0 0 0; }
+.compare-table th:last-child { border-radius: 0 10px 0 0; }
+.compare-table td {
+  padding: 13px 20px; border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.compare-table tr:hover td { background: rgba(91,156,255,0.03); }
+.compare-tag {
+  display: inline-block; padding: 3px 10px; border-radius: 6px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.tag-blue { background: var(--primary-light); color: var(--primary-dark); }
+.tag-purple { background: var(--secondary-light); color: #6D28D9; }
+
+/* ── SCENARIO CARDS ── */
+.scenario-card {
+  background: var(--card-bg); backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: var(--radius); padding: 32px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 20px;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.scenario-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow-hover); }
+.scenario-header {
+  display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px;
+}
+.scenario-num {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem; color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+.scenario-header h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.scenario-header p { font-size: 0.85rem; color: var(--text-secondary); }
+.scenario-tables {
+  display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.mini-table {
+  background: rgba(15,23,42,0.04); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); overflow: hidden; font-size: 0.78rem; flex: 1; min-width: 160px;
+}
+.mini-table table { width: 100%; border-collapse: collapse; }
+.mini-table th { background: rgba(91,156,255,0.1); padding: 6px 12px; text-align: left; font-weight: 700; font-size: 0.72rem; color: var(--primary-dark); }
+.mini-table td { padding: 5px 12px; border-top: 1px solid var(--border); color: var(--text-secondary); }
+.mini-table-label { padding: 6px 12px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; background: rgba(0,0,0,0.02); }
+
+/* ── PRACTICE CARD ── */
+.practice-card {
+  background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+  border: 1px solid rgba(91,156,255,0.2);
+  border-radius: var(--radius-sm); padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.practice-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); }
+.practice-card .pnum {
+  font-size: 0.72rem; font-weight: 700; color: var(--primary);
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+}
+.practice-card p { font-size: 0.9rem; color: var(--text-primary); font-weight: 500; }
+
+/* ── INTERVIEW Q ── */
+.interview-q {
+  border-radius: var(--radius-sm); padding: 22px;
+  background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(91,156,255,0.06));
+  border: 1px solid rgba(167,139,250,0.2);
+  margin-bottom: 14px;
+  transition: transform 0.2s;
+}
+.interview-q:hover { transform: translateX(4px); }
+.iq-header { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.iq-q { font-weight: 700; font-size: 0.92rem; flex: 1; }
+.iq-toggle { font-size: 1.2rem; color: var(--secondary); transition: transform 0.3s; flex-shrink: 0; }
+.iq-answer {
+  margin-top: 14px; font-size: 0.88rem; color: var(--text-secondary);
+  display: none; padding-top: 14px; border-top: 1px solid rgba(167,139,250,0.15);
+  line-height: 1.7;
+}
+.iq-answer.open { display: block; }
+.iq-toggle.open { transform: rotate(45deg); }
+
+/* ── MISTAKE CARDS ── */
+.mistake-card {
+  background: linear-gradient(135deg, #FEF2F2, #FEE2E2);
+  border: 1.5px solid rgba(248,113,113,0.3);
+  border-radius: var(--radius-sm); padding: 22px;
+  transition: transform 0.2s;
+}
+.mistake-card:hover { transform: translateY(-2px); }
+.mistake-card h4 { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 700; color: #991B1B; margin-bottom: 8px; }
+.mistake-card p { font-size: 0.85rem; color: #7F1D1D; margin-bottom: 12px; }
+
+/* ── REVISION ── */
+.revision-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.revision-item:last-child { border-bottom: none; }
+.rev-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.rev-text { font-size: 0.9rem; }
+.rev-text strong { color: var(--text-primary); }
+.rev-text span { color: var(--text-secondary); }
+
+/* ── DIVIDERS / SEPARATORS ── */
+.section-divider {
+  height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 60px 0;
+}
+
+/* ── SCROLL ANIMATIONS ── */
+.fade-in {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+
+/* ── BACK TO TOP ── */
+.back-top {
+  position: fixed; bottom: 32px; right: 32px;
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; box-shadow: 0 4px 16px rgba(91,156,255,0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+.back-top:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(91,156,255,0.45); }
+
+/* ── PILL TAGS ── */
+.pill { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.pill-blue { background: var(--primary-light); color: var(--primary-dark); }
+.pill-green { background: var(--accent-light); color: #065F46; }
+.pill-purple { background: var(--secondary-light); color: #5B21B6; }
+.pill-orange { background: var(--highlight-light); color: #92400E; }
+
+/* ── GLOW HIGHLIGHT ── */
+.glow-text {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* ── TABLE STRUCTURE DISPLAY ── */
+.table-display { font-size: 0.82rem; }
+.table-display caption { text-align: left; font-weight: 700; font-size: 0.8rem; color: var(--primary); margin-bottom: 6px; }
+.table-display th { padding: 8px 14px; background: rgba(91,156,255,0.08); font-weight: 700; font-size: 0.78rem; }
+.table-display td { padding: 7px 14px; border-top: 1px solid var(--border); color: var(--text-secondary); }
+
+@media (max-width: 768px) {
+  .card-grid-2, .card-grid-3, .framework-steps { grid-template-columns: 1fr; }
+  .flow-visual { flex-direction: column; }
+  .float-card { display: none; }
+  .nav-links { display: none; }
+  .nav-progress { display: none; }
+}
+</style>
+
+<style>
+    :root {
+        /* Primary Backgrounds */
+        --bg: #080b14 !important;
+        --bg-from: #080b14 !important;
+        --bg-to: #080b14 !important;
+        --bg2: #0c101d !important;
+        --bg-secondary: #0c101d !important;
+        --bg3: #111626 !important;
+        
+        /* Surface & Cards */
+        --surface: rgba(255,255,255,0.04) !important;
+        --bg-card: rgba(255,255,255,0.04) !important;
+        --card-bg: rgba(255,255,255,0.04) !important;
+        --card: #0f1423 !important;
+        --card2: #161c2e !important;
+        --glass: rgba(255,255,255,0.06) !important;
+        
+        /* Borders */
+        --border: rgba(255,255,255,0.08) !important;
+        --glass-border: rgba(255,255,255,0.1) !important;
+        --border2: rgba(255,255,255,0.15) !important;
+        
+        /* Text */
+        --text: #e2e8f0 !important;
+        --text-primary: #e2e8f0 !important;
+        --text-secondary: #94a3b8 !important;
+        --text-muted: #64748b !important;
+        --muted: #64748b !important;
+        
+        /* Brand & Accents */
+        --primary: #5B9CFF !important;
+        --primary-dark: #3B7DE8 !important;
+        --accent: #22d3ee !important;
+        --cyan: #22d3ee !important;
+        --accent-cyan: #22d3ee !important;
+        --purple: #a855f7 !important;
+        --accent-purple: #a855f7 !important;
+        --emerald: #34d399 !important;
+        --accent-green: #34d399 !important;
+        --rose: #fb7185 !important;
+        --accent-pink: #fb7185 !important;
+        --amber: #fbbf24 !important;
+        --accent-yellow: #fbbf24 !important;
+    }
+
+    /* GLOBAL TEXT OVERRIDES */
+    h1, h2, h3, h4, h5, h6, p, li, span, div, section, article {
+        color: var(--text);
+    }
+    
+    .text-secondary, .subtitle, .muted, .section-desc, .hero-subtitle {
+        color: var(--text-secondary) !important;
+    }
+
+    /* FIX GRADIENT TITLES (Like in Day 5) */
+    .hero-title, [class*="title"] {
+        background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--purple) 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    /* FIX HARDCODED LIGHT CARDS & BADGES */
+    .type-card, .mistake-card, .flow-box, .badge, .float-card, .card, .thinking-box, .flow-visual, .practice-card, .interview-q, .flow-inner, .flow-output {
+        background: var(--bg2) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text) !important;
+    }
+
+    .type-card-blue, .badge-blue, .flow-inner, .practice-card { 
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)) !important; 
+        border: 1px solid rgba(59,130,246,0.3) !important;
+    }
+    .type-card-purple, .badge-purple, .flow-output, .interview-q { 
+        background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)) !important; 
+        border: 1px solid rgba(168,85,247,0.3) !important;
+    }
+    .type-card-green, .badge-green { 
+        background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)) !important; 
+        border: 1px solid rgba(52,211,153,0.3) !important;
+    }
+    .type-card-orange { 
+        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)) !important; 
+        border: 1px solid rgba(245,158,11,0.3) !important;
+    }
+    
+    .pnum, .iq-toggle {
+        color: var(--primary) !important;
+    }
+
+    .iq-q, .iq-answer, .practice-card p {
+        color: var(--text) !important;
+    }
+    
+    /* Ensure code blocks stay dark */
+    .code-block {
+        background: #000 !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    h4[style*="color"], .pnum[style*="color"] {
+        color: var(--primary) !important;
+    }
+
+    .nav { display: none !important; }
+    body { 
+        padding-top: 0 !important; 
+        background: var(--bg) !important;
+        color: var(--text) !important;
+    }
+    body::before { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="day-badge">DAY 5</span>
+      Subqueries
+    </div>
+    <ul class="nav-links">
+      <li><a href="#intuition">Intuition</a></li>
+      <li><a href="#types">Types</a></li>
+      <li><a href="#framework">Framework</a></li>
+      <li><a href="#scenarios">Scenarios</a></li>
+      <li><a href="#practice">Practice</a></li>
+      <li><a href="#interview">Interview</a></li>
+    </ul>
+    <div class="nav-progress">
+      <span>5/8</span>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <div class="float-card float-card-1">🔍 SELECT * FROM results</div>
+  <div class="float-card float-card-2">⚡ Correlated Subquery</div>
+  <div class="float-card float-card-3">✅ EXISTS vs IN</div>
+
+  <div class="hero-inner">
+    <div class="hero-eyebrow">✦ SQL Mastery Series</div>
+    <h1 class="hero-title">Day 5: Mastering<br>Subqueries</h1>
+    <p class="hero-subtitle">Think Like a SQL Interviewer — Go Beyond Syntax, Understand the Why</p>
+    <div class="hero-badges">
+      <span class="badge badge-blue">📈 Beginner → Advanced</span>
+      <span class="badge badge-green">✅ Interview Ready</span>
+      <span class="badge badge-purple">🧠 Query Thinking</span>
+    </div>
+  </div>
+</section>
+
+<main class="main">
+
+<!-- ─── INTUITION ─── -->
+<section id="intuition" class="section-gap fade-in">
+  <div class="section-label" style="color: var(--highlight);">💡 Section 01</div>
+  <h2 class="section-title">Intuition First</h2>
+  <p class="section-desc">Before writing a single line of SQL — understand the <em>why</em>.</p>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:20px;">
+    <div class="analogy-card">
+      <div class="analogy-icon">🎓</div>
+      <h4>The Real-World Problem</h4>
+      <p>"I want to find all students who scored above the class average. But I don't know the average yet — I need to calculate it first, then use it."</p>
+    </div>
+    <div class="card">
+      <h4 style="font-weight:700; margin-bottom:10px;">Why not just write two queries?</h4>
+      <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:12px;">You could run <code style="background:var(--primary-light);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.8rem;">SELECT AVG(score)</code> first, note the number, then write a second query. But that's:</p>
+      <ul style="font-size:0.88rem; color:var(--text-secondary); padding-left:18px; line-height:2;">
+        <li>Error-prone (manual copy)</li>
+        <li>Not reusable or dynamic</li>
+        <li>Breaks on changing data</li>
+      </ul>
+      <div style="margin-top:12px; padding:10px 14px; background:var(--accent-light); border-radius:8px; font-size:0.85rem; color:#065F46; font-weight:600;">
+        ✅ Subquery solves this elegantly in ONE query
+      </div>
+    </div>
+  </div>
+
+  <div class="thinking-box fade-in">
+    <div class="thinking-box-header">💡 Human Thinking → SQL Translation</div>
+    <div class="thinking-steps">
+      <div class="thinking-step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Think:</strong> "What's the class average?" → SQL: <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.8rem;">SELECT AVG(score) FROM students</code></div>
+      </div>
+      <div class="thinking-step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Think:</strong> "Who scored above that?" → SQL: <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.8rem;">WHERE score > [that average]</code></div>
+      </div>
+      <div class="thinking-step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Combine:</strong> Put the first query <em>inside</em> the second — that's your subquery!</div>
+      </div>
+      <div class="thinking-step">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>Result:</strong> One elegant query that is dynamic, reusable, and always up-to-date.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── WHAT IS A SUBQUERY ─── -->
+<section id="what" class="fade-in">
+  <div class="section-label" style="color:var(--primary);">📌 Section 02</div>
+  <h2 class="section-title">What Is a Subquery?</h2>
+  <p class="section-desc">A query nested inside another query. The inner query runs first, its result is used by the outer query.</p>
+
+  <div class="flow-visual" style="margin-bottom:24px;">
+    <div class="flow-box flow-inner">
+      <h4 style="color:var(--primary);">Inner Query</h4>
+      <p>Runs first<br>Calculates something</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box flow-output">
+      <h4 style="color:#6D28D9;">Output / Result</h4>
+      <p>A value, a list,<br>or a table</p>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box flow-outer">
+      <h4 style="color:#059669;">Outer Query</h4>
+      <p>Uses the output<br>to filter / compute</p>
+    </div>
+  </div>
+
+  <div class="code-label">📄 Basic Structure</div>
+  <div class="code-block">
+<span class="cm">-- Outer query uses the result of inner query</span>
+<span class="kw">SELECT</span> <span class="col">name</span>, <span class="col">score</span>
+<span class="kw">FROM</span> <span class="tbl">students</span>
+<span class="kw">WHERE</span> <span class="col">score</span> <span class="op">></span> (
+    <span class="cm">-- Inner query: calculates the class average</span>
+    <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">score</span>)
+    <span class="kw">FROM</span> <span class="tbl">students</span>
+);
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── TYPES ─── -->
+<section id="types" class="fade-in">
+  <div class="section-label" style="color:var(--secondary);">🔢 Section 03</div>
+  <h2 class="section-title">Types of Subqueries</h2>
+  <p class="section-desc">Four key types — each with a different shape of output and purpose.</p>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:24px;">
+    <div class="type-card type-card-blue">
+      <div class="type-icon">1️⃣</div>
+      <h4 style="color:var(--primary-dark);">Scalar Subquery</h4>
+      <p>Returns a <strong>single value</strong> (one row, one column). Used in WHERE, SELECT, HAVING.</p>
+      <div class="code-label">Example</div>
+      <div class="code-block" style="font-size:0.76rem;">
+<span class="kw">SELECT</span> <span class="col">name</span>, <span class="col">salary</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">></span> (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">FROM</span> <span class="tbl">employees</span>
+);
+      </div>
+    </div>
+
+    <div class="type-card type-card-purple">
+      <div class="type-icon">📋</div>
+      <h4 style="color:#6D28D9;">Column Subquery</h4>
+      <p>Returns a <strong>single column</strong> with multiple rows. Used with IN, ANY, ALL.</p>
+      <div class="code-label">Example</div>
+      <div class="code-block" style="font-size:0.76rem;">
+<span class="kw">SELECT</span> <span class="col">name</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">WHERE</span> <span class="col">dept_id</span> <span class="op">IN</span> (
+  <span class="kw">SELECT</span> <span class="col">id</span> <span class="kw">FROM</span> <span class="tbl">departments</span>
+  <span class="kw">WHERE</span> <span class="col">location</span> <span class="op">=</span> <span class="str">'NY'</span>
+);
+      </div>
+    </div>
+
+    <div class="type-card type-card-green">
+      <div class="type-icon">📊</div>
+      <h4 style="color:#065F46;">Multiple Row Subquery</h4>
+      <p>Returns <strong>multiple rows and columns</strong> — used as a derived table in FROM.</p>
+      <div class="code-label">Example</div>
+      <div class="code-block" style="font-size:0.76rem;">
+<span class="kw">SELECT</span> <span class="col">dept</span>, <span class="fn">AVG</span>(<span class="col">salary</span>)
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> <span class="col">dept</span>, <span class="col">salary</span>
+  <span class="kw">FROM</span> <span class="tbl">employees</span>
+  <span class="kw">WHERE</span> <span class="col">active</span> <span class="op">=</span> <span class="num">1</span>
+) <span class="kw">AS</span> <span class="tbl">active_emp</span>
+<span class="kw">GROUP BY</span> <span class="col">dept</span>;
+      </div>
+    </div>
+
+    <div class="type-card type-card-orange">
+      <div class="type-icon">🔍</div>
+      <h4 style="color:#92400E;">EXISTS Subquery</h4>
+      <p>Checks if subquery returns <strong>any rows</strong>. Returns TRUE/FALSE. Very efficient.</p>
+      <div class="code-label">Example</div>
+      <div class="code-block" style="font-size:0.76rem;">
+<span class="kw">SELECT</span> <span class="col">name</span>
+<span class="kw">FROM</span> <span class="tbl">customers</span> <span class="col">c</span>
+<span class="kw">WHERE EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tbl">orders</span> <span class="col">o</span>
+  <span class="kw">WHERE</span> <span class="col">o</span>.<span class="col">cust_id</span> <span class="op">=</span> <span class="col">c</span>.<span class="col">id</span>
+);
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── THINKING FRAMEWORK ─── -->
+<section id="framework" class="fade-in">
+  <div class="section-label" style="color:var(--accent);">🔥 Section 04</div>
+  <h2 class="section-title">The Interviewer's <span class="glow-text">Thinking Framework</span></h2>
+  <p class="section-desc">This 4-step mental model is how top candidates crack subquery problems in real interviews.</p>
+
+  <div class="framework-steps">
+    <div class="fw-step">
+      <div class="fw-num fw-num-1">1</div>
+      <div>
+        <h4>What is the final result?</h4>
+        <p>Define the output clearly. "I want employees + their salaries." This becomes your outer SELECT.</p>
+      </div>
+    </div>
+    <div class="fw-step">
+      <div class="fw-num fw-num-2">2</div>
+      <div>
+        <h4>What intermediate data do I need?</h4>
+        <p>Identify what you need to filter/compare against. "I need the average salary per department."</p>
+      </div>
+    </div>
+    <div class="fw-step">
+      <div class="fw-num fw-num-3">3</div>
+      <div>
+        <h4>Can a subquery generate it?</h4>
+        <p>Write the inner query in isolation. Test it mentally — does it return what you expect?</p>
+      </div>
+    </div>
+    <div class="fw-step">
+      <div class="fw-num fw-num-4">4</div>
+      <div>
+        <h4>How will the outer query use it?</h4>
+        <p>Connect the two: WHERE salary > (inner), IN (inner), EXISTS (inner), or FROM (inner) AS alias.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;" class="thinking-box">
+    <div class="thinking-box-header">🧠 Apply the Framework: "Employees earning more than dept average"</div>
+    <div class="thinking-steps">
+      <div class="thinking-step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Final result:</strong> Employee names and salaries → <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.8rem;">SELECT name, salary FROM employees</code></div>
+      </div>
+      <div class="thinking-step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Intermediate:</strong> Average salary for each employee's department → <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.8rem;">AVG(salary) WHERE dept_id = [same dept]</code></div>
+      </div>
+      <div class="thinking-step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Subquery:</strong> Yes — correlated subquery where inner query references outer row's dept_id</div>
+      </div>
+      <div class="thinking-step">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>Connect:</strong> <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.8rem;">WHERE e.salary > (SELECT AVG(salary) FROM employees WHERE dept_id = e.dept_id)</code></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── CORRELATED ─── -->
+<section id="correlated" class="fade-in">
+  <div class="section-label" style="color:var(--primary);">🔄 Section 05</div>
+  <h2 class="section-title">Correlated Subqueries</h2>
+  <p class="section-desc">The most powerful — and most misunderstood — type of subquery.</p>
+
+  <div class="card-grid card-grid-2" style="margin-bottom:24px;">
+    <div class="card">
+      <h4 style="font-weight:700; margin-bottom:4px;">Normal Subquery</h4>
+      <div style="color:var(--text-muted); font-size:0.82rem; margin-bottom:14px;">Runs ONCE. Returns result. Outer uses it.</div>
+      <div class="code-block" style="font-size:0.78rem;">
+<span class="cm">-- Inner runs once</span>
+<span class="kw">SELECT</span> <span class="col">name</span> <span class="kw">FROM</span> <span class="tbl">students</span>
+<span class="kw">WHERE</span> <span class="col">score</span> <span class="op">></span> (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">score</span>) <span class="kw">FROM</span> <span class="tbl">students</span>
+);
+      </div>
+      <div style="margin-top:12px; padding:10px 14px; background:var(--accent-light); border-radius:8px; font-size:0.82rem; color:#065F46;">✅ Independent of outer query rows</div>
+    </div>
+    <div class="card">
+      <h4 style="font-weight:700; margin-bottom:4px;">Correlated Subquery</h4>
+      <div style="color:var(--text-muted); font-size:0.82rem; margin-bottom:14px;">Runs FOR EACH ROW. References outer row's data.</div>
+      <div class="code-block" style="font-size:0.78rem;">
+<span class="cm">-- Inner runs for EACH employee</span>
+<span class="kw">SELECT</span> <span class="col">name</span> <span class="kw">FROM</span> <span class="tbl">employees</span> <span class="col">e</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">></span> (
+  <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>)
+  <span class="kw">FROM</span> <span class="tbl">employees</span>
+  <span class="kw">WHERE</span> <span class="col">dept_id</span> <span class="op">=</span> <span class="col">e</span>.<span class="col">dept_id</span>
+  <span class="cm">-- ↑ references outer row!</span>
+);
+      </div>
+      <div style="margin-top:12px; padding:10px 14px; background:var(--highlight-light); border-radius:8px; font-size:0.82rem; color:#92400E;">⚡ Depends on each outer row — runs N times</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h4 style="font-weight:700; margin-bottom:16px;">🔄 How Correlated Subquery Executes</h4>
+    <div class="correlated-loop">
+      <div class="loop-row">
+        <div class="loop-icon">👤</div>
+        <span>Row 1: Alice (Dept A) → Run inner: <code style="font-family:monospace;font-size:0.8rem;">AVG(salary) WHERE dept_id = A</code></span>
+        <div class="loop-arrow-right">→</div>
+        <span>Result: 55,000</span>
+        <div class="loop-result">Alice 72k > 55k ✅</div>
+      </div>
+      <div class="loop-row">
+        <div class="loop-icon">👤</div>
+        <span>Row 2: Bob (Dept B) → Run inner: <code style="font-family:monospace;font-size:0.8rem;">AVG(salary) WHERE dept_id = B</code></span>
+        <div class="loop-arrow-right">→</div>
+        <span>Result: 80,000</span>
+        <div class="loop-result" style="background:rgba(248,113,113,0.15); color:#991B1B;">Bob 60k &lt; 80k ❌</div>
+      </div>
+      <div class="loop-row">
+        <div class="loop-icon">👤</div>
+        <span>Row 3: Carol (Dept A) → Run inner: <code style="font-family:monospace;font-size:0.8rem;">AVG(salary) WHERE dept_id = A</code></span>
+        <div class="loop-arrow-right">→</div>
+        <span>Result: 55,000</span>
+        <div class="loop-result">Carol 90k > 55k ✅</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── SUBQUERY VS JOIN ─── -->
+<section id="vs-join" class="fade-in">
+  <div class="section-label" style="color:var(--secondary);">⚖️ Section 06</div>
+  <h2 class="section-title">Subquery vs JOIN</h2>
+  <p class="section-desc">Know when to use each — this is a classic interview question.</p>
+
+  <div class="card" style="overflow:hidden; padding:0;">
+    <table class="compare-table" style="width:100%;">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>🔹 Subquery</th>
+          <th>🟣 JOIN</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Readability</strong></td>
+          <td>Often clearer for nested logic</td>
+          <td>Clearer for combining tables</td>
+        </tr>
+        <tr>
+          <td><strong>Use when...</strong></td>
+          <td>You need an intermediate result to compare against</td>
+          <td>You need columns from both tables in output</td>
+        </tr>
+        <tr>
+          <td><strong>Performance</strong></td>
+          <td>Can be slower (correlated = N runs)</td>
+          <td>Usually faster with proper indexes</td>
+        </tr>
+        <tr>
+          <td><strong>EXISTS check</strong></td>
+          <td><span class="compare-tag tag-blue">Prefer Subquery</span></td>
+          <td><span class="compare-tag tag-purple">Use LEFT JOIN + IS NULL</span></td>
+        </tr>
+        <tr>
+          <td><strong>Aggregation</strong></td>
+          <td><span class="compare-tag tag-blue">Prefer Subquery</span></td>
+          <td>Needs GROUP BY, more complex</td>
+        </tr>
+        <tr>
+          <td><strong>Columns needed</strong></td>
+          <td>Only from one table</td>
+          <td><span class="compare-tag tag-purple">Prefer JOIN</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── SCENARIOS ─── -->
+<section id="scenarios" class="fade-in">
+  <div class="section-label" style="color:var(--highlight);">🔥 Section 07</div>
+  <h2 class="section-title">Scenario-Based Deep Dives</h2>
+  <p class="section-desc">Six interview-grade problems. Full step-by-step thinking for each.</p>
+
+  <!-- S1 -->
+  <div class="scenario-card fade-in">
+    <div class="scenario-header">
+      <div class="scenario-num">1</div>
+      <div>
+        <h3>Employees Earning More Than Department Average</h3>
+        <p>Classic correlated subquery — compute per-department avg, compare each employee against their own dept</p>
+      </div>
+      <span class="pill pill-purple" style="flex-shrink:0;">Correlated</span>
+    </div>
+    <div class="scenario-tables">
+      <div class="mini-table">
+        <div class="mini-table-label">employees</div>
+        <table><thead><tr><th>emp_id</th><th>name</th><th>dept_id</th><th>salary</th></tr></thead>
+        <tbody><tr><td>1</td><td>Alice</td><td>10</td><td>90000</td></tr><tr><td>2</td><td>Bob</td><td>10</td><td>50000</td></tr><tr><td>3</td><td>Carol</td><td>20</td><td>75000</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="thinking-box" style="margin-bottom:16px;">
+      <div class="thinking-box-header">🧠 Step-by-Step Thinking</div>
+      <div class="thinking-steps">
+        <div class="thinking-step"><div class="step-num">1</div><div class="step-text"><strong>Goal:</strong> Find employees where salary > their dept's average salary</div></div>
+        <div class="thinking-step"><div class="step-num">2</div><div class="step-text"><strong>Inner query:</strong> For each employee's dept, compute <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">AVG(salary) WHERE dept_id = e.dept_id</code></div></div>
+        <div class="thinking-step"><div class="step-num">3</div><div class="step-text"><strong>Type:</strong> Correlated — inner references outer row's dept_id. Runs for each employee.</div></div>
+        <div class="thinking-step"><div class="step-num">4</div><div class="step-text"><strong>Connect:</strong> WHERE e.salary > (inner subquery result)</div></div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="kw">SELECT</span> <span class="col">e</span>.<span class="col">name</span>, <span class="col">e</span>.<span class="col">salary</span>, <span class="col">e</span>.<span class="col">dept_id</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span> <span class="col">e</span>
+<span class="kw">WHERE</span> <span class="col">e</span>.<span class="col">salary</span> <span class="op">></span> (
+    <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>)
+    <span class="kw">FROM</span> <span class="tbl">employees</span>
+    <span class="kw">WHERE</span> <span class="col">dept_id</span> <span class="op">=</span> <span class="col">e</span>.<span class="col">dept_id</span>  <span class="cm">-- correlated reference</span>
+);
+    </div>
+  </div>
+
+  <!-- S2 -->
+  <div class="scenario-card fade-in">
+    <div class="scenario-header">
+      <div class="scenario-num">2</div>
+      <div>
+        <h3>Students Above City Average Score</h3>
+        <p>Group-aware comparison — students must beat the average of their own city's students</p>
+      </div>
+      <span class="pill pill-blue" style="flex-shrink:0;">Correlated</span>
+    </div>
+    <div class="scenario-tables">
+      <div class="mini-table">
+        <div class="mini-table-label">students</div>
+        <table><thead><tr><th>id</th><th>name</th><th>city</th><th>score</th></tr></thead>
+        <tbody><tr><td>1</td><td>Aarav</td><td>Mumbai</td><td>85</td></tr><tr><td>2</td><td>Priya</td><td>Mumbai</td><td>72</td></tr><tr><td>3</td><td>Kiran</td><td>Delhi</td><td>90</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="thinking-box" style="margin-bottom:16px;">
+      <div class="thinking-box-header">🧠 Step-by-Step Thinking</div>
+      <div class="thinking-steps">
+        <div class="thinking-step"><div class="step-num">1</div><div class="step-text"><strong>Goal:</strong> Students where score > average of all students in THEIR city</div></div>
+        <div class="thinking-step"><div class="step-num">2</div><div class="step-text"><strong>Key insight:</strong> Each student's city must match inner query's city — correlated on city column</div></div>
+        <div class="thinking-step"><div class="step-num">3</div><div class="step-text"><strong>Inner query:</strong> <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">SELECT AVG(score) FROM students WHERE city = s.city</code></div></div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="kw">SELECT</span> <span class="col">s</span>.<span class="col">name</span>, <span class="col">s</span>.<span class="col">city</span>, <span class="col">s</span>.<span class="col">score</span>
+<span class="kw">FROM</span> <span class="tbl">students</span> <span class="col">s</span>
+<span class="kw">WHERE</span> <span class="col">s</span>.<span class="col">score</span> <span class="op">></span> (
+    <span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">score</span>)
+    <span class="kw">FROM</span> <span class="tbl">students</span>
+    <span class="kw">WHERE</span> <span class="col">city</span> <span class="op">=</span> <span class="col">s</span>.<span class="col">city</span>
+);
+    </div>
+  </div>
+
+  <!-- S3 -->
+  <div class="scenario-card fade-in">
+    <div class="scenario-header">
+      <div class="scenario-num">3</div>
+      <div>
+        <h3>Customers With No Orders</h3>
+        <p>Classic NOT EXISTS / NOT IN pattern — find records that have no matching child records</p>
+      </div>
+      <span class="pill pill-green" style="flex-shrink:0;">NOT EXISTS</span>
+    </div>
+    <div class="scenario-tables">
+      <div class="mini-table">
+        <div class="mini-table-label">customers</div>
+        <table><thead><tr><th>id</th><th>name</th></tr></thead>
+        <tbody><tr><td>1</td><td>Alice</td></tr><tr><td>2</td><td>Bob</td></tr><tr><td>3</td><td>Carol</td></tr></tbody></table>
+      </div>
+      <div class="mini-table">
+        <div class="mini-table-label">orders</div>
+        <table><thead><tr><th>order_id</th><th>cust_id</th></tr></thead>
+        <tbody><tr><td>101</td><td>1</td></tr><tr><td>102</td><td>1</td></tr><tr><td>103</td><td>3</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="thinking-box" style="margin-bottom:16px;">
+      <div class="thinking-box-header">🧠 Step-by-Step Thinking</div>
+      <div class="thinking-steps">
+        <div class="thinking-step"><div class="step-num">1</div><div class="step-text"><strong>Goal:</strong> Customers who have placed zero orders — the "absence" pattern</div></div>
+        <div class="thinking-step"><div class="step-num">2</div><div class="step-text"><strong>NOT IN approach:</strong> Get all cust_ids from orders, exclude those from customers list</div></div>
+        <div class="thinking-step"><div class="step-num">3</div><div class="step-text"><strong>NOT EXISTS approach:</strong> For each customer, check if ANY order exists → if not, include them. Safer with NULLs!</div></div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="cm">-- Approach 1: NOT IN (careful with NULLs!)</span>
+<span class="kw">SELECT</span> <span class="col">name</span> <span class="kw">FROM</span> <span class="tbl">customers</span>
+<span class="kw">WHERE</span> <span class="col">id</span> <span class="op">NOT IN</span> (
+    <span class="kw">SELECT</span> <span class="col">cust_id</span> <span class="kw">FROM</span> <span class="tbl">orders</span>
+);
+
+<span class="cm">-- Approach 2: NOT EXISTS (preferred — NULL-safe)</span>
+<span class="kw">SELECT</span> <span class="col">c</span>.<span class="col">name</span> <span class="kw">FROM</span> <span class="tbl">customers</span> <span class="col">c</span>
+<span class="kw">WHERE NOT EXISTS</span> (
+    <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tbl">orders</span> <span class="col">o</span>
+    <span class="kw">WHERE</span> <span class="col">o</span>.<span class="col">cust_id</span> <span class="op">=</span> <span class="col">c</span>.<span class="col">id</span>
+);
+    </div>
+  </div>
+
+  <!-- S4 -->
+  <div class="scenario-card fade-in">
+    <div class="scenario-header">
+      <div class="scenario-num">4</div>
+      <div>
+        <h3>Products Never Sold</h3>
+        <p>Find products with zero entries in the sales/order_items table</p>
+      </div>
+      <span class="pill pill-orange" style="flex-shrink:0;">NOT IN</span>
+    </div>
+    <div class="thinking-box" style="margin-bottom:16px;">
+      <div class="thinking-box-header">🧠 Step-by-Step Thinking</div>
+      <div class="thinking-steps">
+        <div class="thinking-step"><div class="step-num">1</div><div class="step-text"><strong>Goal:</strong> Products whose product_id NEVER appears in order_items table</div></div>
+        <div class="thinking-step"><div class="step-num">2</div><div class="step-text"><strong>Inner query:</strong> Get distinct product_ids that HAVE been sold → <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">SELECT DISTINCT product_id FROM order_items</code></div></div>
+        <div class="thinking-step"><div class="step-num">3</div><div class="step-text"><strong>Outer query:</strong> Select all products WHERE their id is NOT IN that list</div></div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="kw">SELECT</span> <span class="col">product_id</span>, <span class="col">product_name</span>
+<span class="kw">FROM</span> <span class="tbl">products</span>
+<span class="kw">WHERE</span> <span class="col">product_id</span> <span class="op">NOT IN</span> (
+    <span class="kw">SELECT DISTINCT</span> <span class="col">product_id</span>
+    <span class="kw">FROM</span> <span class="tbl">order_items</span>
+    <span class="kw">WHERE</span> <span class="col">product_id</span> <span class="op">IS NOT NULL</span>  <span class="cm">-- safety for NULLs</span>
+);
+    </div>
+  </div>
+
+  <!-- S5 -->
+  <div class="scenario-card fade-in">
+    <div class="scenario-header">
+      <div class="scenario-num">5</div>
+      <div>
+        <h3>Second Highest Salary</h3>
+        <p>Multiple approaches — subquery within subquery, and using OFFSET</p>
+      </div>
+      <span class="pill pill-purple" style="flex-shrink:0;">Nested Scalar</span>
+    </div>
+    <div class="thinking-box" style="margin-bottom:16px;">
+      <div class="thinking-box-header">🧠 Step-by-Step Thinking</div>
+      <div class="thinking-steps">
+        <div class="thinking-step"><div class="step-num">1</div><div class="step-text"><strong>Goal:</strong> Find the second highest distinct salary value</div></div>
+        <div class="thinking-step"><div class="step-num">2</div><div class="step-text"><strong>Method A:</strong> Find MAX salary where salary is less than the overall MAX salary (nested scalar)</div></div>
+        <div class="thinking-step"><div class="step-num">3</div><div class="step-text"><strong>Method B:</strong> Use DENSE_RANK() or LIMIT + OFFSET for cleaner alternative</div></div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="cm">-- Method A: Nested Subquery (classic interview answer)</span>
+<span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="col">salary</span>) <span class="kw">AS</span> <span class="col">second_highest</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">&lt;</span> (
+    <span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="col">salary</span>) <span class="kw">FROM</span> <span class="tbl">employees</span>
+);
+
+<span class="cm">-- Method B: OFFSET approach</span>
+<span class="kw">SELECT DISTINCT</span> <span class="col">salary</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">ORDER BY</span> <span class="col">salary</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">1</span> <span class="kw">OFFSET</span> <span class="num">1</span>;
+    </div>
+  </div>
+
+  <!-- S6 -->
+  <div class="scenario-card fade-in">
+    <div class="scenario-header">
+      <div class="scenario-num">6</div>
+      <div>
+        <h3>Employees Earning More Than Their Manager</h3>
+        <p>Self-referential correlated subquery — same table, comparing employee to their own manager</p>
+      </div>
+      <span class="pill pill-blue" style="flex-shrink:0;">Self-Join / Correlated</span>
+    </div>
+    <div class="scenario-tables">
+      <div class="mini-table">
+        <div class="mini-table-label">employees</div>
+        <table><thead><tr><th>emp_id</th><th>name</th><th>salary</th><th>manager_id</th></tr></thead>
+        <tbody><tr><td>1</td><td>CEO</td><td>200k</td><td>NULL</td></tr><tr><td>2</td><td>Alice</td><td>90k</td><td>1</td></tr><tr><td>3</td><td>Bob</td><td>250k</td><td>2</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="thinking-box" style="margin-bottom:16px;">
+      <div class="thinking-box-header">🧠 Step-by-Step Thinking</div>
+      <div class="thinking-steps">
+        <div class="thinking-step"><div class="step-num">1</div><div class="step-text"><strong>Key observation:</strong> manager_id in the employee row is actually another emp_id in the same table</div></div>
+        <div class="thinking-step"><div class="step-num">2</div><div class="step-text"><strong>Inner query:</strong> For employee e, find salary of the person WHERE emp_id = e.manager_id</div></div>
+        <div class="thinking-step"><div class="step-num">3</div><div class="step-text"><strong>Outer query:</strong> Compare each employee's salary against that manager's salary</div></div>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="kw">SELECT</span> <span class="col">e</span>.<span class="col">name</span>, <span class="col">e</span>.<span class="col">salary</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span> <span class="col">e</span>
+<span class="kw">WHERE</span> <span class="col">e</span>.<span class="col">salary</span> <span class="op">></span> (
+    <span class="kw">SELECT</span> <span class="col">salary</span>
+    <span class="kw">FROM</span> <span class="tbl">employees</span>
+    <span class="kw">WHERE</span> <span class="col">emp_id</span> <span class="op">=</span> <span class="col">e</span>.<span class="col">manager_id</span>  <span class="cm">-- self-reference!</span>
+)
+<span class="kw">AND</span> <span class="col">e</span>.<span class="col">manager_id</span> <span class="op">IS NOT NULL</span>;  <span class="cm">-- exclude CEO (no manager)</span>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── PRACTICE ─── -->
+<section id="practice" class="fade-in">
+  <div class="section-label" style="color:var(--accent);">✍️ Section 08</div>
+  <h2 class="section-title">Practice Questions</h2>
+  <p class="section-desc">Apply the framework. Try these before looking up the solution.</p>
+
+  <div class="card-grid card-grid-2">
+    <div class="practice-card">
+      <div class="pnum">Problem 01</div>
+      <p>Find all departments where the average salary is greater than the overall company average salary.</p>
+    </div>
+    <div class="practice-card">
+      <div class="pnum">Problem 02</div>
+      <p>Find employees who have the same job title as employee with emp_id = 5.</p>
+    </div>
+    <div class="practice-card">
+      <div class="pnum">Problem 03</div>
+      <p>List all customers who have placed more than 3 orders. (Use subquery in HAVING or WHERE)</p>
+    </div>
+    <div class="practice-card">
+      <div class="pnum">Problem 04</div>
+      <p>Find the top 3 most expensive products that have been ordered at least once.</p>
+    </div>
+    <div class="practice-card">
+      <div class="pnum">Problem 05</div>
+      <p>Show all students whose score is above average in their respective class (grouped by class_id).</p>
+    </div>
+    <div class="practice-card">
+      <div class="pnum">Problem 06</div>
+      <p>Find managers who have at least one direct report earning more than ₹1,00,000.</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── INTERVIEW Q ─── -->
+<section id="interview" class="fade-in">
+  <div class="section-label" style="color:var(--secondary);">🎤 Section 09</div>
+  <h2 class="section-title">Interview Questions</h2>
+  <p class="section-desc">Conceptual questions interviewers love. Click to reveal answers.</p>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <div class="iq-q">Q1. What is the difference between EXISTS and IN? When would you prefer one over the other?</div>
+      <div class="iq-toggle">+</div>
+    </div>
+    <div class="iq-answer">
+      <strong>IN</strong> evaluates the outer query column against a list of values returned by the subquery. It materializes the full result set first. <strong>EXISTS</strong> checks for the existence of any row matching the condition — it short-circuits as soon as one match is found.<br><br>
+      <strong>Prefer EXISTS when:</strong> The subquery might return many rows, when you only care about existence (not values), and when the subquery columns might contain NULLs (IN with NULLs can produce unexpected results).<br><br>
+      <strong>Prefer IN when:</strong> Working with a small, fixed list of values or a small subquery result set.
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <div class="iq-q">Q2. What is a correlated subquery and how does it differ from a non-correlated one?</div>
+      <div class="iq-toggle">+</div>
+    </div>
+    <div class="iq-answer">
+      A <strong>non-correlated subquery</strong> is independent — it executes once, returns a result, and the outer query uses that result. It can be extracted and run on its own.<br><br>
+      A <strong>correlated subquery</strong> references a column from the outer query (using an alias). It re-executes for every row of the outer query, making it context-dependent and typically slower. Use correlated subqueries when the inner query result depends on each outer row (e.g., per-department averages).
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <div class="iq-q">Q3. Why can NOT IN produce unexpected results when the subquery contains NULLs?</div>
+      <div class="iq-toggle">+</div>
+    </div>
+    <div class="iq-answer">
+      In SQL, any comparison with NULL using = or != returns UNKNOWN (not TRUE or FALSE). When NOT IN is used and the subquery returns even one NULL value, the entire NOT IN expression evaluates to UNKNOWN for every row — meaning no rows are returned.<br><br>
+      <strong>Fix:</strong> Use <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">WHERE col_id NOT IN (SELECT col_id FROM table WHERE col_id IS NOT NULL)</code>, or switch to NOT EXISTS which handles NULLs correctly.
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <div class="iq-q">Q4. What are the performance implications of using a correlated subquery vs a JOIN?</div>
+      <div class="iq-toggle">+</div>
+    </div>
+    <div class="iq-answer">
+      A correlated subquery runs once per row in the outer query — O(N) inner executions. For a table with 1 million rows, that's 1 million inner query executions. A JOIN with proper indexing typically runs in O(N log N) or better.<br><br>
+      However, modern query optimizers (MySQL 8+, PostgreSQL) can rewrite correlated subqueries as joins automatically. Always check EXPLAIN/EXPLAIN ANALYZE to verify. For large datasets, prefer CTEs or JOINs for better optimizer hints.
+    </div>
+  </div>
+
+  <div class="interview-q">
+    <div class="iq-header" onclick="toggleIQ(this)">
+      <div class="iq-q">Q5. Can a subquery appear in the SELECT clause? What does it return?</div>
+      <div class="iq-toggle">+</div>
+    </div>
+    <div class="iq-answer">
+      Yes — a scalar subquery in the SELECT clause returns a single value (one row, one column) for each row of the outer query. It effectively computes a derived column.<br><br>
+      Example: <code style="background:rgba(91,156,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;">SELECT name, (SELECT COUNT(*) FROM orders WHERE cust_id = c.id) AS order_count FROM customers c</code><br><br>
+      This is technically a correlated subquery in the SELECT clause. If it returns more than one row, SQL throws an error. Use aggregation (COUNT, MAX, etc.) to ensure scalar output.
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── COMMON MISTAKES ─── -->
+<section id="mistakes" class="fade-in">
+  <div class="section-label" style="color:var(--danger);">⚠️ Section 10</div>
+  <h2 class="section-title">Common Mistakes</h2>
+  <p class="section-desc">Learn from these traps before your next interview.</p>
+
+  <div class="card-grid card-grid-2" style="gap:16px;">
+    <div class="mistake-card">
+      <h4>⛔ Using IN with Nullable Columns</h4>
+      <p>If the subquery result contains NULLs, NOT IN returns zero rows — silently and unexpectedly.</p>
+      <div class="code-block" style="font-size:0.76rem; background:#1a0000;">
+<span style="color:#F87171;">-- DANGEROUS: NULLs break NOT IN</span>
+<span class="kw">WHERE</span> <span class="col">id</span> <span class="op">NOT IN</span> (<span class="kw">SELECT</span> <span class="col">mgr_id</span> <span class="kw">FROM</span> <span class="tbl">emp</span>)
+<span style="color:#86EFAC;">-- SAFE: filter NULLs first</span>
+<span class="kw">WHERE</span> <span class="col">id</span> <span class="op">NOT IN</span> (<span class="kw">SELECT</span> <span class="col">mgr_id</span> <span class="kw">FROM</span> <span class="tbl">emp</span>
+                  <span class="kw">WHERE</span> <span class="col">mgr_id</span> <span class="op">IS NOT NULL</span>)
+      </div>
+    </div>
+    <div class="mistake-card">
+      <h4>⛔ Scalar Subquery Returning Multiple Rows</h4>
+      <p>If your WHERE clause expects one value but the subquery returns multiple rows, SQL throws a runtime error.</p>
+      <div class="code-block" style="font-size:0.76rem; background:#1a0000;">
+<span style="color:#F87171;">-- ERROR: returns multiple rows</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">=</span> (<span class="kw">SELECT</span> <span class="col">salary</span> <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> <span class="col">dept</span>=<span class="str">'IT'</span>)
+<span style="color:#86EFAC;">-- FIX: use IN or add aggregation</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">IN</span> (<span class="kw">SELECT</span> <span class="col">salary</span> <span class="kw">FROM</span> <span class="tbl">emp</span> <span class="kw">WHERE</span> <span class="col">dept</span>=<span class="str">'IT'</span>)
+      </div>
+    </div>
+    <div class="mistake-card">
+      <h4>⛔ Forgetting Table Alias in Correlated Subquery</h4>
+      <p>Without an alias, the inner query can reference the wrong table — same table name confuses the engine.</p>
+      <div class="code-block" style="font-size:0.76rem; background:#1a0000;">
+<span style="color:#F87171;">-- WRONG: no alias, ambiguous reference</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">></span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">FROM</span> <span class="tbl">employees</span>
+                  <span class="kw">WHERE</span> <span class="col">dept_id</span> <span class="op">=</span> <span class="col">dept_id</span>)
+<span style="color:#86EFAC;">-- RIGHT: alias 'e' makes reference clear</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span> <span class="col">e</span>
+<span class="kw">WHERE</span> <span class="col">salary</span> <span class="op">></span> (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="col">salary</span>) <span class="kw">FROM</span> <span class="tbl">employees</span>
+                  <span class="kw">WHERE</span> <span class="col">dept_id</span> <span class="op">=</span> <span class="col">e</span>.<span class="col">dept_id</span>)
+      </div>
+    </div>
+    <div class="mistake-card">
+      <h4>⛔ Using Subquery When JOIN Is Better</h4>
+      <p>If you need columns from both tables in SELECT, a subquery in WHERE won't work — you need a JOIN.</p>
+      <div class="code-block" style="font-size:0.76rem; background:#1a0000;">
+<span style="color:#F87171;">-- WRONG: can't SELECT dept name from subquery</span>
+<span class="kw">SELECT</span> <span class="col">name</span>, <span class="col">dept_name</span>  <span class="cm">-- dept_name not in scope!</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span>
+<span class="kw">WHERE</span> <span class="col">dept_id</span> <span class="op">IN</span> (<span class="kw">SELECT</span> <span class="col">id</span> <span class="kw">FROM</span> <span class="tbl">departments</span>)
+<span style="color:#86EFAC;">-- RIGHT: use JOIN to access dept_name</span>
+<span class="kw">SELECT</span> <span class="col">e</span>.<span class="col">name</span>, <span class="col">d</span>.<span class="col">dept_name</span>
+<span class="kw">FROM</span> <span class="tbl">employees</span> <span class="col">e</span> <span class="kw">JOIN</span> <span class="tbl">departments</span> <span class="col">d</span> <span class="kw">ON</span> <span class="col">e</span>.<span class="col">dept_id</span><span class="op">=</span><span class="col">d</span>.<span class="col">id</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ─── REVISION ─── -->
+<section id="revision" class="fade-in">
+  <div class="section-label" style="color:var(--accent);">⚡ Section 11</div>
+  <h2 class="section-title">Quick Revision</h2>
+  <p class="section-desc">All the key points in one place. Review before your interview.</p>
+
+  <div class="card">
+    <div class="revision-item">
+      <div class="rev-icon">🔷</div>
+      <div class="rev-text"><strong>Subquery = Query inside a query.</strong> <span>Inner runs first, outer uses the result.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">1️⃣</div>
+      <div class="rev-text"><strong>Scalar subquery</strong> <span>returns one value. Used with =, >, &lt;.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">📋</div>
+      <div class="rev-text"><strong>Column subquery</strong> <span>returns multiple values. Used with IN, ANY, ALL.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">📊</div>
+      <div class="rev-text"><strong>Table subquery</strong> <span>returns rows + columns. Used in FROM as a derived table (alias required).</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">🔄</div>
+      <div class="rev-text"><strong>Correlated subquery</strong> <span>references outer query's row. Runs N times — once per outer row.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">✅</div>
+      <div class="rev-text"><strong>EXISTS vs IN:</strong> <span>EXISTS short-circuits, is NULL-safe, great for large datasets. IN is simpler for small lists.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">⚠️</div>
+      <div class="rev-text"><strong>NOT IN + NULL = danger.</strong> <span>Always add WHERE col IS NOT NULL inside NOT IN subqueries.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">⚖️</div>
+      <div class="rev-text"><strong>Subquery when:</strong> <span>you need a derived value to compare against. JOIN when: you need columns from multiple tables.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">🧠</div>
+      <div class="rev-text"><strong>Framework:</strong> <span>Final result → Intermediate data → Subquery → How outer uses it.</span></div>
+    </div>
+    <div class="revision-item">
+      <div class="rev-icon">🏆</div>
+      <div class="rev-text"><strong>Self-referential pattern:</strong> <span>Same table with alias e1, e2 — or correlated subquery WHERE manager_id = e.emp_id.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BACK TO TOP -->
+<a class="back-top" href="#" title="Back to top">↑</a>
+
+</main>
+
+<script>
+// Intersection Observer for fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// Interview Q toggle
+function toggleIQ(header) {
+  const answer = header.nextElementSibling;
+  const toggle = header.querySelector('.iq-toggle');
+  answer.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+// Active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(section => {
+    const top = section.offsetTop - 100;
+    if (window.scrollY >= top) current = section.getAttribute('id');
+  });
+  navLinks.forEach(link => {
+    link.style.background = '';
+    link.style.color = '';
+    if (link.getAttribute('href') === '#' + current) {
+      link.style.background = 'var(--primary-light)';
+      link.style.color = 'var(--primary)';
+    }
+  });
+});
+</script>
+</body>
+</html>

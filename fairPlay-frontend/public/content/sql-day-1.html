@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Basics – Placement Preparation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b14;
+  --surface: rgba(255,255,255,0.045);
+  --border: rgba(255,255,255,0.09);
+  --teal:   #2dd4bf;
+  --teal-glow: rgba(45,212,191,0.22);
+  --blue:   #5b9cf6;
+  --blue-glow: rgba(91,156,246,0.22);
+  --purple: #a78bfa;
+  --purple-glow: rgba(167,139,250,0.22);
+  --green:  #34d399;
+  --pink:   #f472b6;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --red:    #f87171;
+  --text:   #e2e8f0;
+  --muted:  #64748b;
+  --soft:   #94a3b8;
+  --r: 18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);font-family: 'Inter', system-ui, sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 700px 500px at -10% 15%,rgba(45,212,191,.1) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 400px at 110% 80%,rgba(91,156,246,.1) 0%,transparent 70%),
+    radial-gradient(ellipse 400px 300px at 60% 50%,rgba(167,139,250,.05) 0%,transparent 70%);
+}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 32px;
+  background:rgba(8,11,20,0.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:1.05rem;
+  background:linear-gradient(90deg,var(--teal),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.nav-tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:5px;}
+.nav-tab{
+  font-family: 'Inter', system-ui, sans-serif;font-size:.78rem;font-weight:700;
+  padding:7px 16px;border-radius:99px;border:none;cursor:pointer;
+  transition:all .25s;color:var(--muted);background:transparent;letter-spacing:.04em;
+}
+.nav-tab.active{background:linear-gradient(90deg,var(--teal),var(--blue));color:#fff;box-shadow:0 0 18px var(--teal-glow);}
+.nav-tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,.06);}
+
+/* ── LAYOUT ── */
+.page{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:80px 24px 80px;}
+
+/* ── SECTION LABEL ── */
+.sec-label{
+  font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:700;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:16px;display:flex;align-items:center;gap:12px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent);}
+
+/* ── GLASS CARD ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  backdrop-filter:blur(14px);
+}
+
+/* ── HERO ── */
+.hero-band{
+  border-radius:24px;padding:50px 44px 42px;margin-bottom:36px;
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(45,212,191,.1) 0%,rgba(91,156,246,.07) 60%,rgba(167,139,250,.05) 100%);
+  border:1px solid rgba(45,212,191,.2);
+}
+.hero-band::after{
+  content:'';position:absolute;width:340px;height:340px;border-radius:50%;
+  top:-120px;right:-80px;background:var(--teal);opacity:.06;pointer-events:none;
+}
+.hero-eyebrow{
+  font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;
+}
+.hero-band h1{
+  font-family: 'Inter', system-ui, sans-serif;font-size:clamp(2rem,5.5vw,3.2rem);
+  font-weight:800;line-height:1.12;margin-bottom:14px;
+}
+.hero-band p{color:var(--soft);line-height:1.7;max-width:560px;font-size:.97rem;}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family: 'Inter', system-ui, sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:99px;margin-top:18px;
+  background:rgba(45,212,191,.13);color:var(--teal);border:1px solid rgba(45,212,191,.3);
+}
+.hero-visual{
+  margin-top:32px;display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;
+}
+/* mini DB icon */
+.db-icon{
+  width:72px;height:90px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  animation:float 3.5s ease-in-out infinite;
+}
+.db-disk{
+  width:66px;height:18px;border-radius:50%;
+  border:2px solid var(--teal);background:rgba(45,212,191,.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.55rem;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--teal);font-weight:700;
+}
+.db-body{
+  width:66px;flex:1;border-left:2px solid var(--teal);border-right:2px solid var(--teal);
+  background:rgba(45,212,191,.06);
+  display:flex;flex-direction:column;justify-content:space-around;align-items:center;
+}
+.db-line{width:40px;height:2px;background:rgba(45,212,191,.25);border-radius:1px;}
+/* mini table */
+.mini-table{border-radius:10px;overflow:hidden;border:1px solid rgba(45,212,191,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.72rem;}
+.mt-head{display:flex;background:rgba(45,212,191,.12);}
+.mt-row{display:flex;border-top:1px solid rgba(255,255,255,.05);}
+.mt-row:hover{background:rgba(45,212,191,.05);}
+.mt-cell{padding:6px 14px;color:var(--soft);min-width:60px;}
+.mt-head .mt-cell{color:var(--teal);font-weight:700;}
+.mt-cell.id{color:var(--yellow);}
+.mt-cell.name{color:var(--blue);}
+.mt-cell.age{color:var(--green);}
+
+/* ── WHY SQL CARDS ── */
+.why-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px;}
+.why-card{
+  padding:18px 18px 16px;border-radius:14px;
+  transition:transform .25s,box-shadow .25s;cursor:default;
+}
+.why-card:hover{transform:translateY(-4px);}
+.why-icon{font-size:1.5rem;margin-bottom:10px;}
+.why-card h4{font-family: 'Inter', system-ui, sans-serif;font-size:.85rem;font-weight:800;margin-bottom:6px;}
+.why-card p{font-size:.78rem;color:var(--muted);line-height:1.55;}
+
+/* ── TABLE VISUAL ── */
+.table-visual{border-radius:12px;overflow:hidden;border:1px solid rgba(91,156,246,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.82rem;margin-bottom:10px;}
+.tv-head{display:grid;grid-template-columns:80px 1fr 80px;background:rgba(91,156,246,.12);}
+.tv-row{display:grid;grid-template-columns:80px 1fr 80px;border-top:1px solid rgba(255,255,255,.06);transition:background .2s;}
+.tv-row:hover{background:rgba(91,156,246,.06);}
+.tv-cell{padding:10px 16px;}
+.tv-head .tv-cell{color:var(--blue);font-weight:700;font-size:.78rem;letter-spacing:.06em;}
+.tv-cell.col-id{color:var(--yellow);}
+.tv-cell.col-name{color:var(--text);}
+.tv-cell.col-age{color:var(--green);}
+.row-label{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--muted);font-family: 'Inter', system-ui, sans-serif;font-weight:700;letter-spacing:.06em;margin-top:6px;}
+.row-arrow{width:24px;height:1px;background:var(--muted);}
+
+/* ── CMD TYPE CARDS ── */
+.cmd-section{margin-bottom:28px;}
+.cmd-group-title{
+  font-family: 'Inter', system-ui, sans-serif;font-size:.78rem;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;padding:6px 14px;
+  border-radius:8px;display:inline-block;
+}
+.cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.cmd-card{
+  padding:16px;border-radius:12px;transition:transform .2s,box-shadow .2s;cursor:default;
+}
+.cmd-card:hover{transform:translateY(-3px);}
+.cmd-name{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.95rem;font-weight:700;margin-bottom:6px;
+}
+.cmd-desc{font-size:.75rem;color:var(--muted);line-height:1.5;}
+.cmd-icon{font-size:1.1rem;margin-bottom:8px;}
+
+/* DDL teal, DML orange, DQL blue */
+.ddl .cmd-card{background:rgba(45,212,191,.07);border:1px solid rgba(45,212,191,.18);}
+.ddl .cmd-name{color:var(--teal);}
+.ddl .cmd-group-title{background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.2);}
+.dml .cmd-card{background:rgba(251,146,60,.07);border:1px solid rgba(251,146,60,.18);}
+.dml .cmd-name{color:var(--orange);}
+.dml .cmd-group-title{background:rgba(251,146,60,.1);color:var(--orange);border:1px solid rgba(251,146,60,.2);}
+.dql .cmd-card{background:rgba(91,156,246,.07);border:1px solid rgba(91,156,246,.18);}
+.dql .cmd-name{color:var(--blue);}
+.dql .cmd-group-title{background:rgba(91,156,246,.1);color:var(--blue);border:1px solid rgba(91,156,246,.2);}
+
+/* ── CODE BLOCK ── */
+.code-card{border-radius:var(--r);overflow:hidden;margin-bottom:20px;}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 18px;background:rgba(255,255,255,.05);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.code-dots{display:flex;gap:6px;}
+.cdot{width:10px;height:10px;border-radius:50%;}
+.code-lang{font-size:.72rem;font-weight:700;letter-spacing:.1em;font-family: 'Inter', system-ui, sans-serif;}
+pre{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.8rem;line-height:1.75;
+  padding:20px 22px;overflow-x:auto;background:rgba(0,0,0,.22);
+}
+.kw{color:var(--purple);}
+.ty{color:var(--teal);}
+.fn{color:var(--blue);}
+.str{color:var(--yellow);}
+.num{color:var(--orange);}
+.cm{color:#3d5166;font-style:italic;}
+.tbl{color:var(--green);}
+.col{color:var(--text);}
+
+/* ── INSERT BEFORE/AFTER ── */
+.ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+@media(max-width:620px){.ba-grid{grid-template-columns:1fr;}}
+.ba-card{padding:18px;border-radius:14px;}
+.ba-label{font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
+
+/* ── WHERE INTERACTIVE ── */
+.where-interactive{padding:24px;margin-bottom:28px;}
+.where-interactive h3{font-family: 'Inter', system-ui, sans-serif;font-size:.9rem;font-weight:700;color:var(--soft);margin-bottom:16px;}
+.filter-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{
+  font-family: 'Inter', system-ui, sans-serif;font-size:.78rem;font-weight:700;
+  padding:8px 18px;border-radius:99px;border:1px solid var(--border);
+  background:var(--surface);color:var(--muted);cursor:pointer;
+  transition:all .2s;letter-spacing:.04em;
+}
+.filter-btn:hover{color:var(--text);border-color:rgba(255,255,255,.2);}
+.filter-btn.active-teal{background:rgba(45,212,191,.15);color:var(--teal);border-color:rgba(45,212,191,.35);box-shadow:0 0 14px var(--teal-glow);}
+.filter-btn.active-blue{background:rgba(91,156,246,.15);color:var(--blue);border-color:rgba(91,156,246,.35);box-shadow:0 0 14px var(--blue-glow);}
+.filter-btn.active-purple{background:rgba(167,139,250,.15);color:var(--purple);border-color:rgba(167,139,250,.35);}
+.where-query{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.8rem;
+  background:rgba(0,0,0,.3);border:1px solid var(--border);
+  border-radius:10px;padding:12px 16px;color:var(--yellow);
+  margin-bottom:14px;transition:all .3s;
+}
+.where-result-table{border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);}
+.wt-head{display:grid;background:rgba(255,255,255,.05);}
+.wt-row{display:grid;border-top:1px solid rgba(255,255,255,.04);transition:all .35s;}
+.wt-row.hidden-row{display:none;}
+.wt-row.highlight{background:rgba(45,212,191,.07);}
+.wt-cell{padding:9px 16px;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;}
+.wt-head .wt-cell{color:var(--soft);font-size:.72rem;font-weight:700;letter-spacing:.06em;}
+
+/* ── FLOW DIAGRAM ── */
+.flow-row{display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;margin-bottom:28px;}
+.flow-node{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:18px 22px;border-radius:14px;text-align:center;min-width:110px;
+}
+.flow-icon{font-size:1.8rem;}
+.flow-label{font-family: 'Inter', system-ui, sans-serif;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.flow-sub{font-size:.65rem;color:var(--muted);margin-top:2px;max-width:90px;line-height:1.4;}
+.flow-arrow{font-size:1.4rem;color:var(--muted);padding:0 4px;flex-shrink:0;}
+@media(max-width:560px){.flow-row{flex-direction:column;}.flow-arrow{transform:rotate(90deg);}}
+
+/* ── PRACTICE ── */
+.practice-list{display:flex;flex-direction:column;gap:14px;margin-bottom:28px;}
+.practice-item{
+  padding:18px 20px;border-radius:14px;
+  display:flex;align-items:flex-start;gap:14px;
+  transition:transform .2s,box-shadow .2s;cursor:default;
+}
+.practice-item:hover{transform:translateX(4px);}
+.pq-num{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:.85rem;
+}
+.pq-text{font-size:.88rem;line-height:1.6;color:var(--soft);}
+.pq-text strong{color:var(--text);}
+.pq-tag{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.72rem;
+  padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.06);
+  color:var(--muted);margin-left:6px;
+}
+
+/* ── INTERVIEW Q&A ── */
+.qa-list{display:flex;flex-direction:column;gap:14px;margin-bottom:28px;}
+.qa-item{border-radius:14px;overflow:hidden;}
+.qa-q{
+  padding:16px 20px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:background .2s;user-select:none;
+}
+.qa-q:hover{background:rgba(255,255,255,.04);}
+.qa-qmark{
+  width:26px;height:26px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:.75rem;
+}
+.qa-qtext{font-size:.88rem;font-weight:600;flex:1;}
+.qa-chevron{font-size:.8rem;color:var(--muted);transition:transform .3s;}
+.qa-a{
+  max-height:0;overflow:hidden;transition:max-height .35s ease,padding .3s;
+  font-size:.85rem;color:var(--soft);line-height:1.7;padding:0 20px;
+  border-top:0 solid var(--border);
+}
+.qa-a.open{max-height:300px;padding:14px 20px 18px;border-top:1px solid var(--border);}
+.qa-chevron.open{transform:rotate(90deg);}
+.qa-a code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;
+  background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--teal);
+}
+
+/* ── QUICK REVISION ── */
+.revision-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:28px;}
+.rev-card{
+  padding:16px 18px;border-radius:12px;
+  display:flex;align-items:flex-start;gap:12px;
+  transition:transform .2s;
+}
+.rev-card:hover{transform:translateY(-3px);}
+.rev-icon{font-size:1.3rem;flex-shrink:0;}
+.rev-text{font-size:.83rem;line-height:1.6;}
+.rev-kw{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.82rem;font-weight:700;}
+.rev-eq{color:var(--muted);margin:0 4px;}
+.rev-def{color:var(--soft);}
+
+/* ── ANIMATIONS ── */
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+@keyframes rowHighlight{from{background:rgba(45,212,191,.25);}to{background:rgba(45,212,191,.07);}}
+
+.animate-in{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s ease;}
+.animate-in.visible{opacity:1;transform:translateY(0);}
+
+/* scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.02);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* section spacing */
+.section-block{margin-bottom:36px;}
+
+.footer{text-align:center;color:var(--muted);font-size:.78rem;padding:24px 0 0;border-top:1px solid var(--border);}
+.footer span{color:var(--teal);}
+</style>
+
+<style>
+    :root {
+        /* Primary Backgrounds */
+        --bg: #080b14 !important;
+        --bg-from: #080b14 !important;
+        --bg-to: #080b14 !important;
+        --bg2: #0c101d !important;
+        --bg-secondary: #0c101d !important;
+        --bg3: #111626 !important;
+        
+        /* Surface & Cards */
+        --surface: rgba(255,255,255,0.04) !important;
+        --bg-card: rgba(255,255,255,0.04) !important;
+        --card-bg: rgba(255,255,255,0.04) !important;
+        --card: #0f1423 !important;
+        --card2: #161c2e !important;
+        --glass: rgba(255,255,255,0.06) !important;
+        
+        /* Borders */
+        --border: rgba(255,255,255,0.08) !important;
+        --glass-border: rgba(255,255,255,0.1) !important;
+        --border2: rgba(255,255,255,0.15) !important;
+        
+        /* Text */
+        --text: #e2e8f0 !important;
+        --text-primary: #e2e8f0 !important;
+        --text-secondary: #94a3b8 !important;
+        --text-muted: #64748b !important;
+        --muted: #64748b !important;
+        
+        /* Brand & Accents */
+        --primary: #5B9CFF !important;
+        --primary-dark: #3B7DE8 !important;
+        --accent: #22d3ee !important;
+        --cyan: #22d3ee !important;
+        --accent-cyan: #22d3ee !important;
+        --purple: #a855f7 !important;
+        --accent-purple: #a855f7 !important;
+        --emerald: #34d399 !important;
+        --accent-green: #34d399 !important;
+        --rose: #fb7185 !important;
+        --accent-pink: #fb7185 !important;
+        --amber: #fbbf24 !important;
+        --accent-yellow: #fbbf24 !important;
+    }
+
+    /* GLOBAL TEXT OVERRIDES */
+    h1, h2, h3, h4, h5, h6, p, li, span, div, section, article {
+        color: var(--text);
+    }
+    
+    .text-secondary, .subtitle, .muted, .section-desc, .hero-subtitle {
+        color: var(--text-secondary) !important;
+    }
+
+    /* FIX GRADIENT TITLES (Like in Day 5) */
+    .hero-title, [class*="title"] {
+        background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--purple) 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+    }
+
+    /* FIX HARDCODED LIGHT CARDS & BADGES */
+    .type-card, .mistake-card, .flow-box, .badge, .float-card, .card, .thinking-box, .flow-visual, .practice-card, .interview-q, .flow-inner, .flow-output {
+        background: var(--bg2) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text) !important;
+    }
+
+    .type-card-blue, .badge-blue, .flow-inner, .practice-card { 
+        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)) !important; 
+        border: 1px solid rgba(59,130,246,0.3) !important;
+    }
+    .type-card-purple, .badge-purple, .flow-output, .interview-q { 
+        background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)) !important; 
+        border: 1px solid rgba(168,85,247,0.3) !important;
+    }
+    .type-card-green, .badge-green { 
+        background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)) !important; 
+        border: 1px solid rgba(52,211,153,0.3) !important;
+    }
+    .type-card-orange { 
+        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)) !important; 
+        border: 1px solid rgba(245,158,11,0.3) !important;
+    }
+    
+    .pnum, .iq-toggle {
+        color: var(--primary) !important;
+    }
+
+    .iq-q, .iq-answer, .practice-card p {
+        color: var(--text) !important;
+    }
+    
+    /* Ensure code blocks stay dark */
+    .code-block {
+        background: #000 !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    h4[style*="color"], .pnum[style*="color"] {
+        color: var(--primary) !important;
+    }
+
+    .nav { display: none !important; }
+    body { 
+        padding-top: 0 !important; 
+        background: var(--bg) !important;
+        color: var(--text) !important;
+    }
+    body::before { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <div class="nav-logo">🗃️ SQL Placement Prep</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="scrollTo(0,0)">🏠 Home</button>
+    <button class="nav-tab" onclick="document.getElementById('commands').scrollIntoView({behavior:'smooth'})">⚙️ Commands</button>
+    <button class="nav-tab" onclick="document.getElementById('practice').scrollIntoView({behavior:'smooth'})">📝 Practice</button>
+    <button class="nav-tab" onclick="document.getElementById('interview').scrollIntoView({behavior:'smooth'})">🎯 Interview</button>
+  </div>
+</nav>
+
+<div class="page">
+
+<!-- ══════════════════════════════
+     HERO
+══════════════════════════════ -->
+<div class="hero-band animate-in">
+  <div class="hero-eyebrow">📚 College Placement Preparation · Database Fundamentals</div>
+  <h1>SQL Basics<br>for Placement</h1>
+  <p>Learn how data is stored, managed, and queried in real-world systems. From SELECT to WHERE — master it all with clear visuals and interview-focused examples.</p>
+  <div class="badge">🚀 Beginner → Interview Ready</div>
+
+  <div class="hero-visual">
+    <!-- DB icon -->
+    <div class="db-icon">
+      <div class="db-disk" style="background:rgba(45,212,191,.15);">DB</div>
+      <div class="db-body">
+        <div class="db-line"></div><div class="db-line"></div><div class="db-line"></div>
+      </div>
+      <div class="db-disk" style="background:rgba(45,212,191,.1);height:14px;">▓▓▓</div>
+    </div>
+    <!-- Mini table -->
+    <div>
+      <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Students Table</div>
+      <div class="mini-table">
+        <div class="mt-head">
+          <div class="mt-cell">id</div><div class="mt-cell">name</div><div class="mt-cell">age</div>
+        </div>
+        <div class="mt-row"><div class="mt-cell id">1</div><div class="mt-cell name">Rishi</div><div class="mt-cell age">20</div></div>
+        <div class="mt-row"><div class="mt-cell id">2</div><div class="mt-cell name">Priya</div><div class="mt-cell age">22</div></div>
+        <div class="mt-row"><div class="mt-cell id">3</div><div class="mt-cell name">Arjun</div><div class="mt-cell age">19</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="padding:8px 14px;border-radius:8px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.75rem;color:var(--teal);">SELECT * FROM Students;</div>
+      <div style="padding:8px 14px;border-radius:8px;background:rgba(91,156,246,.08);border:1px solid rgba(91,156,246,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.75rem;color:var(--blue);">WHERE age &gt; 18</div>
+      <div style="padding:8px 14px;border-radius:8px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.75rem;color:var(--green);">→ 3 rows returned</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     WHAT IS SQL
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">💬 What is SQL?</div>
+  <div class="card animate-in" style="padding:28px;border-color:rgba(45,212,191,.15);margin-bottom:20px;">
+    <h2 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.15rem;font-weight:800;color:var(--teal);margin-bottom:12px;">Structured Query Language</h2>
+    <p style="color:var(--soft);line-height:1.75;font-size:.93rem;">SQL (pronounced "sequel") is the <strong style="color:var(--text)">language you use to talk to a database</strong>. Just like we use English to communicate with people, we use SQL to communicate with databases — to create tables, insert data, search for records, and update or delete information.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;">
+      <div style="padding:10px 18px;border-radius:10px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.18);">
+        <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;">S</div>
+        <div style="font-size:.8rem;color:var(--soft);margin-top:3px;">Structured</div>
+      </div>
+      <div style="padding:10px 18px;border-radius:10px;background:rgba(91,156,246,.08);border:1px solid rgba(91,156,246,.18);">
+        <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;">Q</div>
+        <div style="font-size:.8rem;color:var(--soft);margin-top:3px;">Query</div>
+      </div>
+      <div style="padding:10px 18px;border-radius:10px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.18);">
+        <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;">L</div>
+        <div style="font-size:.8rem;color:var(--soft);margin-top:3px;">Language</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     WHY SQL
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">🌍 Why SQL is Used — Real World</div>
+  <div class="why-grid">
+    <div class="card why-card animate-in" style="border-color:rgba(244,114,182,.18);">
+      <div class="why-icon">📸</div>
+      <h4 style="color:var(--pink);">Instagram</h4>
+      <p>Stores millions of users, posts, comments, likes, and follower relationships in structured tables.</p>
+    </div>
+    <div class="card why-card animate-in" style="border-color:rgba(251,191,36,.18);">
+      <div class="why-icon">🏦</div>
+      <h4 style="color:var(--yellow);">Banking</h4>
+      <p>Every transaction, account balance, and loan detail is stored and queried using SQL.</p>
+    </div>
+    <div class="card why-card animate-in" style="border-color:rgba(251,146,60,.18);">
+      <div class="why-icon">🛒</div>
+      <h4 style="color:var(--orange);">E-Commerce</h4>
+      <p>Tracks orders, inventory, customers, payments — all in relational database tables.</p>
+    </div>
+    <div class="card why-card animate-in" style="border-color:rgba(45,212,191,.18);">
+      <div class="why-icon">🏥</div>
+      <h4 style="color:var(--teal);">Healthcare</h4>
+      <p>Patient records, prescriptions, appointments — all managed with SQL databases.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     DATABASE & TABLE
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">🗄️ Database &amp; Table Structure</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;" class="animate-in">
+    <div class="card" style="padding:22px;border-color:rgba(45,212,191,.15);">
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:.9rem;font-weight:800;color:var(--teal);margin-bottom:10px;">🗄️ What is a Database?</h3>
+      <p style="color:var(--soft);font-size:.85rem;line-height:1.7;">A database is an <strong style="color:var(--text)">organized collection of data</strong> stored electronically. Think of it like a smart digital filing cabinet where data is stored in an orderly way so it can be easily found and used.</p>
+      <div style="margin-top:14px;padding:10px 14px;border-radius:8px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.15);font-size:.8rem;color:var(--soft);">
+        🎓 Example: A <strong style="color:var(--teal);">Student Database</strong> has all info about students — names, marks, attendance.
+      </div>
+    </div>
+    <div class="card" style="padding:22px;border-color:rgba(91,156,246,.15);">
+      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:.9rem;font-weight:800;color:var(--blue);margin-bottom:10px;">📋 What is a Table?</h3>
+      <p style="color:var(--soft);font-size:.85rem;line-height:1.7;">A table organizes data in <strong style="color:var(--text)">rows and columns</strong>. Each <strong style="color:var(--green)">row</strong> is one record (one student). Each <strong style="color:var(--yellow)">column</strong> is one field (like name or age).</p>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+        <div style="padding:7px 12px;border-radius:7px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);font-size:.75rem;color:var(--green);font-weight:600;">↔ Rows = Records</div>
+        <div style="padding:7px 12px;border-radius:7px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);font-size:.75rem;color:var(--yellow);font-weight:600;">↕ Columns = Fields</div>
+      </div>
+    </div>
+  </div>
+  <!-- Table visual -->
+  <div class="animate-in">
+    <div class="sec-label" style="margin-bottom:12px;">Students Table — Visual</div>
+    <div class="table-visual">
+      <div class="tv-head">
+        <div class="tv-cell">id</div><div class="tv-cell">name</div><div class="tv-cell">age</div>
+      </div>
+      <div class="tv-row"><div class="tv-cell col-id">1</div><div class="tv-cell col-name">Rishi</div><div class="tv-cell col-age">20</div></div>
+      <div class="tv-row"><div class="tv-cell col-id">2</div><div class="tv-cell col-name">Priya</div><div class="tv-cell col-age">22</div></div>
+      <div class="tv-row"><div class="tv-cell col-id">3</div><div class="tv-cell col-name">Arjun</div><div class="tv-cell col-age">19</div></div>
+      <div class="tv-row"><div class="tv-cell col-id">4</div><div class="tv-cell col-name">Meena</div><div class="tv-cell col-age">21</div></div>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:8px;flex-wrap:wrap;">
+      <div class="row-label"><div class="row-arrow"></div> Each horizontal line = 1 Row (1 Student's record)</div>
+      <div class="row-label" style="color:var(--yellow);">⬆ Each vertical column = 1 Field (id / name / age)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     COMMAND TYPES
+══════════════════════════════ -->
+<div class="section-block" id="commands">
+  <div class="sec-label animate-in">⚙️ Types of SQL Commands</div>
+
+  <!-- DDL -->
+  <div class="cmd-section ddl animate-in">
+    <div class="cmd-group-title">📐 DDL — Data Definition Language</div>
+    <div class="cmd-grid">
+      <div class="cmd-card"><div class="cmd-icon">🏗️</div><div class="cmd-name">CREATE</div><div class="cmd-desc">Makes a new table or database from scratch.</div></div>
+      <div class="cmd-card"><div class="cmd-icon">✏️</div><div class="cmd-name">ALTER</div><div class="cmd-desc">Modifies an existing table — add/remove columns.</div></div>
+      <div class="cmd-card"><div class="cmd-icon">🗑️</div><div class="cmd-name">DROP</div><div class="cmd-desc">Permanently deletes a table with all its data.</div></div>
+      <div class="cmd-card"><div class="cmd-icon">🧹</div><div class="cmd-name">TRUNCATE</div><div class="cmd-desc">Removes all rows but keeps the table structure.</div></div>
+    </div>
+  </div>
+
+  <!-- DML -->
+  <div class="cmd-section dml animate-in">
+    <div class="cmd-group-title">📝 DML — Data Manipulation Language</div>
+    <div class="cmd-grid">
+      <div class="cmd-card"><div class="cmd-icon">➕</div><div class="cmd-name">INSERT</div><div class="cmd-desc">Adds new rows of data into a table.</div></div>
+      <div class="cmd-card"><div class="cmd-icon">🔄</div><div class="cmd-name">UPDATE</div><div class="cmd-desc">Changes existing data in a table.</div></div>
+      <div class="cmd-card"><div class="cmd-icon">❌</div><div class="cmd-name">DELETE</div><div class="cmd-desc">Removes specific rows from a table.</div></div>
+    </div>
+  </div>
+
+  <!-- DQL -->
+  <div class="cmd-section dql animate-in">
+    <div class="cmd-group-title">🔍 DQL — Data Query Language</div>
+    <div class="cmd-grid" style="max-width:220px;">
+      <div class="cmd-card"><div class="cmd-icon">🔎</div><div class="cmd-name">SELECT</div><div class="cmd-desc">Fetches/reads data from one or more tables.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     CREATE TABLE
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">🏗️ CREATE TABLE — With Explanation</div>
+  <div class="code-card card animate-in" style="border-color:rgba(45,212,191,.15);">
+    <div class="code-header">
+      <div class="code-dots"><div class="cdot" style="background:#ff5f57"></div><div class="cdot" style="background:#febc2e"></div><div class="cdot" style="background:#28c840"></div></div>
+      <div class="code-lang" style="color:var(--teal);">SQL — CREATE TABLE</div>
+    </div>
+<pre><span class="kw">CREATE TABLE</span> <span class="tbl">Students</span> (
+  <span class="col">id</span>    <span class="ty">INT</span><span class="cm">,          -- unique number for each student</span>
+  <span class="col">name</span>  <span class="ty">VARCHAR</span>(<span class="num">50</span>)<span class="cm">,  -- text up to 50 characters</span>
+  <span class="col">age</span>   <span class="ty">INT</span>           <span class="cm">-- whole number (no decimal)</span>
+);</pre>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;" class="animate-in">
+    <div class="card" style="padding:14px;border-color:rgba(45,212,191,.15);">
+      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--teal);font-weight:700;margin-bottom:6px;">CREATE TABLE</div>
+      <div style="font-size:.78rem;color:var(--muted);">Creates a new, empty table named Students</div>
+    </div>
+    <div class="card" style="padding:14px;border-color:rgba(251,191,36,.15);">
+      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--yellow);font-weight:700;margin-bottom:6px;">INT</div>
+      <div style="font-size:.78rem;color:var(--muted);">Integer datatype — stores whole numbers</div>
+    </div>
+    <div class="card" style="padding:14px;border-color:rgba(91,156,246,.15);">
+      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--blue);font-weight:700;margin-bottom:6px;">VARCHAR(50)</div>
+      <div style="font-size:.78rem;color:var(--muted);">Variable-length text, max 50 characters</div>
+    </div>
+    <div class="card" style="padding:14px;border-color:rgba(167,139,250,.15);">
+      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--purple);font-weight:700;margin-bottom:6px;">( id, name, age )</div>
+      <div style="font-size:.78rem;color:var(--muted);">Column definitions inside parentheses</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     INSERT INTO — BEFORE/AFTER
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">➕ INSERT INTO — Before &amp; After</div>
+  <div class="code-card card animate-in" style="border-color:rgba(251,146,60,.15);">
+    <div class="code-header">
+      <div class="code-dots"><div class="cdot" style="background:#ff5f57"></div><div class="cdot" style="background:#febc2e"></div><div class="cdot" style="background:#28c840"></div></div>
+      <div class="code-lang" style="color:var(--orange);">SQL — INSERT INTO</div>
+    </div>
+<pre><span class="kw">INSERT INTO</span> <span class="tbl">Students</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="str">'Rishi'</span>, <span class="num">20</span>);
+<span class="kw">INSERT INTO</span> <span class="tbl">Students</span> <span class="kw">VALUES</span> (<span class="num">2</span>, <span class="str">'Priya'</span>, <span class="num">22</span>);</pre>
+  </div>
+  <div class="ba-grid animate-in">
+    <div class="card ba-card" style="border-color:rgba(248,113,113,.2);">
+      <div class="ba-label" style="color:var(--red);">📭 Before INSERT — Empty Table</div>
+      <div class="table-visual" style="border-color:rgba(248,113,113,.2);">
+        <div class="tv-head" style="grid-template-columns:80px 1fr 80px;background:rgba(248,113,113,.08);">
+          <div class="tv-cell" style="color:var(--red);">id</div><div class="tv-cell" style="color:var(--red);">name</div><div class="tv-cell" style="color:var(--red);">age</div>
+        </div>
+        <div style="padding:18px;text-align:center;color:var(--muted);font-size:.8rem;font-style:italic;">( no rows )</div>
+      </div>
+    </div>
+    <div class="card ba-card" style="border-color:rgba(52,211,153,.2);">
+      <div class="ba-label" style="color:var(--green);">📬 After INSERT — Data Added</div>
+      <div class="table-visual" style="border-color:rgba(52,211,153,.2);">
+        <div class="tv-head" style="grid-template-columns:80px 1fr 80px;background:rgba(52,211,153,.08);">
+          <div class="tv-cell" style="color:var(--green);">id</div><div class="tv-cell" style="color:var(--green);">name</div><div class="tv-cell" style="color:var(--green);">age</div>
+        </div>
+        <div class="tv-row" style="grid-template-columns:80px 1fr 80px;animation:rowHighlight 1.5s ease 0.2s both;"><div class="tv-cell col-id">1</div><div class="tv-cell col-name">Rishi</div><div class="tv-cell col-age">20</div></div>
+        <div class="tv-row" style="grid-template-columns:80px 1fr 80px;animation:rowHighlight 1.5s ease 0.6s both;"><div class="tv-cell col-id">2</div><div class="tv-cell col-name">Priya</div><div class="tv-cell col-age">22</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SELECT
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">🔍 SELECT Statement</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" class="animate-in">
+    <div class="code-card card" style="border-color:rgba(91,156,246,.15);">
+      <div class="code-header">
+        <div class="code-dots"><div class="cdot" style="background:#ff5f57"></div><div class="cdot" style="background:#febc2e"></div><div class="cdot" style="background:#28c840"></div></div>
+        <div class="code-lang" style="color:var(--blue);">SELECT * (all columns)</div>
+      </div>
+<pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">Students</span>;
+<span class="cm">-- * means ALL columns</span>
+<span class="cm">-- Returns every row & column</span></pre>
+    </div>
+    <div class="code-card card" style="border-color:rgba(167,139,250,.15);">
+      <div class="code-header">
+        <div class="code-dots"><div class="cdot" style="background:#ff5f57"></div><div class="cdot" style="background:#febc2e"></div><div class="cdot" style="background:#28c840"></div></div>
+        <div class="code-lang" style="color:var(--purple);">SELECT specific column</div>
+      </div>
+<pre><span class="kw">SELECT</span> <span class="col">name</span> <span class="kw">FROM</span> <span class="tbl">Students</span>;
+<span class="cm">-- Only returns the 'name' column</span>
+<span class="cm">-- Great for saving bandwidth</span></pre>
+    </div>
+  </div>
+  <div class="card animate-in" style="padding:16px 20px;border-color:rgba(91,156,246,.12);display:flex;gap:14px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--yellow);font-weight:700;">SELECT *</span> <span style="color:var(--muted);">= Fetch ALL columns</span></div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--purple);font-weight:700;">SELECT name</span> <span style="color:var(--muted);">= Fetch ONLY name column</span></div>
+    <div style="width:1px;background:var(--border);"></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--teal);font-weight:700;">FROM Students</span> <span style="color:var(--muted);">= From this table</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     WHERE — INTERACTIVE
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">🎯 WHERE Clause — Interactive Filter</div>
+  <div class="card where-interactive animate-in" style="border-color:rgba(45,212,191,.15);">
+    <h3>Click a filter to see which rows are returned 👇</h3>
+    <div class="filter-controls">
+      <button class="filter-btn active-teal" onclick="applyFilter('all')">📋 All Rows (no WHERE)</button>
+      <button class="filter-btn" onclick="applyFilter('age18')">🔞 age &gt; 18</button>
+      <button class="filter-btn" onclick="applyFilter('age20')">🎂 age &gt;= 20</button>
+      <button class="filter-btn" onclick="applyFilter('rishi')">🙋 name = 'Rishi'</button>
+      <button class="filter-btn" onclick="applyFilter('even')">🔢 id = 2</button>
+    </div>
+    <div class="where-query" id="where-query">SELECT * FROM Students; &nbsp;&nbsp;<span style="color:var(--muted);">-- No filter applied</span></div>
+    <div class="where-result-table">
+      <div class="wt-head" style="grid-template-columns:70px 1fr 70px 100px;">
+        <div class="wt-cell">id</div><div class="wt-cell">name</div><div class="wt-cell">age</div><div class="wt-cell">status</div>
+      </div>
+      <div class="wt-row" id="wr1" style="grid-template-columns:70px 1fr 70px 100px;">
+        <div class="wt-cell" style="color:var(--yellow);">1</div><div class="wt-cell">Rishi</div><div class="wt-cell" style="color:var(--green);">20</div><div class="wt-cell" id="ws1"></div>
+      </div>
+      <div class="wt-row" id="wr2" style="grid-template-columns:70px 1fr 70px 100px;">
+        <div class="wt-cell" style="color:var(--yellow);">2</div><div class="wt-cell">Priya</div><div class="wt-cell" style="color:var(--green);">22</div><div class="wt-cell" id="ws2"></div>
+      </div>
+      <div class="wt-row" id="wr3" style="grid-template-columns:70px 1fr 70px 100px;">
+        <div class="wt-cell" style="color:var(--yellow);">3</div><div class="wt-cell">Arjun</div><div class="wt-cell" style="color:var(--green);">19</div><div class="wt-cell" id="ws3"></div>
+      </div>
+      <div class="wt-row" id="wr4" style="grid-template-columns:70px 1fr 70px 100px;">
+        <div class="wt-cell" style="color:var(--yellow);">4</div><div class="wt-cell">Meena</div><div class="wt-cell" style="color:var(--green);">21</div><div class="wt-cell" id="ws4"></div>
+      </div>
+      <div class="wt-row" id="wr5" style="grid-template-columns:70px 1fr 70px 100px;">
+        <div class="wt-cell" style="color:var(--yellow);">5</div><div class="wt-cell">Dev</div><div class="wt-cell" style="color:var(--green);">17</div><div class="wt-cell" id="ws5"></div>
+      </div>
+    </div>
+    <div id="where-result-msg" style="margin-top:12px;font-size:.82rem;color:var(--muted);"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     REAL-LIFE FLOW
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">🔄 Real-Life SQL Flow</div>
+  <div class="card animate-in" style="padding:28px;border-color:rgba(45,212,191,.12);margin-bottom:16px;">
+    <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.85rem;font-weight:700;color:var(--soft);margin-bottom:20px;">
+      Example: "Find all Instagram users above 18"
+    </div>
+    <div class="flow-row">
+      <div class="flow-node card" style="border-color:rgba(91,156,246,.2);background:rgba(91,156,246,.07);">
+        <div class="flow-icon">👤</div>
+        <div class="flow-label" style="color:var(--blue);">User</div>
+        <div class="flow-sub">Types a SQL query</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node card" style="border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.07);">
+        <div class="flow-icon">💻</div>
+        <div class="flow-label" style="color:var(--purple);">SQL Query</div>
+        <div class="flow-sub">SELECT * WHERE age&gt;18</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node card" style="border-color:rgba(45,212,191,.2);background:rgba(45,212,191,.07);">
+        <div class="flow-icon">🗄️</div>
+        <div class="flow-label" style="color:var(--teal);">Database</div>
+        <div class="flow-sub">Searches all rows</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node card" style="border-color:rgba(52,211,153,.2);background:rgba(52,211,153,.07);">
+        <div class="flow-icon">📊</div>
+        <div class="flow-label" style="color:var(--green);">Result</div>
+        <div class="flow-sub">Matching rows returned</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid var(--border);padding:14px 18px;">
+      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.82rem;color:var(--yellow);">SELECT * FROM Users WHERE age &gt; 18;</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-top:8px;">→ Returns all user records where age is more than 18 years</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PRACTICE QUESTIONS
+══════════════════════════════ -->
+<div class="section-block" id="practice">
+  <div class="sec-label animate-in">📝 Practice Questions</div>
+  <div class="practice-list">
+    <div class="card practice-item animate-in" style="border-color:rgba(45,212,191,.15);">
+      <div class="pq-num" style="background:rgba(45,212,191,.15);color:var(--teal);">Q1</div>
+      <div class="pq-text"><strong>Create a Table</strong> — Write a SQL query to create a table called <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--teal);">Employees</code> with columns: <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">id</code>, <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">name</code>, <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">salary</code>.<span class="pq-tag">CREATE TABLE</span></div>
+    </div>
+    <div class="card practice-item animate-in" style="border-color:rgba(251,146,60,.15);">
+      <div class="pq-num" style="background:rgba(251,146,60,.15);color:var(--orange);">Q2</div>
+      <div class="pq-text"><strong>Insert Data</strong> — Insert a record: id=1, name='Rahul', salary=50000 into the Employees table.<span class="pq-tag">INSERT INTO</span></div>
+    </div>
+    <div class="card practice-item animate-in" style="border-color:rgba(91,156,246,.15);">
+      <div class="pq-num" style="background:rgba(91,156,246,.15);color:var(--blue);">Q3</div>
+      <div class="pq-text"><strong>Fetch All Data</strong> — Write a query to select all rows and columns from the Students table.<span class="pq-tag">SELECT *</span></div>
+    </div>
+    <div class="card practice-item animate-in" style="border-color:rgba(167,139,250,.15);">
+      <div class="pq-num" style="background:rgba(167,139,250,.15);color:var(--purple);">Q4</div>
+      <div class="pq-text"><strong>Apply WHERE</strong> — Fetch only those students whose age is greater than 20 from the Students table.<span class="pq-tag">WHERE</span></div>
+    </div>
+    <div class="card practice-item animate-in" style="border-color:rgba(251,191,36,.15);">
+      <div class="pq-num" style="background:rgba(251,191,36,.15);color:var(--yellow);">Q5</div>
+      <div class="pq-text"><strong>Filter by Name</strong> — Write a query to find a student whose name is 'Priya' from the Students table.<span class="pq-tag">WHERE name=</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     INTERVIEW Q&A
+══════════════════════════════ -->
+<div class="section-block" id="interview">
+  <div class="sec-label animate-in">🎯 Interview Questions &amp; Answers</div>
+  <div class="qa-list">
+
+    <div class="card qa-item animate-in" style="border-color:rgba(248,113,113,.15);">
+      <div class="qa-q" onclick="toggleQA(this)">
+        <div class="qa-qmark" style="background:rgba(248,113,113,.15);color:var(--red);">Q1</div>
+        <div class="qa-qtext">What is the difference between DELETE and DROP?</div>
+        <div class="qa-chevron">▶</div>
+      </div>
+      <div class="qa-a">
+        <strong style="color:var(--text);">DELETE</strong> <span style="color:var(--soft);">removes specific rows from a table but keeps the table structure intact. It can be rolled back (undone).</span><br><br>
+        <strong style="color:var(--text);">DROP</strong> <span style="color:var(--soft);">completely removes the entire table — both the data AND the structure. It cannot be rolled back.<br><br>
+        💡 Think: <code>DELETE</code> = erase the content of a notebook. <code>DROP</code> = throw the entire notebook in the trash.</span>
+      </div>
+    </div>
+
+    <div class="card qa-item animate-in" style="border-color:rgba(251,191,36,.15);">
+      <div class="qa-q" onclick="toggleQA(this)">
+        <div class="qa-qmark" style="background:rgba(251,191,36,.15);color:var(--yellow);">Q2</div>
+        <div class="qa-qtext">What is a Primary Key?</div>
+        <div class="qa-chevron">▶</div>
+      </div>
+      <div class="qa-a">
+        A <strong style="color:var(--text);">Primary Key</strong> <span style="color:var(--soft);">is a column (or set of columns) that <strong style="color:var(--yellow);">uniquely identifies each row</strong> in a table. It must be unique and cannot be NULL.<br><br>
+        Example: In the Students table, <code>id</code> is the Primary Key — no two students can have the same id.<br><br>
+        💡 It's like your Aadhar number — unique to only you.</span>
+      </div>
+    </div>
+
+    <div class="card qa-item animate-in" style="border-color:rgba(45,212,191,.15);">
+      <div class="qa-q" onclick="toggleQA(this)">
+        <div class="qa-qmark" style="background:rgba(45,212,191,.15);color:var(--teal);">Q3</div>
+        <div class="qa-qtext">Difference between WHERE and HAVING?</div>
+        <div class="qa-chevron">▶</div>
+      </div>
+      <div class="qa-a">
+        <strong style="color:var(--text);">WHERE</strong> <span style="color:var(--soft);">filters rows <strong>before</strong> grouping. Used with SELECT, UPDATE, DELETE.<br><br>
+        <strong style="color:var(--text);">HAVING</strong> filters groups <strong>after</strong> GROUP BY. Used with aggregate functions like COUNT, SUM, AVG.<br><br>
+        💡 Rule: <code>WHERE</code> works on raw rows. <code>HAVING</code> works on grouped/aggregated results.</span>
+      </div>
+    </div>
+
+    <div class="card qa-item animate-in" style="border-color:rgba(167,139,250,.15);">
+      <div class="qa-q" onclick="toggleQA(this)">
+        <div class="qa-qmark" style="background:rgba(167,139,250,.15);color:var(--purple);">Q4</div>
+        <div class="qa-qtext">What is the difference between TRUNCATE and DELETE?</div>
+        <div class="qa-chevron">▶</div>
+      </div>
+      <div class="qa-a">
+        <strong style="color:var(--text);">TRUNCATE</strong> <span style="color:var(--soft);">removes ALL rows at once, is faster, and cannot be rolled back. It resets auto-increment counters.<br><br>
+        <strong style="color:var(--text);">DELETE</strong> removes rows one by one (can use WHERE), is slower for large tables, and can be rolled back.<br><br>
+        💡 Use TRUNCATE to empty a table quickly. Use DELETE when you need to remove specific rows.</span>
+      </div>
+    </div>
+
+    <div class="card qa-item animate-in" style="border-color:rgba(91,156,246,.15);">
+      <div class="qa-q" onclick="toggleQA(this)">
+        <div class="qa-qmark" style="background:rgba(91,156,246,.15);color:var(--blue);">Q5</div>
+        <div class="qa-qtext">What are DDL, DML, and DQL?</div>
+        <div class="qa-chevron">▶</div>
+      </div>
+      <div class="qa-a">
+        <strong style="color:var(--teal);">DDL</strong> (Data Definition Language) — defines the structure: <code>CREATE</code>, <code>ALTER</code>, <code>DROP</code><br><br>
+        <strong style="color:var(--orange);">DML</strong> (Data Manipulation Language) — changes the data: <code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code><br><br>
+        <strong style="color:var(--blue);">DQL</strong> (Data Query Language) — reads/fetches the data: <code>SELECT</code><br><br>
+        💡 DDL = blueprint, DML = construction/renovation, DQL = reading the blueprint.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     QUICK REVISION
+══════════════════════════════ -->
+<div class="section-block">
+  <div class="sec-label animate-in">⚡ Quick Revision — Cheat Sheet</div>
+  <div class="revision-grid">
+    <div class="card rev-card animate-in" style="border-color:rgba(45,212,191,.15);">
+      <div class="rev-icon">🗣️</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--teal);">SQL</span><span class="rev-eq">=</span><span class="rev-def">Language to talk to a database</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(91,156,246,.15);">
+      <div class="rev-icon">📋</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--blue);">Table</span><span class="rev-eq">=</span><span class="rev-def">Rows (records) + Columns (fields)</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(167,139,250,.15);">
+      <div class="rev-icon">🔍</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--purple);">SELECT</span><span class="rev-eq">=</span><span class="rev-def">Fetch / read data from table</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(251,191,36,.15);">
+      <div class="rev-icon">🎯</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--yellow);">WHERE</span><span class="rev-eq">=</span><span class="rev-def">Filter rows based on condition</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(52,211,153,.15);">
+      <div class="rev-icon">🏗️</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--green);">CREATE</span><span class="rev-eq">=</span><span class="rev-def">Make a new table or database</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(251,146,60,.15);">
+      <div class="rev-icon">➕</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--orange);">INSERT</span><span class="rev-eq">=</span><span class="rev-def">Add new row of data into table</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(248,113,113,.15);">
+      <div class="rev-icon">🗑️</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--red);">DROP</span><span class="rev-eq">=</span><span class="rev-def">Delete entire table permanently</span></div>
+    </div>
+    <div class="card rev-card animate-in" style="border-color:rgba(244,114,182,.15);">
+      <div class="rev-icon">🔑</div>
+      <div class="rev-text"><span class="rev-kw" style="color:var(--pink);">Primary Key</span><span class="rev-eq">=</span><span class="rev-def">Unique ID for each row</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer animate-in">
+  Made with 💙 for students · <span>SQL Basics</span> · Placement Preparation Series
+</div>
+
+</div><!-- /page -->
+
+<script>
+/* ── SCROLL ANIMATIONS ── */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+  });
+}, {threshold: 0.08});
+document.querySelectorAll('.animate-in').forEach((el, i) => {
+  el.style.transitionDelay = (i * 0.04) + 's';
+  obs.observe(el);
+});
+
+/* ── WHERE FILTER ── */
+const tableData = [
+  {id:1, name:'Rishi', age:20},
+  {id:2, name:'Priya', age:22},
+  {id:3, name:'Arjun', age:19},
+  {id:4, name:'Meena', age:21},
+  {id:5, name:'Dev',   age:17},
+];
+
+const filters = {
+  all:   { query: "SELECT * FROM Students;  &nbsp;&nbsp;<span style='color:var(--muted);'>-- All rows returned</span>", fn: () => [1,2,3,4,5], cls:'active-teal' },
+  age18: { query: "SELECT * FROM Students <span style='color:var(--teal);'>WHERE</span> age &gt; <span style='color:var(--orange);'>18</span>;", fn: () => tableData.filter(r=>r.age>18).map(r=>r.id), cls:'active-teal' },
+  age20: { query: "SELECT * FROM Students <span style='color:var(--teal);'>WHERE</span> age &gt;= <span style='color:var(--orange);'>20</span>;", fn: () => tableData.filter(r=>r.age>=20).map(r=>r.id), cls:'active-blue' },
+  rishi: { query: "SELECT * FROM Students <span style='color:var(--teal);'>WHERE</span> name = <span style='color:var(--yellow);'>'Rishi'</span>;", fn: () => [1], cls:'active-purple' },
+  even:  { query: "SELECT * FROM Students <span style='color:var(--teal);'>WHERE</span> id = <span style='color:var(--orange);'>2</span>;", fn: () => [2], cls:'active-teal' },
+};
+
+function applyFilter(key) {
+  const f = filters[key];
+  const matched = f.fn();
+  document.getElementById('where-query').innerHTML = f.query;
+
+  // Update buttons
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.className = 'filter-btn';
+    if (b.getAttribute('onclick').includes(`'${key}'`)) b.classList.add(f.cls);
+  });
+
+  // Show/hide rows
+  for (let i = 1; i <= 5; i++) {
+    const row = document.getElementById('wr'+i);
+    const status = document.getElementById('ws'+i);
+    const isMatch = matched.includes(i);
+    row.style.display = '';
+    row.style.opacity = isMatch ? '1' : '0.25';
+    row.style.background = isMatch ? 'rgba(45,212,191,0.07)' : '';
+    status.innerHTML = isMatch
+      ? '<span style="color:var(--teal);font-size:.7rem;font-weight:700;">✓ matched</span>'
+      : '<span style="color:var(--muted);font-size:.7rem;">filtered</span>';
+  }
+
+  document.getElementById('where-result-msg').innerHTML =
+    `<span style="color:var(--teal);">→</span> <strong style="color:var(--text);">${matched.length} row${matched.length!==1?'s':''}</strong> <span style="color:var(--muted);">returned by this query</span>`;
+}
+
+/* ── Q&A TOGGLE ── */
+function toggleQA(qEl) {
+  const answer = qEl.nextElementSibling;
+  const chevron = qEl.querySelector('.qa-chevron');
+  const isOpen = answer.classList.contains('open');
+  // close all
+  document.querySelectorAll('.qa-a').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.qa-chevron').forEach(c => c.classList.remove('open'));
+  if (!isOpen) {
+    answer.classList.add('open');
+    chevron.classList.add('open');
+  }
+}
+
+/* ── INIT ── */
+window.onload = () => { applyFilter('all'); };
+</script>
+</body>
+</html>
