@@ -27,12 +27,12 @@ const PrepHomePage = () => {
 
       <main className="relative z-10 pt-32 pb-20 px-6 container mx-auto max-w-7xl">
         {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row items-center gap-12 mb-24">
+        <div className="mb-24">
           <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="flex-1 text-center lg:text-left"
+            className="w-full text-center max-w-4xl mx-auto"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-6">
               <Star className="w-4 h-4 fill-primary" />
@@ -40,13 +40,13 @@ const PrepHomePage = () => {
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
               Master Your Exams <br />
-              <span className="text-gradient">Share Your Knowledge</span>
+              <span className="text-gradient text-white">Share Your Knowledge</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
               The ultimate destination for technical exam preparation. Access premium SQL notes, share your own summaries, and practice in real-time.
             </p>
             
-            <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+            <div className="flex flex-wrap gap-4 justify-center">
               <div className="relative flex-1 max-w-md min-w-[300px]">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 <input 
@@ -60,37 +60,45 @@ const PrepHomePage = () => {
               </button>
             </div>
           </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            className="flex-1 relative"
-          >
-            <div className="glass-card p-8 rounded-3xl relative overflow-hidden group">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-bold">Prep Categories</h3>
-                <TrendingUp className="text-primary w-6 h-6" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {categories.map((cat, i) => (
-                  <Link to={cat.path} key={i}>
-                    <motion.div 
-                      whileHover={{ y: -5 }}
-                      className="p-6 rounded-2xl bg-muted/30 border border-border/50 hover:border-primary/50 transition-all cursor-pointer group/item"
-                    >
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} mb-4 flex items-center justify-center text-white`}>
-                        {cat.icon}
-                      </div>
-                      <h4 className="font-bold mb-1 group-hover/item:text-primary transition-colors">{cat.name}</h4>
-                      <p className="text-xs text-muted-foreground">{cat.count} modules</p>
-                    </motion.div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </motion.div>
         </div>
+
+        {/* Prep Categories Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative"
+        >
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="text-3xl font-bold">Prep Categories</h2>
+            <div className="flex items-center gap-2 text-primary font-semibold">
+              <TrendingUp className="w-5 h-5" />
+              <span>Trending Subjects</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((cat, i) => (
+              <Link to={cat.path} key={i}>
+                <motion.div 
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="glass-card p-8 rounded-3xl bg-muted/20 border border-border/50 hover:border-primary/50 transition-all cursor-pointer group"
+                >
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} mb-6 flex items-center justify-center text-white shadow-lg`}>
+                    {cat.icon}
+                  </div>
+                  <h4 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{cat.name}</h4>
+                  <p className="text-sm text-muted-foreground mb-4">Comprehensive modules designed for placement success.</p>
+                  <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/30">
+                    <span className="text-xs font-bold text-primary">{cat.count} Modules</span>
+                    <span className="text-xs text-muted-foreground group-hover:translate-x-1 transition-transform">Explore →</span>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
 
       </main>
     </div>
