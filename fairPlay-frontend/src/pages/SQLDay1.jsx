@@ -16,7 +16,7 @@ const SQLDay1 = () => {
       {/* Floating Back Button */}
       <div className="absolute top-4 left-6 z-50">
         <Link 
-          to="/placement-prep/sql" 
+          to="/placement-prep/sql" replace 
           className="group flex items-center gap-2 text-white transition-all text-sm font-bold bg-primary hover:bg-primary/90 px-6 py-2.5 rounded-full shadow-lg shadow-primary/40 hover:scale-105 active:scale-95"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
