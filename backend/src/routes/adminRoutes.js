@@ -13,6 +13,7 @@ const {
   deleteUser,
   updateUserSection,
   createSection,
+  deleteSection,
   getGlobalCheatLogs,
   getPlatformMetrics
 } = require('../controllers/adminController');
@@ -37,6 +38,7 @@ router.patch('/users/:id/section', updateUserSection);
 // 3. Academic Structure
 // Note: Getting all sections is handled by the general `sectionRoutes.js`
 router.post('/sections', createSection);
+router.delete('/sections/:id', deleteSection);
 
 // 4. Analytics
 router.get('/analytics/logs', getGlobalCheatLogs);

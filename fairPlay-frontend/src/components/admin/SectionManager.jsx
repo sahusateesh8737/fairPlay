@@ -42,11 +42,14 @@ const SectionManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this section? This might impact linked teachers/students.")) return;
-    // Note: The backend currently lacks a DELETE /sections endpoint.
-    // If you need actual deletion, you must add it to the backend `adminController.js` first.
-    // For now, alerting user.
-    alert("Delete section functionality requires a database cascade update. Not implemented yet.");
+    if(!window.confirm("Are you sure you want to delete this section? This will also permanently delete all assignments, submissions, cheat logs, and exam sessions associated with it! Users will remain but be unlinked.")) return;
+    
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/admin/sections/${id}`, { withCredentials: true });
+      fetchSections();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete section');
+    }
   };
 
   const filteredSections = sections.filter(sec => 

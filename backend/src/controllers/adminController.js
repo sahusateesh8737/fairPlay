@@ -193,6 +193,38 @@ exports.createSection = async (req, res, next) => {
   }
 };
 
+exports.deleteSection = async (req, res, next) => {
+  try {
+    const sectionId = parseInt(req.params.id);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Unlink users from this section
+      await tx.user.updateMany({
+        where: { sectionId },
+        data: { sectionId: null }
+      });
+      // 2. Delete related assignments (this cascades to questions, submissions, exam_sessions, cheat_logs)
+      await tx.assignment.deleteMany({
+        where: { targetSectionId: sectionId }
+      });
+      // 3. Delete the section
+      await tx.section.delete({
+        where: { id: sectionId }
+      });
+    }, {
+      maxWait: 5000, // 5s max wait to connect
+      timeout: 15000 // 15s timeout for transaction
+    });
+
+    res.status(200).json({ success: true, message: 'Section and associated assignments deleted successfully' });
+  } catch (err) {
+    if (err.code === 'P2025') {
+      return res.status(404).json({ success: false, message: 'Section not found' });
+    }
+    next(err);
+  }
+};
+
 
 // ==========================================
 // 4. SYSTEM AUDIT & ANALYTICS
