@@ -1,0 +1,2989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 8 · Advanced SQL Interview Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f8f7ff;
+  --glass: rgba(255,255,255,0.65);
+  --glass-border: rgba(255,255,255,0.9);
+  --blue: #4f8ef7;
+  --indigo: #7c6ff7;
+  --violet: #a78bfa;
+  --pink: #f472b6;
+  --rose: #fb7185;
+  --teal: #2dd4bf;
+  --amber: #fbbf24;
+  --green: #34d399;
+  --red: #f87171;
+  --text: #1e1b4b;
+  --text-muted: #6b7280;
+  --shadow-blue: rgba(79,142,247,0.25);
+  --shadow-pink: rgba(244,114,182,0.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* GRADIENT BACKGROUND */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 10%, rgba(199,210,254,0.5) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 20%, rgba(244,114,182,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(167,139,250,0.3) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(45,212,191,0.15) 0%, transparent 50%),
+    linear-gradient(160deg, #ffffff 0%, #eef2ff 35%, #f5f3ff 60%, #fdf2f8 100%);
+  z-index: -1;
+}
+
+/* NOISE TEXTURE */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid rgba(255,255,255,0.8);
+  padding: 0 2rem;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 24px rgba(79,142,247,0.08);
+}
+
+.nav-brand {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--blue), var(--violet), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.nav-links {
+  display: flex; gap: 0.4rem; list-style: none; flex-wrap: wrap;
+}
+
+.nav-links a {
+  font-size: 0.72rem; font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  text-decoration: none;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.nav-links a:hover {
+  color: var(--blue);
+  background: rgba(79,142,247,0.08);
+  border-color: rgba(79,142,247,0.2);
+}
+
+/* PROGRESS BAR */
+#progress-bar {
+  position: fixed; top: 60px; left: 0; height: 3px; z-index: 101;
+  background: linear-gradient(90deg, var(--blue), var(--violet), var(--pink));
+  width: 0%; transition: width 0.1s;
+  box-shadow: 0 0 12px rgba(167,139,250,0.6);
+}
+
+/* MAIN WRAPPER */
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 90px 1.5rem 4rem;
+}
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 4rem 0 3rem;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 1rem;
+  background: rgba(79,142,247,0.1);
+  border: 1px solid rgba(79,142,247,0.25);
+  border-radius: 30px;
+  font-size: 0.78rem; font-weight: 600;
+  color: var(--blue);
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.05em;
+}
+
+.hero h1 {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #1e1b4b 0%, #4f8ef7 40%, #a78bfa 70%, #f472b6 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 540px;
+  margin: 0 auto 2rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.hero-stats {
+  display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Caveat', cursive;
+  font-size: 2rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+/* SECTION */
+section { margin-bottom: 4rem; }
+
+.section-number {
+  font-family: 'Caveat', cursive;
+  font-size: 0.9rem;
+  color: var(--violet);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+h2 {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+
+p {
+  color: #374151;
+  line-height: 1.75;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  font-weight: 300;
+}
+
+/* GLASS CARD */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 1.8rem;
+  box-shadow: 0 8px 40px rgba(79,142,247,0.1), 0 2px 8px rgba(0,0,0,0.04);
+  transition: transform 0.3s, box-shadow 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--violet), var(--pink));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(79,142,247,0.15), 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.card:hover::before { opacity: 1; }
+
+/* MINDSET BOX */
+.mindset-box {
+  background: linear-gradient(135deg, rgba(79,142,247,0.08), rgba(167,139,250,0.08));
+  border: 1.5px solid rgba(79,142,247,0.25);
+  border-radius: 16px;
+  padding: 1.4rem 1.6rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.mindset-box .emoji {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.mindset-box h3 {
+  color: var(--blue);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.8rem;
+}
+
+/* WARNING BOX */
+.warning-box {
+  background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(248,113,113,0.06));
+  border: 1.5px solid rgba(251,191,36,0.3);
+  border-radius: 16px;
+  padding: 1.2rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.warning-box h3 { color: #d97706; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* SUCCESS BOX */
+.success-box {
+  background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(45,212,191,0.08));
+  border: 1.5px solid rgba(52,211,153,0.3);
+  border-radius: 16px;
+  padding: 1.2rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.success-box h3 { color: #059669; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* ERROR BOX */
+.error-box {
+  background: linear-gradient(135deg, rgba(248,113,113,0.08), rgba(251,113,133,0.06));
+  border: 1.5px solid rgba(248,113,113,0.3);
+  border-radius: 16px;
+  padding: 1.2rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.error-box h3 { color: #dc2626; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* SQL CODE */
+.sql-block {
+  background: #0f0f1a;
+  border-radius: 14px;
+  padding: 1.4rem 1.6rem;
+  margin: 1.2rem 0;
+  position: relative;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  border: 1px solid rgba(167,139,250,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.sql-block::before {
+  content: 'SQL';
+  position: absolute; top: 0.7rem; right: 1rem;
+  font-size: 0.65rem; font-weight: 700;
+  color: rgba(167,139,250,0.5);
+  letter-spacing: 0.1em;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.sql-kw { color: #c792ea; font-weight: 600; }
+.sql-fn { color: #82aaff; }
+.sql-str { color: #c3e88d; }
+.sql-num { color: #f78c6c; }
+.sql-comment { color: #546e7a; font-style: italic; }
+.sql-col { color: #ffcb6b; }
+.sql-tbl { color: #89ddff; }
+
+/* FLOW DIAGRAM */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1.2rem 0;
+}
+
+.flow-step {
+  background: linear-gradient(135deg, rgba(79,142,247,0.1), rgba(167,139,250,0.1));
+  border: 1px solid rgba(79,142,247,0.25);
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--blue);
+  white-space: nowrap;
+}
+
+.flow-arrow {
+  font-size: 1.2rem;
+  color: var(--violet);
+  animation: pulse-arrow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-arrow {
+  0%,100% { opacity: 0.5; transform: translateX(0); }
+  50% { opacity: 1; transform: translateX(3px); }
+}
+
+/* STEP BOX */
+.step-list {
+  display: flex; flex-direction: column; gap: 0.8rem;
+  margin: 1.2rem 0;
+}
+
+.step-item {
+  display: flex; align-items: flex-start; gap: 1rem;
+  padding: 0.8rem 1rem;
+  background: rgba(255,255,255,0.7);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s;
+}
+
+.step-item:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(79,142,247,0.12); }
+
+.step-num {
+  min-width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--blue), var(--violet));
+  color: white; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700;
+}
+
+.step-text { font-size: 0.88rem; line-height: 1.6; color: #374151; font-weight: 400; }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 1.2rem 0; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.2rem 0; }
+
+@media (max-width: 680px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+
+/* METHOD CARD */
+.method-card {
+  background: rgba(255,255,255,0.7);
+  border-radius: 14px;
+  padding: 1.2rem;
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+  transition: all 0.2s;
+}
+
+.method-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(79,142,247,0.12); }
+
+.method-tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+}
+
+.tag-blue { background: rgba(79,142,247,0.12); color: var(--blue); }
+.tag-violet { background: rgba(124,111,247,0.12); color: var(--indigo); }
+.tag-green { background: rgba(52,211,153,0.12); color: #059669; }
+.tag-amber { background: rgba(251,191,36,0.12); color: #d97706; }
+.tag-pink { background: rgba(244,114,182,0.12); color: #db2777; }
+.tag-teal { background: rgba(45,212,191,0.12); color: #0891b2; }
+.tag-red { background: rgba(248,113,113,0.12); color: #dc2626; }
+
+/* LEADERBOARD */
+.leaderboard {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  margin: 1.2rem 0;
+}
+
+.lb-row {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255,255,255,0.75);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.9);
+  transition: all 0.2s;
+}
+
+.lb-row:hover { transform: translateX(6px); }
+
+.lb-rank {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem; font-weight: 700;
+}
+
+.rank-1 { color: #f59e0b; }
+.rank-2 { color: #9ca3af; }
+.rank-3 { color: #cd7c2e; }
+.rank-n { color: var(--violet); }
+
+.lb-name { font-weight: 500; font-size: 0.9rem; flex: 1; }
+.lb-val { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 600; color: var(--blue); }
+
+/* TABLE */
+.pattern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.2rem 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(79,142,247,0.08);
+}
+
+.pattern-table th {
+  background: linear-gradient(135deg, rgba(79,142,247,0.15), rgba(167,139,250,0.15));
+  padding: 0.9rem 1.2rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--indigo);
+  text-align: left;
+  border-bottom: 1px solid rgba(167,139,250,0.2);
+}
+
+.pattern-table td {
+  padding: 0.85rem 1.2rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(230,230,250,0.5);
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  transition: background 0.2s;
+  line-height: 1.5;
+}
+
+.pattern-table tr:last-child td { border-bottom: none; }
+.pattern-table tr:hover td { background: rgba(79,142,247,0.05); }
+
+/* GLOW PATTERN CARDS */
+.pattern-cards {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem; margin: 1.2rem 0;
+}
+
+.pattern-card {
+  border-radius: 16px;
+  padding: 1.2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.pattern-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 16px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes border-glow {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.pattern-card:hover { transform: translateY(-5px) scale(1.02); }
+
+.pattern-card h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.4rem; }
+.pattern-card p { font-size: 0.78rem; color: #6b7280; margin: 0; line-height: 1.5; }
+.pattern-card .icon { font-size: 1.4rem; margin-bottom: 0.5rem; display: block; }
+
+.pc-blue { background: linear-gradient(135deg, rgba(79,142,247,0.1), rgba(124,111,247,0.08)); --c1: #4f8ef7; --c2: #7c6ff7; }
+.pc-pink { background: linear-gradient(135deg, rgba(244,114,182,0.1), rgba(251,113,133,0.08)); --c1: #f472b6; --c2: #fb7185; }
+.pc-green { background: linear-gradient(135deg, rgba(52,211,153,0.1), rgba(45,212,191,0.08)); --c1: #34d399; --c2: #2dd4bf; }
+.pc-amber { background: linear-gradient(135deg, rgba(251,191,36,0.1), rgba(248,113,113,0.08)); --c1: #fbbf24; --c2: #f87171; }
+.pc-violet { background: linear-gradient(135deg, rgba(167,139,250,0.1), rgba(124,111,247,0.08)); --c1: #a78bfa; --c2: #7c6ff7; }
+.pc-teal { background: linear-gradient(135deg, rgba(45,212,191,0.1), rgba(79,142,247,0.08)); --c1: #2dd4bf; --c2: #4f8ef7; }
+
+/* INTERVIEW QUESTION */
+.iq-card {
+  border-radius: 20px;
+  padding: 1.8rem;
+  margin-bottom: 1.5rem;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 40px rgba(79,142,247,0.08);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.iq-card:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(79,142,247,0.13); }
+
+.iq-num {
+  position: absolute; top: 1.5rem; right: 1.5rem;
+  font-family: 'Caveat', cursive;
+  font-size: 3rem; font-weight: 700;
+  color: rgba(79,142,247,0.07);
+  line-height: 1;
+}
+
+.iq-label {
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 0.5rem;
+}
+
+.iq-card h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-right: 3rem;
+}
+
+.think-box {
+  background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(167,139,250,0.08));
+  border: 1px solid rgba(251,191,36,0.25);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+}
+
+.think-box .think-label {
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: #d97706;
+  margin-bottom: 0.5rem;
+}
+
+.think-box p { font-size: 0.85rem; color: #374151; margin: 0; line-height: 1.6; }
+
+/* TABLE SCHEMA */
+.schema-box {
+  background: rgba(15,15,26,0.95);
+  border-radius: 12px;
+  padding: 1rem 1.4rem;
+  margin: 0.8rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: #89ddff;
+  border: 1px solid rgba(137,221,255,0.15);
+}
+
+.schema-title { color: #c792ea; font-weight: 600; margin-bottom: 0.4rem; display: block; }
+.schema-col { color: #ffcb6b; }
+.schema-type { color: #89ddff; opacity: 0.7; margin-left: 0.5rem; }
+
+/* MCQ */
+.mcq-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 1.6rem;
+  margin-bottom: 1.2rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 6px 30px rgba(79,142,247,0.08);
+}
+
+.mcq-q { font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+
+.mcq-options { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+
+.mcq-opt {
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(255,255,255,0.6);
+  color: #374151;
+}
+
+.mcq-opt:hover { background: rgba(79,142,247,0.08); border-color: rgba(79,142,247,0.25); color: var(--blue); }
+
+.mcq-opt.correct {
+  background: linear-gradient(135deg, rgba(52,211,153,0.15), rgba(45,212,191,0.1));
+  border-color: rgba(52,211,153,0.4);
+  color: #059669;
+  font-weight: 600;
+}
+
+.mcq-opt.wrong {
+  background: rgba(248,113,113,0.08);
+  border-color: rgba(248,113,113,0.3);
+  color: #dc2626;
+  text-decoration: line-through;
+}
+
+.mcq-answer {
+  background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(79,142,247,0.08));
+  border: 1px solid rgba(52,211,153,0.25);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  font-size: 0.82rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+/* MISTAKE CARD */
+.mistake-card {
+  background: var(--glass);
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 16px;
+  padding: 1.4rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(248,113,113,0.06);
+  transition: all 0.2s;
+}
+
+.mistake-card:hover { transform: translateY(-2px); }
+
+.mistake-card .mistake-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+.mistake-card h3 { font-size: 0.95rem; margin-bottom: 0.5rem; color: #dc2626; }
+.mistake-card p { font-size: 0.85rem; color: #374151; margin: 0; line-height: 1.6; }
+
+/* REVISION */
+.revision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 1.2rem 0;
+}
+
+.rev-card {
+  background: var(--glass);
+  border-radius: 16px;
+  padding: 1.2rem;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  transition: all 0.25s;
+}
+
+.rev-card:hover { transform: translateY(-4px) rotate(-0.5deg); box-shadow: 0 12px 32px rgba(79,142,247,0.12); }
+
+.rev-card h4 {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem; font-weight: 700;
+  margin-bottom: 0.7rem;
+}
+
+.rev-card ul { list-style: none; padding: 0; }
+.rev-card li {
+  font-size: 0.8rem;
+  color: #374151;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed rgba(107,114,128,0.2);
+  display: flex; align-items: flex-start; gap: 0.4rem;
+  line-height: 1.5;
+}
+.rev-card li:last-child { border-bottom: none; }
+.rev-card li::before { content: '→'; color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+/* JOIN DIAGRAM */
+.join-diagram {
+  display: flex; gap: 1rem; margin: 1.2rem 0; flex-wrap: wrap;
+}
+
+.join-table {
+  flex: 1; min-width: 160px;
+  background: rgba(15,15,26,0.9);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  border: 1px solid rgba(167,139,250,0.2);
+}
+
+.join-table .th {
+  background: rgba(167,139,250,0.2);
+  padding: 0.5rem 0.8rem;
+  color: #c792ea; font-weight: 600;
+}
+
+.join-table .tr {
+  padding: 0.4rem 0.8rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #89ddff;
+}
+
+.join-table .tr.highlight { background: rgba(52,211,153,0.1); color: #34d399; }
+.join-table .tr.null { background: rgba(248,113,113,0.1); color: #f87171; }
+
+.join-symbol {
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--violet);
+  padding: 0 0.5rem;
+}
+
+/* ANIMATIONS */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px) scale(0.97);
+  transition: opacity 0.7s cubic-bezier(0.22,1,0.36,1), transform 0.7s cubic-bezier(0.22,1,0.36,1);
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* 3D CANVAS LAYER */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* FLOATING ORBS */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+  animation: orb-float linear infinite;
+}
+
+@keyframes orb-float {
+  0%   { transform: translate(0,0) scale(1); }
+  25%  { transform: translate(30px,-40px) scale(1.05); }
+  50%  { transform: translate(-20px,20px) scale(0.95); }
+  75%  { transform: translate(40px,10px) scale(1.08); }
+  100% { transform: translate(0,0) scale(1); }
+}
+
+/* 3D TILT CARDS */
+.card {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* GLITCH TEXT EFFECT on hero */
+@keyframes glitch-shift {
+  0%,100% { clip-path: inset(0 0 95% 0); transform: translate(-2px,0); }
+  20%      { clip-path: inset(30% 0 50% 0); transform: translate(2px,0); }
+  40%      { clip-path: inset(60% 0 20% 0); transform: translate(-1px,0); }
+  60%      { clip-path: inset(80% 0 5% 0); transform: translate(3px,0); }
+  80%      { clip-path: inset(10% 0 80% 0); transform: translate(-3px,0); }
+}
+
+/* 3D ROTATING CUBE for hero decoration */
+.cube-scene {
+  position: absolute;
+  right: 5%;
+  top: 20%;
+  width: 80px;
+  height: 80px;
+  perspective: 400px;
+  pointer-events: none;
+}
+
+.cube {
+  width: 80px; height: 80px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: cube-spin 12s linear infinite;
+}
+
+@keyframes cube-spin {
+  from { transform: rotateX(20deg) rotateY(0deg); }
+  to   { transform: rotateX(20deg) rotateY(360deg); }
+}
+
+.cube-face {
+  position: absolute;
+  width: 80px; height: 80px;
+  border: 1.5px solid rgba(79,142,247,0.4);
+  background: rgba(79,142,247,0.04);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  color: rgba(79,142,247,0.7);
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.cube-face.front  { transform: translateZ(40px); }
+.cube-face.back   { transform: rotateY(180deg) translateZ(40px); }
+.cube-face.right  { transform: rotateY(90deg) translateZ(40px); }
+.cube-face.left   { transform: rotateY(-90deg) translateZ(40px); }
+.cube-face.top    { transform: rotateX(90deg) translateZ(40px); }
+.cube-face.bottom { transform: rotateX(-90deg) translateZ(40px); }
+
+/* SECOND CUBE - smaller, left side */
+.cube-scene-2 {
+  position: absolute;
+  left: 3%;
+  top: 40%;
+  width: 50px;
+  height: 50px;
+  perspective: 300px;
+  pointer-events: none;
+}
+
+.cube-2 {
+  width: 50px; height: 50px;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: cube-spin2 18s linear infinite;
+}
+
+@keyframes cube-spin2 {
+  from { transform: rotateX(-15deg) rotateY(0deg) rotateZ(5deg); }
+  to   { transform: rotateX(-15deg) rotateY(-360deg) rotateZ(5deg); }
+}
+
+.cube-2 .cube-face {
+  width: 50px; height: 50px;
+  border-color: rgba(167,139,250,0.35);
+  background: rgba(167,139,250,0.03);
+  font-size: 0.5rem;
+  color: rgba(167,139,250,0.6);
+}
+.cube-2 .cube-face.front  { transform: translateZ(25px); }
+.cube-2 .cube-face.back   { transform: rotateY(180deg) translateZ(25px); }
+.cube-2 .cube-face.right  { transform: rotateY(90deg) translateZ(25px); }
+.cube-2 .cube-face.left   { transform: rotateY(-90deg) translateZ(25px); }
+.cube-2 .cube-face.top    { transform: rotateX(90deg) translateZ(25px); }
+.cube-2 .cube-face.bottom { transform: rotateX(-90deg) translateZ(25px); }
+
+/* ANIMATED RINGS around stat numbers */
+.stat {
+  position: relative;
+}
+
+.stat-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 70px; height: 70px;
+  margin: -35px 0 0 -35px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(79,142,247,0.2);
+  animation: ring-pulse 3s ease-in-out infinite;
+}
+
+.stat-ring:nth-child(2) {
+  width: 90px; height: 90px;
+  margin: -45px 0 0 -45px;
+  animation-delay: 0.5s;
+  border-color: rgba(167,139,250,0.15);
+}
+
+@keyframes ring-pulse {
+  0%,100% { transform: scale(0.9); opacity: 0.5; }
+  50%      { transform: scale(1.1); opacity: 1; }
+}
+
+/* TYPEWRITER for SQL blocks */
+.sql-typewriter .sql-line {
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  animation: type-reveal 0.4s ease forwards;
+}
+
+@keyframes type-reveal {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* MAGNETIC BUTTON EFFECT */
+.pattern-card, .rev-card, .method-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  will-change: transform;
+}
+
+/* SCROLL PARALLAX LAYERS */
+.parallax-slow { will-change: transform; }
+.parallax-fast { will-change: transform; }
+
+/* FLOWING BORDER ANIMATION */
+@keyframes border-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.card:hover::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 21px;
+  background: linear-gradient(90deg, var(--blue), var(--violet), var(--pink), var(--teal), var(--blue));
+  background-size: 300% 300%;
+  animation: border-flow 3s ease infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+/* 3D PERSPECTIVE on sections */
+section {
+  perspective: 1200px;
+}
+
+/* COUNTER ANIMATION */
+.count-up {
+  display: inline-block;
+}
+
+/* WAVE SEPARATOR */
+.wave-sep {
+  width: 100%;
+  height: 40px;
+  overflow: hidden;
+  position: relative;
+  margin: 1rem 0;
+}
+
+.wave-sep svg {
+  animation: wave-move 4s ease-in-out infinite alternate;
+}
+
+@keyframes wave-move {
+  from { transform: translateX(-10px); }
+  to   { transform: translateX(10px); }
+}
+
+/* SPOTLIGHT EFFECT on hover */
+.iq-card {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+}
+
+.iq-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: radial-gradient(circle 200px at var(--mouse-x) var(--mouse-y), rgba(79,142,247,0.08), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.iq-card:hover::after { opacity: 1; }
+
+/* 3D FLIP for MCQ reveal */
+.flip-container {
+  perspective: 800px;
+  margin-bottom: 1.2rem;
+}
+
+.flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 200px;
+}
+
+.flip-inner.flipped { transform: rotateY(180deg); }
+
+.flip-front, .flip-back {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: 18px;
+  padding: 1.6rem;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 6px 30px rgba(79,142,247,0.08);
+}
+
+.flip-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, rgba(79,142,247,0.06), rgba(167,139,250,0.06));
+}
+
+/* STAGGER children */
+.fade-in.visible > * {
+  animation: child-stagger 0.5s ease both;
+}
+
+@keyframes child-stagger {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* NEON GLOW keyframe on section headings */
+@keyframes text-glow {
+  0%,100% { text-shadow: none; filter: brightness(1); }
+  50%      { filter: brightness(1.15); }
+}
+
+h2 { animation: text-glow 6s ease-in-out infinite; }
+
+/* MORPHING background blob */
+@keyframes blob-morph {
+  0%,100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50%      { border-radius: 50% 60% 30% 60% / 40% 50% 70% 30%; }
+  75%      { border-radius: 40% 70% 60% 30% / 70% 40% 60% 50%; }
+}
+
+.hero-blob {
+  position: absolute;
+  width: 400px; height: 400px;
+  top: 50%; left: 50%;
+  margin: -200px 0 0 -200px;
+  background: radial-gradient(circle, rgba(79,142,247,0.06) 0%, rgba(167,139,250,0.04) 50%, transparent 70%);
+  animation: blob-morph 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* SCROLLING TICKER */
+.ticker-wrap {
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(79,142,247,0.06), rgba(167,139,250,0.06));
+  border: 1px solid rgba(79,142,247,0.12);
+  border-radius: 40px;
+  padding: 0.5rem 0;
+  margin: 1.5rem 0;
+}
+
+.ticker-inner {
+  display: flex;
+  gap: 3rem;
+  white-space: nowrap;
+  animation: ticker-scroll 20s linear infinite;
+  width: max-content;
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--indigo);
+  font-weight: 600;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+
+.ticker-dot {
+  width: 6px; height: 6px;
+  background: var(--violet);
+  border-radius: 50%;
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%,100% { transform: scale(1); opacity: 0.5; }
+  50%      { transform: scale(1.5); opacity: 1; }
+}
+
+/* 3D PERSPECTIVE GRID FLOOR */
+.grid-floor {
+  position: relative;
+  height: 80px;
+  margin: 2rem 0;
+  overflow: hidden;
+  opacity: 0.4;
+}
+
+.grid-floor canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* EXPLODING PARTICLES on section enter */
+@keyframes particle-burst {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+/* MAGNETIC hover - js driven */
+.magnetic { transition: transform 0.2s cubic-bezier(0.4,0,0.2,1); }
+
+/* RIPPLE on click */
+.ripple-host { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(79,142,247,0.25);
+  pointer-events: none;
+  animation: ripple-out 0.6s ease-out forwards;
+}
+
+@keyframes ripple-out {
+  from { transform: scale(0); opacity: 1; }
+  to   { transform: scale(4); opacity: 0; }
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.3), transparent);
+  margin: 3rem 0;
+}
+
+/* INLINE CODE */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(124,111,247,0.1);
+  color: var(--indigo);
+  padding: 0.1rem 0.4rem;
+  border-radius: 5px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+/* HIGHLIGHT */
+.hl-blue { background: rgba(79,142,247,0.15); color: var(--blue); padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600; }
+.hl-pink { background: rgba(244,114,182,0.15); color: #db2777; padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600; }
+.hl-green { background: rgba(52,211,153,0.15); color: #059669; padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600; }
+.hl-amber { background: rgba(251,191,36,0.15); color: #d97706; padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 600; }
+
+/* RUNNING TOTAL VIZ */
+.running-total {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  margin: 1.2rem 0;
+}
+
+.rt-row {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.9);
+  font-size: 0.82rem;
+}
+
+.rt-bar {
+  height: 10px; border-radius: 5px;
+  background: linear-gradient(90deg, var(--blue), var(--violet));
+  min-width: 4px;
+  transition: width 1s ease;
+  box-shadow: 0 0 8px rgba(79,142,247,0.4);
+}
+
+.rt-label { min-width: 60px; font-weight: 500; color: #374151; font-size: 0.8rem; }
+.rt-val { font-family: 'JetBrains Mono', monospace; min-width: 60px; color: var(--blue); font-weight: 600; font-size: 0.8rem; }
+.rt-total { font-family: 'JetBrains Mono', monospace; min-width: 80px; color: var(--violet); font-weight: 700; font-size: 0.82rem; }
+
+/* SQL KEYWORD GLOW on hover */
+.sql-kw { color: #c792ea; font-weight: 600; display: inline; transition: text-shadow 0.3s, color 0.3s; cursor: default; }
+.sql-kw:hover { color: #e0b0ff; text-shadow: 0 0 12px rgba(199,146,234,0.9), 0 0 28px rgba(199,146,234,0.5); }
+.sql-fn { color: #82aaff; transition: text-shadow 0.3s; cursor: default; }
+.sql-fn:hover { color: #b0c9ff; text-shadow: 0 0 12px rgba(130,170,255,0.9), 0 0 28px rgba(130,170,255,0.5); }
+.sql-col { color: #ffcb6b; transition: text-shadow 0.3s; cursor: default; }
+.sql-col:hover { color: #ffe08a; text-shadow: 0 0 10px rgba(255,203,107,0.8); }
+.sql-tbl { color: #89ddff; transition: text-shadow 0.3s; cursor: default; }
+.sql-tbl:hover { color: #aaeeff; text-shadow: 0 0 10px rgba(137,221,255,0.8); }
+
+/* ANIMATED UNDERLINE on h2 */
+h2 { position: relative; display: inline-block; }
+h2::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #4f8ef7, #a78bfa, #f472b6); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 0.7s cubic-bezier(0.4,0,0.2,1); }
+section.fade-in.visible h2::after { transform: scaleX(1); }
+
+/* FLOW ARROW bounce */
+.flow-arrow { display: inline-block; animation: arrow-bounce 1.2s ease-in-out infinite; }
+@keyframes arrow-bounce { 0%,100%{transform:translateX(0) scale(1);opacity:0.6;} 50%{transform:translateX(5px) scale(1.15);opacity:1;} }
+
+/* FLOW STEP hover */
+.flow-step { cursor: default; transition: transform 0.2s, box-shadow 0.2s; }
+.flow-step:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 6px 20px rgba(79,142,247,0.22); }
+
+/* STEP items slide in */
+.visible .step-list .step-item:nth-child(1){animation:slide-in 0.45s ease 0.08s both;}
+.visible .step-list .step-item:nth-child(2){animation:slide-in 0.45s ease 0.18s both;}
+.visible .step-list .step-item:nth-child(3){animation:slide-in 0.45s ease 0.28s both;}
+.visible .step-list .step-item:nth-child(4){animation:slide-in 0.45s ease 0.38s both;}
+@keyframes slide-in{from{opacity:0;transform:translateX(-22px);}to{opacity:1;transform:translateX(0);}}
+
+/* LEADERBOARD rows */
+.lb-row:nth-child(1){animation:lb-enter 0.5s ease 0.05s both;}
+.lb-row:nth-child(2){animation:lb-enter 0.5s ease 0.15s both;}
+.lb-row:nth-child(3){animation:lb-enter 0.5s ease 0.25s both;}
+.lb-row:nth-child(4){animation:lb-enter 0.5s ease 0.35s both;}
+@keyframes lb-enter{from{opacity:0;transform:translateX(-30px);}to{opacity:1;transform:translateX(0);}}
+
+/* PATTERN CARDS stagger pop */
+.pattern-cards .pattern-card:nth-child(1){animation:pc-pop 0.4s ease 0.05s both;}
+.pattern-cards .pattern-card:nth-child(2){animation:pc-pop 0.4s ease 0.12s both;}
+.pattern-cards .pattern-card:nth-child(3){animation:pc-pop 0.4s ease 0.19s both;}
+.pattern-cards .pattern-card:nth-child(4){animation:pc-pop 0.4s ease 0.26s both;}
+.pattern-cards .pattern-card:nth-child(5){animation:pc-pop 0.4s ease 0.33s both;}
+.pattern-cards .pattern-card:nth-child(6){animation:pc-pop 0.4s ease 0.40s both;}
+.pattern-cards .pattern-card:nth-child(7){animation:pc-pop 0.4s ease 0.47s both;}
+.pattern-cards .pattern-card:nth-child(8){animation:pc-pop 0.4s ease 0.54s both;}
+@keyframes pc-pop{from{opacity:0;transform:scale(0.82) translateY(14px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+/* MCQ option shimmer */
+.mcq-opt{position:relative;overflow:hidden;}
+.mcq-opt::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(79,142,247,0.08),transparent);transform:translateX(-100%);transition:transform 0.45s ease;}
+.mcq-opt:hover::before{transform:translateX(100%);}
+
+/* MISTAKE card shake */
+.mistake-card:hover{animation:card-shake 0.4s ease;}
+@keyframes card-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-4px) rotate(-0.5deg);}40%{transform:translateX(4px) rotate(0.5deg);}60%{transform:translateX(-2px);}80%{transform:translateX(2px);}}
+
+/* JOIN rows pulse */
+.join-table .tr.highlight{animation:row-flash 3.5s ease-in-out infinite;}
+@keyframes row-flash{0%,100%{background:transparent;}50%{background:rgba(52,211,153,0.14);}}
+.join-table .tr.null{animation:null-flash 3.5s ease-in-out infinite;animation-delay:1.75s;}
+@keyframes null-flash{0%,100%{background:transparent;}50%{background:rgba(248,113,113,0.12);}}
+
+/* SCHEMA BOX cursor blink */
+.schema-box::after{content:'|';animation:blink 1s step-end infinite;color:#c792ea;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* IQ NUM float */
+.iq-num{animation:num-float 4.5s ease-in-out infinite;}
+@keyframes num-float{0%,100%{transform:translateY(0);opacity:0.07;}50%{transform:translateY(-7px);opacity:0.12;}}
+
+/* HERO BADGE pulse */
+.hero-badge{animation:badge-pulse 3s ease-in-out infinite;}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 0 0 rgba(79,142,247,0.3);}50%{box-shadow:0 0 0 8px rgba(79,142,247,0);}}
+
+/* REV CARD tilt on hover */
+.rev-card:hover{transform:translateY(-6px) rotate(-1.2deg) scale(1.03)!important;box-shadow:0 18px 44px rgba(79,142,247,0.18)!important;}
+
+/* SECTION NUM spin */
+.section-number{display:inline-block;animation:num-appear 0.6s cubic-bezier(0.34,1.56,0.64,1) both;}
+@keyframes num-appear{from{opacity:0;transform:scale(0.5) rotate(-12deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+
+/* RT BARS animate */
+.rt-bar{transition:width 1.3s cubic-bezier(0.4,0,0.2,1)!important;}
+
+/* GLOWING BORDER on nav brand hover */
+.nav-brand:hover{filter:brightness(1.2);}
+
+/* CARD gradient border on hover */
+.card:hover::before{opacity:1;}
+
+/* IQ CARD spotlight */
+.iq-card::after{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(circle 180px at var(--mouse-x,50%) var(--mouse-y,50%),rgba(79,142,247,0.07),transparent);pointer-events:none;opacity:0;transition:opacity 0.3s;}
+.iq-card:hover::after{opacity:1;}
+
+/* RUNNING TOTAL bar glow */
+.rt-bar{box-shadow:0 0 12px rgba(79,142,247,0.5),0 0 24px rgba(167,139,250,0.3)!important;}
+
+/* 3D GRID FLOOR */
+.grid-3d{width:100%;height:50px;margin:1rem 0;opacity:0.3;overflow:hidden;}
+
+</style>
+</head>
+<body>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- FLOATING ORBS -->
+<div class="orb" style="width:300px;height:300px;top:-50px;left:-80px;background:radial-gradient(circle,rgba(79,142,247,0.18),transparent 70%);animation-duration:20s;"></div>
+<div class="orb" style="width:250px;height:250px;top:30%;right:-60px;background:radial-gradient(circle,rgba(244,114,182,0.15),transparent 70%);animation-duration:25s;animation-delay:-8s;"></div>
+<div class="orb" style="width:200px;height:200px;bottom:20%;left:10%;background:radial-gradient(circle,rgba(167,139,250,0.2),transparent 70%);animation-duration:18s;animation-delay:-4s;"></div>
+<div class="orb" style="width:150px;height:150px;bottom:10%;right:15%;background:radial-gradient(circle,rgba(45,212,191,0.15),transparent 70%);animation-duration:22s;animation-delay:-12s;"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">📊 SQL Mastery · Day 8</div>
+  <ul class="nav-links">
+    <li><a href="#intro">Intro</a></li>
+    <li><a href="#second-highest">2nd Highest</a></li>
+    <li><a href="#topn">Top N</a></li>
+    <li><a href="#dept">By Dept</a></li>
+    <li><a href="#duplicates">Duplicates</a></li>
+    <li><a href="#missing">Missing</a></li>
+    <li><a href="#running">Running</a></li>
+    <li><a href="#patterns">Patterns</a></li>
+    <li><a href="#questions">Questions</a></li>
+    <li><a href="#mcq">MCQ</a></li>
+    <li><a href="#mistakes">Mistakes</a></li>
+    <li><a href="#revision">Revision</a></li>
+  </ul>
+</nav>
+
+<div id="progress-bar"></div>
+
+<main>
+
+<!-- HERO -->
+<div class="hero fade-in" style="position:relative;">
+  <div class="hero-blob"></div>
+
+  <div class="cube-scene">
+    <div class="cube">
+      <div class="cube-face front">SQL</div>
+      <div class="cube-face back">JOIN</div>
+      <div class="cube-face right">MAX()</div>
+      <div class="cube-face left">AVG()</div>
+      <div class="cube-face top">GROUP</div>
+      <div class="cube-face bottom">RANK()</div>
+    </div>
+  </div>
+
+  <div class="cube-scene-2" style="position:absolute;left:3%;top:40%;">
+    <div class="cube-2">
+      <div class="cube-face front">∑</div>
+      <div class="cube-face back">∅</div>
+      <div class="cube-face right">∞</div>
+      <div class="cube-face left">⊕</div>
+      <div class="cube-face top">≡</div>
+      <div class="cube-face bottom">∧</div>
+    </div>
+  </div>
+
+  <div style="position:relative;z-index:1;">
+    <div class="hero-badge">⚡ Interview Preparation Series</div>
+    <h1>Advanced SQL<br>Interview Patterns</h1>
+    <p class="hero-sub">Stop memorizing syntax. Start thinking like a senior engineer. Learn the 8 patterns that appear in 90% of SQL interviews.</p>
+    <div class="hero-stats">
+      <div class="stat" style="position:relative;">
+        <div class="stat-ring"></div><div class="stat-ring"></div>
+        <div class="stat-num count-up" data-target="8">0</div>
+        <div class="stat-label">Core Patterns</div>
+      </div>
+      <div class="stat" style="position:relative;">
+        <div class="stat-ring"></div><div class="stat-ring"></div>
+        <div class="stat-num count-up" data-target="8">0</div>
+        <div class="stat-label">Real Problems</div>
+      </div>
+      <div class="stat" style="position:relative;">
+        <div class="stat-ring"></div><div class="stat-ring"></div>
+        <div class="stat-num count-up" data-target="5">0</div>
+        <div class="stat-label">Tricky MCQs</div>
+      </div>
+      <div class="stat" style="position:relative;">
+        <div class="stat-ring"></div><div class="stat-ring"></div>
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Confidence</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    <span class="ticker-item"><span class="ticker-dot"></span>SELECT MAX() → Second Highest</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>GROUP BY + HAVING → Duplicates</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>LEFT JOIN + IS NULL → Missing Data</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>DENSE_RANK() → Top N Per Group</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>SUM() OVER() → Running Total</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>WHERE vs HAVING → Interview Trap</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>SELECT MAX() → Second Highest</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>GROUP BY + HAVING → Duplicates</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>LEFT JOIN + IS NULL → Missing Data</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>DENSE_RANK() → Top N Per Group</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>SUM() OVER() → Running Total</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>WHERE vs HAVING → Interview Trap</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- SECTION 1: INTRO -->
+<section id="intro" class="fade-in">
+  <span class="section-number">01 / FOUNDATION</span>
+  <h2>What Are Interview Patterns — and Why Do They Repeat?</h2>
+
+  <div class="card">
+    <p>Every SQL interview at Google, Amazon, Flipkart, or a startup is testing the same fundamental thing: <strong>can you think through a data problem and translate that thinking into a query?</strong></p>
+    <p>Companies don't care if you memorize <code>HAVING</code> — they care if you know <em>why</em> you'd use it instead of <code>WHERE</code>. They repeat the same patterns because these patterns map to <strong>real business data problems</strong> every engineer encounters.</p>
+
+    <div class="grid-2">
+      <div class="error-box">
+        <h3>❌ What beginners think</h3>
+        <p style="margin-top:.6rem;font-size:.85rem;">"I need to memorize all SQL commands and practice 200 LeetCode problems."</p>
+      </div>
+      <div class="success-box">
+        <h3>✅ What actually works</h3>
+        <p style="margin-top:.6rem;font-size:.85rem;">Internalize 8 thinking patterns. Apply them to any problem. You'll recognize the pattern before reading line 2 of a question.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mindset-box">
+    <span class="emoji">💡</span>
+    <h3>Interview Mindset</h3>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Read the question and identify the pattern.</strong> Is it "find the highest X"? "Find missing Y"? "Count duplicates"? You should name the pattern in your head within 10 seconds.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Think in data, not in syntax.</strong> Ask: "What table gives me what? What rows do I need? What do I aggregate?"</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Write the query skeleton first.</strong> SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT. Fill in details after.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>Always validate with edge cases.</strong> What if no data exists? What if salary is NULL? Mentioning this earns bonus points.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 2: SECOND HIGHEST -->
+<section id="second-highest" class="fade-in">
+  <span class="section-number">02 / CLASSIC PATTERN</span>
+  <h2>Second Highest Salary — The Most Common Interview Question</h2>
+
+  <div class="card">
+    <p>This is asked in <strong>80% of SQL interviews</strong>. But most beginners fail it — not because they don't know the syntax, but because they don't think through it logically.</p>
+
+    <div class="grid-2">
+      <div class="error-box">
+        <h3>❌ Beginner thinking</h3>
+        <p style="margin-top:.6rem;font-size:.85rem;">"I'll just ORDER BY salary DESC and grab row 2." — This fails when duplicates exist or the table is empty.</p>
+      </div>
+      <div class="success-box">
+        <h3>✅ Interviewer thinking</h3>
+        <p style="margin-top:.6rem;font-size:.85rem;">"Remove the maximum salary, then find the maximum of what remains. Handle NULLs and duplicates."</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.4rem;">The Mental Flow</h3>
+    <div class="flow">
+      <div class="flow-step">All Salaries</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Remove MAX</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Find MAX again</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">= 2nd Highest</div>
+    </div>
+
+    <h3 style="margin-top:1.4rem;">Method 1 — Classic Subquery (Must Know)</h3>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-fn">MAX</span>(<span class="sql-col">salary</span>) <span class="sql-kw">AS</span> <span class="sql-col">SecondHighest</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">salary</span> &lt; (
+  <span class="sql-comment">-- Step 1: Find the overall maximum salary</span>
+  <span class="sql-kw">SELECT</span> <span class="sql-fn">MAX</span>(<span class="sql-col">salary</span>)
+  <span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+  <span class="sql-comment">-- Step 2: Exclude it, find MAX of the rest</span>
+);
+    </div>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text">Inner query runs first → returns <span class="hl-amber">100000</span> (the maximum)</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text">Outer query filters: <code>WHERE salary &lt; 100000</code> — all top earners removed</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text">Outer <code>MAX()</code> on remaining rows → returns <span class="hl-green">95000</span> = second highest ✅</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.4rem;">Three Alternative Methods</h3>
+    <div class="grid-3">
+      <div class="method-card">
+        <span class="method-tag tag-blue">Method 2</span>
+        <h3>LIMIT / OFFSET</h3>
+        <div class="sql-block" style="font-size:.72rem;padding:0.8rem;">
+<span class="sql-kw">SELECT DISTINCT</span> <span class="sql-col">salary</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">salary</span> <span class="sql-kw">DESC</span>
+<span class="sql-kw">LIMIT</span> <span class="sql-num">1</span> <span class="sql-kw">OFFSET</span> <span class="sql-num">1</span>;
+        </div>
+        <p style="font-size:.78rem;margin-top:.5rem;color:var(--text-muted);">Skip row 1 (highest), take row 2. Use <code>DISTINCT</code> to handle duplicates.</p>
+      </div>
+      <div class="method-card">
+        <span class="method-tag tag-violet">Method 3</span>
+        <h3>Window Function</h3>
+        <div class="sql-block" style="font-size:.72rem;padding:0.8rem;">
+<span class="sql-kw">SELECT</span> <span class="sql-col">salary</span>
+<span class="sql-kw">FROM</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-col">salary</span>,
+  <span class="sql-fn">DENSE_RANK</span>() <span class="sql-kw">OVER</span> (
+    <span class="sql-kw">ORDER BY</span> <span class="sql-col">salary</span> <span class="sql-kw">DESC</span>
+  ) <span class="sql-kw">AS</span> <span class="sql-col">rnk</span>
+  <span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+) <span class="sql-col">t</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">rnk</span> = <span class="sql-num">2</span>;
+        </div>
+        <p style="font-size:.78rem;margin-top:.5rem;color:var(--text-muted);">Most flexible. Use <code>DENSE_RANK</code> — it handles tied salaries correctly.</p>
+      </div>
+      <div class="method-card">
+        <span class="method-tag tag-green">Pro Tip</span>
+        <h3>N-th Highest</h3>
+        <div class="sql-block" style="font-size:.72rem;padding:0.8rem;">
+<span class="sql-comment">-- Change WHERE rnk = N</span>
+<span class="sql-comment">-- for any N-th highest</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">rnk</span> = <span class="sql-num">3</span>  <span class="sql-comment">-- 3rd</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">rnk</span> = <span class="sql-num">5</span>  <span class="sql-comment">-- 5th</span>
+        </div>
+        <p style="font-size:.78rem;margin-top:.5rem;color:var(--text-muted);">Window function approach generalizes to any N. Always prefer this in real interviews.</p>
+      </div>
+    </div>
+
+    <div class="mindset-box" style="margin-top:1rem;">
+      <span class="emoji">🎯</span>
+      <h3>Why DENSE_RANK over RANK?</h3>
+      <p style="font-size:.85rem;color:#374151;">If two employees both earn ₹95,000 (rank 2 and 2), <code>RANK()</code> skips to 4 for next. <code>DENSE_RANK()</code> gives them both rank 2, next is 3. Interview-safe choice: always use <code>DENSE_RANK()</code>.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 3: TOP N -->
+<section id="topn" class="fade-in">
+  <span class="section-number">03 / RANKING PATTERN</span>
+  <h2>Top N Records — Leaderboards & Rankings</h2>
+
+  <div class="card">
+    <p>This pattern appears as: "Top 3 salaries", "Latest 5 orders", "Best performing students". The thinking is always: <span class="hl-blue">sort → slice</span>.</p>
+
+    <h3>The Query Template</h3>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">name</span>, <span class="sql-col">salary</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">salary</span> <span class="sql-kw">DESC</span>  <span class="sql-comment">-- ← Sort highest first</span>
+<span class="sql-kw">LIMIT</span> <span class="sql-num">3</span>;               <span class="sql-comment">-- ← Take only 3 rows</span>
+    </div>
+
+    <h3 style="margin-top:1.2rem;">Visual — The Leaderboard</h3>
+    <div class="leaderboard">
+      <div class="lb-row">
+        <div class="lb-rank rank-1">🥇</div>
+        <div class="lb-name">Priya Sharma</div>
+        <div class="lb-val">₹1,80,000</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank rank-2">🥈</div>
+        <div class="lb-name">Aryan Kapoor</div>
+        <div class="lb-val">₹1,65,000</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-rank rank-3">🥉</div>
+        <div class="lb-name">Sneha Rao</div>
+        <div class="lb-val">₹1,55,000</div>
+      </div>
+      <div class="lb-row" style="opacity:0.4;">
+        <div class="lb-rank rank-n">4</div>
+        <div class="lb-name">Rajan Mehta</div>
+        <div class="lb-val">₹1,40,000 ← excluded by LIMIT 3</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:1.2rem;">
+      <div class="method-card">
+        <span class="method-tag tag-pink">Latest Orders</span>
+        <h3>Most Recent Records</h3>
+        <div class="sql-block" style="font-size:.75rem;padding:0.9rem;">
+<span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> <span class="sql-tbl">orders</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">order_date</span> <span class="sql-kw">DESC</span>
+<span class="sql-kw">LIMIT</span> <span class="sql-num">5</span>;
+        </div>
+      </div>
+      <div class="method-card">
+        <span class="method-tag tag-teal">Top Students</span>
+        <h3>Highest Scorers</h3>
+        <div class="sql-block" style="font-size:.75rem;padding:0.9rem;">
+<span class="sql-kw">SELECT</span> <span class="sql-col">name</span>, <span class="sql-col">score</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">students</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">score</span> <span class="sql-kw">DESC</span>
+<span class="sql-kw">LIMIT</span> <span class="sql-num">10</span>;
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 4: DEPT MAX -->
+<section id="dept" class="fade-in">
+  <span class="section-number">04 / GROUP BY PATTERN</span>
+  <h2>Highest Salary Per Department</h2>
+
+  <div class="card">
+    <p>This tests your understanding of <span class="hl-blue">GROUP BY</span> — one of the most interview-critical concepts. The idea: instead of one answer for the whole table, give one answer <em>per group</em>.</p>
+
+    <h3>The Mental Model</h3>
+    <div class="flow">
+      <div class="flow-step">All Employees</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Group by Dept</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">MAX() per group</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">One row per dept</div>
+    </div>
+
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span>
+  <span class="sql-col">department</span>,
+  <span class="sql-fn">MAX</span>(<span class="sql-col">salary</span>) <span class="sql-kw">AS</span> <span class="sql-col">highest_salary</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+<span class="sql-kw">GROUP BY</span> <span class="sql-col">department</span>;  <span class="sql-comment">-- ← The magic line</span>
+    </div>
+
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text">SQL mentally splits the table into groups: one "bucket" per department.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text"><code>MAX(salary)</code> runs independently inside each bucket.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text">Results: one row per department, showing its maximum salary.</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:1.2rem;">Advanced: Get the Employee's Name Too</h3>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">e.name</span>, <span class="sql-col">e.department</span>, <span class="sql-col">e.salary</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span> <span class="sql-col">e</span>
+<span class="sql-kw">INNER JOIN</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-col">department</span>, <span class="sql-fn">MAX</span>(<span class="sql-col">salary</span>) <span class="sql-kw">AS</span> <span class="sql-col">max_sal</span>
+  <span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+  <span class="sql-kw">GROUP BY</span> <span class="sql-col">department</span>
+) <span class="sql-col">d</span>
+<span class="sql-kw">ON</span> <span class="sql-col">e.department</span> = <span class="sql-col">d.department</span>
+<span class="sql-kw">AND</span> <span class="sql-col">e.salary</span> = <span class="sql-col">d.max_sal</span>;
+    </div>
+    <p style="font-size:.85rem;color:var(--text-muted);">The subquery finds the max per department. The JOIN matches it back to the original row to get the employee's full name.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 5: DUPLICATES -->
+<section id="duplicates" class="fade-in">
+  <span class="section-number">05 / DATA QUALITY PATTERN</span>
+  <h2>Finding Duplicate Records</h2>
+
+  <div class="card">
+    <p>Data quality is a real-world problem. Finding duplicates tests your knowledge of <span class="hl-amber">GROUP BY + HAVING</span> — a powerful combination that filters <em>groups</em>, not individual rows.</p>
+
+    <div class="mindset-box">
+      <span class="emoji">🧠</span>
+      <h3>The Thinking</h3>
+      <p style="font-size:.87rem;color:#374151;margin-top:.4rem;">"If a value appears more than once, it's a duplicate. So: group by that column, count occurrences, keep only those with count > 1."</p>
+    </div>
+
+    <h3>Duplicate Emails</h3>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">email</span>, <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> <span class="sql-col">count</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">users</span>
+<span class="sql-kw">GROUP BY</span> <span class="sql-col">email</span>      <span class="sql-comment">-- Group identical emails together</span>
+<span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) &gt; <span class="sql-num">1</span>;  <span class="sql-comment">-- Only keep groups with 2+ rows</span>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3>Duplicate Names + Delete</h3>
+        <div class="sql-block" style="font-size:.78rem;">
+<span class="sql-comment">-- Find duplicates</span>
+<span class="sql-kw">SELECT</span> <span class="sql-col">name</span>, <span class="sql-fn">COUNT</span>(*)
+<span class="sql-kw">FROM</span> <span class="sql-tbl">customers</span>
+<span class="sql-kw">GROUP BY</span> <span class="sql-col">name</span>
+<span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) &gt; <span class="sql-num">1</span>;
+
+<span class="sql-comment">-- Delete keeping one</span>
+<span class="sql-kw">DELETE FROM</span> <span class="sql-tbl">customers</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">id</span> <span class="sql-kw">NOT IN</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-fn">MIN</span>(<span class="sql-col">id</span>)
+  <span class="sql-kw">FROM</span> <span class="sql-tbl">customers</span>
+  <span class="sql-kw">GROUP BY</span> <span class="sql-col">name</span>
+);
+        </div>
+      </div>
+      <div>
+        <h3>WHERE vs HAVING — Key Rule</h3>
+        <div class="warning-box">
+          <h3>⚠️ Critical Distinction</h3>
+          <p style="font-size:.83rem;margin-top:.5rem;line-height:1.6;">
+            <span class="hl-blue">WHERE</span> filters <strong>individual rows</strong> before grouping.<br>
+            <span class="hl-pink">HAVING</span> filters <strong>groups</strong> after grouping.<br><br>
+            You CANNOT use <code>WHERE COUNT(*) &gt; 1</code> — aggregates go in HAVING.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 6: MISSING DATA -->
+<section id="missing" class="fade-in">
+  <span class="section-number">06 / LEFT JOIN PATTERN</span>
+  <h2>Missing Data — Customers Without Orders</h2>
+
+  <div class="card">
+    <p>This is a deceptively simple-sounding question that most beginners get wrong. The pattern: <span class="hl-blue">LEFT JOIN + WHERE IS NULL</span>.</p>
+
+    <div class="mindset-box">
+      <span class="emoji">🧩</span>
+      <h3>Why INNER JOIN fails</h3>
+      <p style="font-size:.85rem;color:#374151;margin-top:.4rem;">INNER JOIN only returns rows that match in <em>both</em> tables. Customers with no orders have NO match in the orders table — so they disappear. You need LEFT JOIN to keep them, then filter for those with NULL on the orders side.</p>
+    </div>
+
+    <h3>Visual — The Join</h3>
+    <div class="join-diagram">
+      <div class="join-table">
+        <div class="th">customers</div>
+        <div class="tr highlight">id:1 · Priya</div>
+        <div class="tr highlight">id:2 · Aryan</div>
+        <div class="tr null">id:3 · Sneha ← no orders</div>
+        <div class="tr highlight">id:4 · Rajan</div>
+      </div>
+      <div class="join-symbol">LEFT<br>JOIN</div>
+      <div class="join-table">
+        <div class="th">orders</div>
+        <div class="tr highlight">cust:1 · ₹500</div>
+        <div class="tr highlight">cust:2 · ₹800</div>
+        <div class="tr null">NULL ← NULL here</div>
+        <div class="tr highlight">cust:4 · ₹300</div>
+      </div>
+      <div class="join-symbol">→<br>Filter<br>NULL</div>
+      <div class="join-table">
+        <div class="th">Result</div>
+        <div class="tr null">id:3 · Sneha ✅</div>
+      </div>
+    </div>
+
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">c.customer_id</span>, <span class="sql-col">c.name</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">customers</span> <span class="sql-col">c</span>
+<span class="sql-kw">LEFT JOIN</span> <span class="sql-tbl">orders</span> <span class="sql-col">o</span>
+  <span class="sql-kw">ON</span> <span class="sql-col">c.customer_id</span> = <span class="sql-col">o.customer_id</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">o.customer_id</span> <span class="sql-kw">IS NULL</span>;  <span class="sql-comment">-- ← The magic filter</span>
+    </div>
+
+    <div class="step-list">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text">LEFT JOIN keeps ALL customers, even those with no matching order.</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text">When no order exists, the orders columns become NULL in the result.</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><code>WHERE o.customer_id IS NULL</code> filters to ONLY the customers with no orders. ✅</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 7: RUNNING TOTAL -->
+<section id="running" class="fade-in">
+  <span class="section-number">07 / WINDOW FUNCTION PATTERN</span>
+  <h2>Running Total — Cumulative Analytics</h2>
+
+  <div class="card">
+    <p>Running totals (cumulative sums) appear in dashboards, finance reports, and growth charts. This is where <span class="hl-violet">Window Functions</span> shine — you compute across rows without collapsing them.</p>
+
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span>
+  <span class="sql-col">sale_date</span>,
+  <span class="sql-col">daily_sales</span>,
+  <span class="sql-fn">SUM</span>(<span class="sql-col">daily_sales</span>) <span class="sql-kw">OVER</span> (
+    <span class="sql-kw">ORDER BY</span> <span class="sql-col">sale_date</span>
+    <span class="sql-comment">-- ROWS UNBOUNDED PRECEDING = from start to current row</span>
+  ) <span class="sql-kw">AS</span> <span class="sql-col">running_total</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">sales</span>;
+    </div>
+
+    <h3 style="margin-top:1.2rem;">Visualizing the Running Sum</h3>
+    <div class="running-total" id="rt-viz">
+      <div class="rt-row">
+        <div class="rt-label">Jan 1</div>
+        <div class="rt-bar" style="width:60px;"></div>
+        <div class="rt-val">₹1,200</div>
+        <div class="rt-total">Total: ₹1,200</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-label">Jan 2</div>
+        <div class="rt-bar" style="width:100px;"></div>
+        <div class="rt-val">₹2,000</div>
+        <div class="rt-total">Total: ₹3,200</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-label">Jan 3</div>
+        <div class="rt-bar" style="width:70px;"></div>
+        <div class="rt-val">₹1,400</div>
+        <div class="rt-total">Total: ₹4,600</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-label">Jan 4</div>
+        <div class="rt-bar" style="width:140px;"></div>
+        <div class="rt-val">₹2,800</div>
+        <div class="rt-total">Total: ₹7,400</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-label">Jan 5</div>
+        <div class="rt-bar" style="width:90px;"></div>
+        <div class="rt-val">₹1,800</div>
+        <div class="rt-total">Total: ₹9,200</div>
+      </div>
+    </div>
+
+    <div class="mindset-box" style="margin-top:1rem;">
+      <span class="emoji">🪟</span>
+      <h3>Window Function Key Insight</h3>
+      <p style="font-size:.85rem;color:#374151;margin-top:.3rem;">Unlike <code>GROUP BY</code>, window functions don't collapse rows. Every original row stays in the output — it just gets an extra computed column. Think of it as "compute across a sliding window of rows."</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 8: PATTERNS -->
+<section id="patterns" class="fade-in">
+  <span class="section-number">08 / PATTERN RECOGNITION</span>
+  <h2>The Master Pattern Table</h2>
+
+  <p>Internalize this table. When you see a question, match it to a pattern in under 10 seconds.</p>
+
+  <div class="pattern-cards">
+    <div class="pattern-card pc-blue">
+      <span class="icon">🏆</span>
+      <h4>Second / N-th Highest</h4>
+      <p>Use subquery with MAX + WHERE, or DENSE_RANK() window function. Always handle NULLs.</p>
+    </div>
+    <div class="pattern-card pc-pink">
+      <span class="icon">📋</span>
+      <h4>Duplicate Records</h4>
+      <p>GROUP BY the column, COUNT(*), filter with HAVING COUNT(*) > 1. Never use WHERE for aggregates.</p>
+    </div>
+    <div class="pattern-card pc-green">
+      <span class="icon">🔍</span>
+      <h4>Missing / No-match Data</h4>
+      <p>LEFT JOIN + WHERE right_table.id IS NULL. INNER JOIN will NOT work — it hides the missing rows.</p>
+    </div>
+    <div class="pattern-card pc-amber">
+      <span class="icon">📊</span>
+      <h4>Top N Records</h4>
+      <p>ORDER BY column DESC, then LIMIT N. Use DISTINCT to avoid ties. Use DENSE_RANK for ties.</p>
+    </div>
+    <div class="pattern-card pc-violet">
+      <span class="icon">🏢</span>
+      <h4>Max / Avg Per Group</h4>
+      <p>GROUP BY the grouping column, apply aggregate (MAX, AVG, SUM, COUNT) per group.</p>
+    </div>
+    <div class="pattern-card pc-teal">
+      <span class="icon">📈</span>
+      <h4>Running Total / Rank</h4>
+      <p>Use Window Functions: SUM() OVER(), ROW_NUMBER() OVER(), DENSE_RANK() OVER()</p>
+    </div>
+    <div class="pattern-card pc-blue">
+      <span class="icon">🔗</span>
+      <h4>Filter After Aggregate</h4>
+      <p>When you need WHERE on an aggregated value (like COUNT > 5), use HAVING, not WHERE.</p>
+    </div>
+    <div class="pattern-card pc-pink">
+      <span class="icon">⚡</span>
+      <h4>Employees Above Avg</h4>
+      <p>Subquery computes AVG first, outer query compares each row. Classic correlated pattern.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1.5rem;">
+    <table class="pattern-table">
+      <thead>
+        <tr>
+          <th>Interview Question Pattern</th>
+          <th>Keyword to Recognize</th>
+          <th>SQL Approach</th>
+          <th>Watch Out For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Second/N-th highest</strong></td>
+          <td>"second highest", "third largest"</td>
+          <td>MAX + subquery, or DENSE_RANK()</td>
+          <td>Duplicates, NULL salary</td>
+        </tr>
+        <tr>
+          <td><strong>Duplicate detection</strong></td>
+          <td>"duplicates", "appeared more than once"</td>
+          <td>GROUP BY + HAVING COUNT(*) > 1</td>
+          <td>WHERE can't use COUNT()</td>
+        </tr>
+        <tr>
+          <td><strong>Missing / No data</strong></td>
+          <td>"never ordered", "no course", "without"</td>
+          <td>LEFT JOIN + IS NULL</td>
+          <td>INNER JOIN hides them</td>
+        </tr>
+        <tr>
+          <td><strong>Top N per group</strong></td>
+          <td>"top 3 per department"</td>
+          <td>DENSE_RANK() OVER(PARTITION BY...)</td>
+          <td>LIMIT won't work per group</td>
+        </tr>
+        <tr>
+          <td><strong>Running total</strong></td>
+          <td>"cumulative", "running sum"</td>
+          <td>SUM() OVER(ORDER BY date)</td>
+          <td>Don't use GROUP BY (collapses rows)</td>
+        </tr>
+        <tr>
+          <td><strong>Above average</strong></td>
+          <td>"more than average", "above company avg"</td>
+          <td>WHERE salary > (SELECT AVG...)</td>
+          <td>Scalar subquery must return one value</td>
+        </tr>
+        <tr>
+          <td><strong>Group max/avg</strong></td>
+          <td>"highest per dept", "avg by category"</td>
+          <td>GROUP BY + MAX/AVG</td>
+          <td>Can't SELECT non-grouped columns</td>
+        </tr>
+        <tr>
+          <td><strong>Filter on count</strong></td>
+          <td>"customers with more than 5 orders"</td>
+          <td>GROUP BY customer + HAVING COUNT > 5</td>
+          <td>Confusing HAVING with WHERE</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 9: INTERVIEW QUESTIONS -->
+<section id="questions" class="fade-in">
+  <span class="section-number">09 / REAL PROBLEMS</span>
+  <h2>8 Scenario-Based Interview Questions</h2>
+
+  <!-- Q1 -->
+  <div class="iq-card">
+    <div class="iq-num">1</div>
+    <div class="iq-label">🏢 HR / Compensation</div>
+    <h3>Find the Third Highest Salary</h3>
+    <div class="schema-box">
+      <span class="schema-title">employees</span>
+      <span><span class="schema-col">id</span><span class="schema-type">INT PK</span>  <span class="schema-col">name</span><span class="schema-type">VARCHAR</span>  <span class="schema-col">salary</span><span class="schema-type">DECIMAL</span>  <span class="schema-col">department</span><span class="schema-type">VARCHAR</span></span>
+    </div>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: N-th highest → Use DENSE_RANK. Remove top 2 ranks, find what's left at rank 3. Handle case where 3rd highest doesn't exist (return NULL, not error).</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-fn">IFNULL</span>(
+  (<span class="sql-kw">SELECT DISTINCT</span> <span class="sql-col">salary</span>
+   <span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+   <span class="sql-kw">ORDER BY</span> <span class="sql-col">salary</span> <span class="sql-kw">DESC</span>
+   <span class="sql-kw">LIMIT</span> <span class="sql-num">1</span> <span class="sql-kw">OFFSET</span> <span class="sql-num">2</span>), <span class="sql-kw">NULL</span>
+) <span class="sql-kw">AS</span> <span class="sql-col">ThirdHighest</span>;
+    </div>
+    <p style="font-size:.82rem;color:var(--text-muted);">OFFSET 2 skips first 2 rows (rank 1 and 2), LIMIT 1 takes exactly rank 3. DISTINCT handles salary ties. IFNULL handles cases with fewer than 3 distinct salaries.</p>
+  </div>
+
+  <!-- Q2 -->
+  <div class="iq-card">
+    <div class="iq-num">2</div>
+    <div class="iq-label">🛒 E-commerce</div>
+    <h3>Find Products That Were Never Sold</h3>
+    <div class="schema-box">
+      <span class="schema-title">products</span>
+      <span><span class="schema-col">product_id</span><span class="schema-type">INT PK</span>  <span class="schema-col">name</span><span class="schema-type">VARCHAR</span>  <span class="schema-col">price</span><span class="schema-type">DECIMAL</span></span>
+      <br><span class="schema-title">order_items</span>
+      <span><span class="schema-col">order_id</span><span class="schema-type">INT</span>  <span class="schema-col">product_id</span><span class="schema-type">INT FK</span>  <span class="schema-col">qty</span><span class="schema-type">INT</span></span>
+    </div>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Missing data → LEFT JOIN + IS NULL. Keep all products (LEFT), join orders. Products with no orders will have NULL in the orders side. Filter those.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">p.product_id</span>, <span class="sql-col">p.name</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">products</span> <span class="sql-col">p</span>
+<span class="sql-kw">LEFT JOIN</span> <span class="sql-tbl">order_items</span> <span class="sql-col">oi</span>
+  <span class="sql-kw">ON</span> <span class="sql-col">p.product_id</span> = <span class="sql-col">oi.product_id</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">oi.product_id</span> <span class="sql-kw">IS NULL</span>;
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="iq-card">
+    <div class="iq-num">3</div>
+    <div class="iq-label">👥 CRM / Data Quality</div>
+    <h3>Find Customers With Duplicate Phone Numbers</h3>
+    <div class="schema-box">
+      <span class="schema-title">customers</span>
+      <span><span class="schema-col">id</span><span class="schema-type">INT PK</span>  <span class="schema-col">name</span><span class="schema-type">VARCHAR</span>  <span class="schema-col">phone</span><span class="schema-type">VARCHAR</span>  <span class="schema-col">email</span><span class="schema-type">VARCHAR</span></span>
+    </div>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Duplicates → GROUP BY the duplicate field (phone), COUNT, HAVING > 1. To also see which customers share the phone, self-join or use IN with subquery.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">name</span>, <span class="sql-col">phone</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">customers</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">phone</span> <span class="sql-kw">IN</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-col">phone</span>
+  <span class="sql-kw">FROM</span> <span class="sql-tbl">customers</span>
+  <span class="sql-kw">GROUP BY</span> <span class="sql-col">phone</span>
+  <span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) &gt; <span class="sql-num">1</span>
+)
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">phone</span>;
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="iq-card">
+    <div class="iq-num">4</div>
+    <div class="iq-label">🎓 Education</div>
+    <h3>Top 5 Students by Score in Each Subject</h3>
+    <div class="schema-box">
+      <span class="schema-title">scores</span>
+      <span><span class="schema-col">student_id</span><span class="schema-type">INT</span>  <span class="schema-col">student_name</span><span class="schema-type">VARCHAR</span>  <span class="schema-col">subject</span><span class="schema-type">VARCHAR</span>  <span class="schema-col">score</span><span class="schema-type">INT</span></span>
+    </div>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Top N per group → DENSE_RANK() with PARTITION BY. LIMIT won't work here (it's global, not per-subject). Partition by subject, rank by score, filter rank ≤ 5.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">student_name</span>, <span class="sql-col">subject</span>, <span class="sql-col">score</span>, <span class="sql-col">rnk</span>
+<span class="sql-kw">FROM</span> (
+  <span class="sql-kw">SELECT</span> <span class="sql-col">student_name</span>, <span class="sql-col">subject</span>, <span class="sql-col">score</span>,
+    <span class="sql-fn">DENSE_RANK</span>() <span class="sql-kw">OVER</span> (
+      <span class="sql-kw">PARTITION BY</span> <span class="sql-col">subject</span>
+      <span class="sql-kw">ORDER BY</span> <span class="sql-col">score</span> <span class="sql-kw">DESC</span>
+    ) <span class="sql-kw">AS</span> <span class="sql-col">rnk</span>
+  <span class="sql-kw">FROM</span> <span class="sql-tbl">scores</span>
+) <span class="sql-tbl">ranked</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">rnk</span> &lt;= <span class="sql-num">5</span>;
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="iq-card">
+    <div class="iq-num">5</div>
+    <div class="iq-label">🏢 HR Analytics</div>
+    <h3>Department With the Highest Average Salary</h3>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Max per group → GROUP BY department, compute AVG per group, ORDER BY that AVG desc, LIMIT 1 for the single top department.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">department</span>, <span class="sql-fn">AVG</span>(<span class="sql-col">salary</span>) <span class="sql-kw">AS</span> <span class="sql-col">avg_salary</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+<span class="sql-kw">GROUP BY</span> <span class="sql-col">department</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">avg_salary</span> <span class="sql-kw">DESC</span>
+<span class="sql-kw">LIMIT</span> <span class="sql-num">1</span>;
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="iq-card">
+    <div class="iq-num">6</div>
+    <div class="iq-label">💰 Compensation</div>
+    <h3>Employees Earning Above Company Average</h3>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Filter vs aggregate → Subquery computes one number (avg), outer query filters each row against it. The subquery runs once, returns a scalar value.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">name</span>, <span class="sql-col">salary</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+<span class="sql-kw">WHERE</span> <span class="sql-col">salary</span> &gt; (
+  <span class="sql-kw">SELECT</span> <span class="sql-fn">AVG</span>(<span class="sql-col">salary</span>) <span class="sql-kw">FROM</span> <span class="sql-tbl">employees</span>
+)
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">salary</span> <span class="sql-kw">DESC</span>;
+    </div>
+    <p style="font-size:.82rem;color:var(--text-muted);">The subquery <code>(SELECT AVG(salary)...)</code> evaluates to a single number. SQL compares each employee's salary to that one number. Elegant and fast.</p>
+  </div>
+
+  <!-- Q7 -->
+  <div class="iq-card">
+    <div class="iq-num">7</div>
+    <div class="iq-label">📦 E-commerce</div>
+    <h3>Customers With More Than 5 Orders</h3>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Filter on aggregate → Group by customer, count their orders, HAVING COUNT > 5. Classic HAVING use case. You could also JOIN to customers table for names.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span> <span class="sql-col">customer_id</span>, <span class="sql-fn">COUNT</span>(*) <span class="sql-kw">AS</span> <span class="sql-col">order_count</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">orders</span>
+<span class="sql-kw">GROUP BY</span> <span class="sql-col">customer_id</span>
+<span class="sql-kw">HAVING</span> <span class="sql-fn">COUNT</span>(*) &gt; <span class="sql-num">5</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">order_count</span> <span class="sql-kw">DESC</span>;
+    </div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="iq-card">
+    <div class="iq-num">8</div>
+    <div class="iq-label">📊 Analytics</div>
+    <h3>Running Sales Total by Date</h3>
+    <div class="think-box">
+      <div class="think-label">🧠 Thinking Process</div>
+      <p>Pattern: Running total → Window function. SUM() OVER(ORDER BY date) accumulates from the first row to each current row. No GROUP BY needed — every row stays.</p>
+    </div>
+    <div class="sql-block">
+<span class="sql-kw">SELECT</span>
+  <span class="sql-col">sale_date</span>,
+  <span class="sql-col">amount</span>,
+  <span class="sql-fn">SUM</span>(<span class="sql-col">amount</span>) <span class="sql-kw">OVER</span> (
+    <span class="sql-kw">ORDER BY</span> <span class="sql-col">sale_date</span>
+    <span class="sql-kw">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+  ) <span class="sql-kw">AS</span> <span class="sql-col">running_total</span>
+<span class="sql-kw">FROM</span> <span class="sql-tbl">sales</span>
+<span class="sql-kw">ORDER BY</span> <span class="sql-col">sale_date</span>;
+    </div>
+    <p style="font-size:.82rem;color:var(--text-muted);"><code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> is the default but writing it explicitly shows the interviewer you understand the frame.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 10: MCQ -->
+<section id="mcq" class="fade-in">
+  <span class="section-number">10 / SELF TEST</span>
+  <h2>5 Tricky Interview MCQs</h2>
+
+  <div class="mcq-card">
+    <div class="mcq-q">Q1. Which clause filters groups <em>after</em> GROUP BY?</div>
+    <div class="mcq-options">
+      <div class="mcq-opt wrong">A. WHERE</div>
+      <div class="mcq-opt wrong">B. ORDER BY</div>
+      <div class="mcq-opt correct">C. HAVING ✓</div>
+      <div class="mcq-opt wrong">D. FILTER</div>
+    </div>
+    <div class="mcq-answer">✅ <strong>HAVING</strong> filters grouped results. WHERE filters individual rows before grouping. You cannot use aggregate functions in WHERE — they go in HAVING.</div>
+  </div>
+
+  <div class="mcq-card">
+    <div class="mcq-q">Q2. You want all customers including those with NO orders. Which JOIN do you use?</div>
+    <div class="mcq-options">
+      <div class="mcq-opt wrong">A. INNER JOIN</div>
+      <div class="mcq-opt correct">B. LEFT JOIN ✓</div>
+      <div class="mcq-opt wrong">C. RIGHT JOIN on orders</div>
+      <div class="mcq-opt wrong">D. CROSS JOIN</div>
+    </div>
+    <div class="mcq-answer">✅ <strong>LEFT JOIN</strong> keeps all rows from the left table (customers), even when there's no match in orders. INNER JOIN would exclude customers with no orders.</div>
+  </div>
+
+  <div class="mcq-card">
+    <div class="mcq-q">Q3. Which ranking function handles ties correctly for "2nd highest" problems?</div>
+    <div class="mcq-options">
+      <div class="mcq-opt wrong">A. ROW_NUMBER()</div>
+      <div class="mcq-opt wrong">B. RANK()</div>
+      <div class="mcq-opt correct">C. DENSE_RANK() ✓</div>
+      <div class="mcq-opt wrong">D. NTILE()</div>
+    </div>
+    <div class="mcq-answer">✅ <strong>DENSE_RANK()</strong> assigns consecutive ranks even when there are ties (no gaps). RANK() skips numbers after ties (1,1,3). ROW_NUMBER() assigns unique numbers ignoring ties.</div>
+  </div>
+
+  <div class="mcq-card">
+    <div class="mcq-q">Q4. What does <code>SELECT MAX(salary) FROM employees WHERE salary &lt; (SELECT MAX(salary) FROM employees)</code> return?</div>
+    <div class="mcq-options">
+      <div class="mcq-opt wrong">A. The highest salary</div>
+      <div class="mcq-opt correct">B. The second highest salary ✓</div>
+      <div class="mcq-opt wrong">C. NULL always</div>
+      <div class="mcq-opt wrong">D. An error</div>
+    </div>
+    <div class="mcq-answer">✅ The subquery returns the overall max. The outer query finds MAX from all rows <em>below</em> that value — which is the second highest. Classic second-highest pattern.</div>
+  </div>
+
+  <div class="mcq-card">
+    <div class="mcq-q">Q5. Which window function would you use to give each sale a rank based on amount, resetting for each region?</div>
+    <div class="mcq-options">
+      <div class="mcq-opt wrong">A. ROW_NUMBER() OVER(ORDER BY amount DESC)</div>
+      <div class="mcq-opt correct">B. DENSE_RANK() OVER(PARTITION BY region ORDER BY amount DESC) ✓</div>
+      <div class="mcq-opt wrong">C. GROUP BY region, ORDER BY amount</div>
+      <div class="mcq-opt wrong">D. MAX(amount) OVER(ORDER BY region)</div>
+    </div>
+    <div class="mcq-answer">✅ <strong>PARTITION BY region</strong> resets the ranking for each region. DENSE_RANK handles ties correctly. Without PARTITION BY, ranking would be global across all regions.</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 11: MISTAKES -->
+<section id="mistakes" class="fade-in">
+  <span class="section-number">11 / DANGER ZONES</span>
+  <h2>Common Mistakes That Cost You the Job</h2>
+
+  <div class="grid-2">
+    <div class="mistake-card">
+      <div class="mistake-icon">🚫</div>
+      <h3>WHERE with Aggregate Functions</h3>
+      <p>Writing <code>WHERE COUNT(*) > 1</code> throws an error. Aggregates cannot go in WHERE. Always use <strong>HAVING</strong> for aggregate conditions. WHY: WHERE runs before grouping; aggregates run during/after.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="mistake-icon">🚫</div>
+      <h3>INNER JOIN for Missing Data</h3>
+      <p>Using INNER JOIN to find "customers without orders" returns ZERO rows — INNER JOIN only keeps matches. The correct tool is <strong>LEFT JOIN + IS NULL</strong>. This mistake is very common and very costly.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="mistake-icon">🚫</div>
+      <h3>Forgetting DISTINCT in LIMIT queries</h3>
+      <p>Without DISTINCT, if three employees all earn ₹95,000, you get 3 identical rows instead of one unique salary. Always use <strong>DISTINCT salary</strong> when fetching ranked salaries.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="mistake-icon">🚫</div>
+      <h3>Using RANK instead of DENSE_RANK</h3>
+      <p>RANK() skips numbers after ties: 1, 1, 3, 4. If two people are rank 1, there's no rank 2 — DENSE_RANK gives 1, 1, <strong>2</strong>, 3. For N-th highest problems, DENSE_RANK is almost always correct.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="mistake-icon">🚫</div>
+      <h3>Forgetting ORDER BY DESC</h3>
+      <p>Writing <code>ORDER BY salary</code> without DESC returns the LOWEST first. For Top N / highest salary problems, you almost always want <strong>DESC</strong> (descending). Forgetting this gives completely wrong results.</p>
+    </div>
+    <div class="mistake-card">
+      <div class="mistake-icon">🚫</div>
+      <h3>NULL handling mistakes</h3>
+      <p>Comparing to NULL with <code>= NULL</code> always fails silently. Use <strong>IS NULL</strong> or <strong>IS NOT NULL</strong>. Also, <code>NULL &lt; 5</code> is neither true nor false — it's UNKNOWN, and UNKNOWN rows are excluded.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SECTION 12: REVISION -->
+<section id="revision" class="fade-in">
+  <span class="section-number">12 / BEFORE THE INTERVIEW</span>
+  <h2>Quick Revision Cards</h2>
+
+  <div class="revision-grid">
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(79,142,247,0.05),rgba(124,111,247,0.05));">
+      <h4 style="color:var(--blue);">2nd Highest Salary</h4>
+      <ul>
+        <li>Subquery: MAX WHERE salary &lt; MAX</li>
+        <li>LIMIT/OFFSET: ORDER BY DESC LIMIT 1 OFFSET 1</li>
+        <li>Window: DENSE_RANK() WHERE rnk = 2</li>
+        <li>Always add DISTINCT for safety</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(244,114,182,0.05),rgba(251,113,133,0.05));">
+      <h4 style="color:#db2777;">Duplicates</h4>
+      <ul>
+        <li>GROUP BY the column</li>
+        <li>COUNT(*) per group</li>
+        <li>HAVING COUNT(*) &gt; 1</li>
+        <li>NEVER use WHERE COUNT(*)</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(52,211,153,0.05),rgba(45,212,191,0.05));">
+      <h4 style="color:#059669;">Missing Data</h4>
+      <ul>
+        <li>LEFT JOIN (not INNER JOIN)</li>
+        <li>WHERE right_side.id IS NULL</li>
+        <li>Customers ← JOIN → Orders</li>
+        <li>Keep ALL from left table</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(251,191,36,0.05),rgba(248,113,113,0.05));">
+      <h4 style="color:#d97706;">Top N Records</h4>
+      <ul>
+        <li>ORDER BY column DESC</li>
+        <li>LIMIT N</li>
+        <li>Per-group: PARTITION BY + DENSE_RANK</li>
+        <li>DISTINCT for salary-based Top N</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(167,139,250,0.05),rgba(124,111,247,0.05));">
+      <h4 style="color:var(--indigo);">Group Aggregates</h4>
+      <ul>
+        <li>GROUP BY the category column</li>
+        <li>MAX/AVG/SUM/COUNT per group</li>
+        <li>SELECT only grouped or aggregated cols</li>
+        <li>HAVING for post-group filters</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(45,212,191,0.05),rgba(79,142,247,0.05));">
+      <h4 style="color:#0891b2;">Running Total</h4>
+      <ul>
+        <li>SUM() OVER(ORDER BY date)</li>
+        <li>No GROUP BY — rows stay intact</li>
+        <li>PARTITION BY for per-group running</li>
+        <li>Always ORDER BY in OVER()</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(79,142,247,0.05),rgba(52,211,153,0.05));">
+      <h4 style="color:var(--blue);">WHERE vs HAVING</h4>
+      <ul>
+        <li>WHERE: before GROUP BY, row-level</li>
+        <li>HAVING: after GROUP BY, group-level</li>
+        <li>Can use both in same query</li>
+        <li>Aggregate in HAVING, not WHERE</li>
+      </ul>
+    </div>
+    <div class="rev-card" style="background:linear-gradient(135deg,rgba(248,113,113,0.05),rgba(251,191,36,0.05));">
+      <h4 style="color:#dc2626;">JOIN Types</h4>
+      <ul>
+        <li>INNER: only matching rows</li>
+        <li>LEFT: all left + matching right</li>
+        <li>RIGHT: all right + matching left</li>
+        <li>NULL = no match on joined side</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mindset-box" style="margin-top:2rem;">
+    <span class="emoji">🚀</span>
+    <h3>Final Interview Mindset</h3>
+    <div class="step-list" style="margin-top:.5rem;">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>Name the pattern</strong> — "This is a missing data problem, so LEFT JOIN + IS NULL."</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>Think out loud</strong> — Interviewers evaluate your thinking process, not just the final query.</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>Handle edge cases</strong> — "What if the table is empty?" "What if salary has NULLs?" This impresses senior engineers.</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text"><strong>Mention alternatives</strong> — "I used a subquery here, but a window function would also work and might be more readable." This shows depth.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:3rem 0 1rem;color:var(--text-muted);font-size:.8rem;">
+  <div style="font-family:'Caveat',cursive;font-size:1.4rem;font-weight:700;margin-bottom:.5rem;background:linear-gradient(135deg,var(--blue),var(--violet),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Day 8 Complete ✓</div>
+  <p>You've mastered the 8 SQL interview patterns. Go ace that interview! 🎯</p>
+</div>
+
+</main>
+
+<script>
+/* =============================================
+   PARTICLE CANVAS ENGINE
+============================================= */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const PARTICLE_COUNT = 55;
+const particles = [];
+const mouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+const colors = [
+  'rgba(79,142,247,',
+  'rgba(167,139,250,',
+  'rgba(244,114,182,',
+  'rgba(45,212,191,',
+  'rgba(251,191,36,',
+];
+
+class Particle {
+  constructor() { this.reset(true); }
+  reset(initial) {
+    this.x = Math.random() * canvas.width;
+    this.y = initial ? Math.random() * canvas.height : canvas.height + 20;
+    this.size = Math.random() * 3 + 0.5;
+    this.speedX = (Math.random() - 0.5) * 0.4;
+    this.speedY = -(Math.random() * 0.6 + 0.2);
+    this.opacity = Math.random() * 0.5 + 0.1;
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.pulse = Math.random() * Math.PI * 2;
+    this.pulseSpeed = Math.random() * 0.02 + 0.01;
+    this.connectionRadius = 120;
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.pulse += this.pulseSpeed;
+    const pulseFactor = 0.8 + Math.sin(this.pulse) * 0.2;
+    this.currentSize = this.size * pulseFactor;
+
+    // Mouse repulsion
+    const dx = this.x - mouse.x;
+    const dy = this.y - mouse.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 80) {
+      this.x += dx / dist * 1.5;
+      this.y += dy / dist * 1.5;
+    }
+
+    if (this.y < -20 || this.x < -20 || this.x > canvas.width + 20) this.reset(false);
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.currentSize, 0, Math.PI * 2);
+    ctx.fillStyle = this.color + this.opacity + ')';
+    ctx.fill();
+  }
+}
+
+for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+function drawConnections() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i+1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        const alpha = (1 - dist/100) * 0.12;
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(124,111,247,${alpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawConnections();
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+/* =============================================
+   PROGRESS BAR
+============================================= */
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement;
+  const scrolled = doc.scrollTop / (doc.scrollHeight - doc.clientHeight);
+  document.getElementById('progress-bar').style.width = (scrolled * 100) + '%';
+});
+
+/* =============================================
+   INTERSECTION OBSERVER - FADE IN
+============================================= */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      // Stagger children
+      const children = entry.target.querySelectorAll('.card,.method-card,.step-item,.pattern-card,.rev-card,.iq-card,.mistake-card');
+      children.forEach((child, i) => {
+        child.style.animationDelay = (i * 0.07) + 's';
+        child.style.opacity = '0';
+        child.style.transform = 'translateY(18px)';
+        child.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        setTimeout(() => {
+          child.style.opacity = '1';
+          child.style.transform = 'translateY(0)';
+        }, i * 70 + 100);
+      });
+    }
+  });
+}, { threshold: 0.06 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* =============================================
+   3D TILT EFFECT on cards
+============================================= */
+document.querySelectorAll('.card,.iq-card,.pattern-card,.flip-container').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dx = (e.clientX - cx) / (rect.width/2);
+    const dy = (e.clientY - cy) / (rect.height/2);
+    card.style.transform = `perspective(800px) rotateY(${dx * 6}deg) rotateX(${-dy * 6}deg) translateY(-4px) scale(1.01)`;
+    card.style.transition = 'transform 0.1s ease';
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg) translateY(0) scale(1)';
+    card.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+  });
+});
+
+/* =============================================
+   MAGNETIC EFFECT on pattern cards
+============================================= */
+document.querySelectorAll('.pattern-card,.rev-card').forEach(el => {
+  el.addEventListener('mousemove', e => {
+    const rect = el.getBoundingClientRect();
+    const dx = (e.clientX - rect.left - rect.width/2) / rect.width;
+    const dy = (e.clientY - rect.top - rect.height/2) / rect.height;
+    el.style.transform = `translate(${dx*10}px, ${dy*10}px) translateY(-5px) scale(1.03)`;
+  });
+  el.addEventListener('mouseleave', () => {
+    el.style.transform = '';
+  });
+});
+
+/* =============================================
+   SPOTLIGHT on IQ cards
+============================================= */
+document.querySelectorAll('.iq-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+    card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+  });
+});
+
+/* =============================================
+   RIPPLE on step items
+============================================= */
+document.querySelectorAll('.step-item,.lb-row').forEach(el => {
+  el.classList.add('ripple-host');
+  el.addEventListener('click', e => {
+    const rect = el.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+    el.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+});
+
+/* =============================================
+   COUNT-UP ANIMATION
+============================================= */
+function countUp(el) {
+  const target = parseInt(el.dataset.target);
+  const duration = 1500;
+  const start = performance.now();
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(eased * target);
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(update);
+}
+
+// Trigger count-up when hero visible
+const heroObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.count-up').forEach(el => countUp(el));
+      heroObs.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+const heroEl = document.querySelector('.hero');
+if (heroEl) heroObs.observe(heroEl);
+
+/* =============================================
+   ACTIVE NAV HIGHLIGHT
+============================================= */
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    const active = a.getAttribute('href') === '#' + current;
+    a.style.color = active ? 'var(--blue)' : '';
+    a.style.background = active ? 'rgba(79,142,247,0.1)' : '';
+  });
+});
+
+/* =============================================
+   PARALLAX ORBS on scroll
+============================================= */
+window.addEventListener('scroll', () => {
+  const sy = window.scrollY;
+  document.querySelectorAll('.orb').forEach((orb, i) => {
+    const speed = [0.05, 0.08, 0.04, 0.06][i] || 0.05;
+    orb.style.transform = `translateY(${sy * speed}px)`;
+  });
+});
+
+/* =============================================
+   HERO ENTRANCE
+============================================= */
+const hero = document.querySelector('.hero');
+if (hero) {
+  hero.style.opacity = '0';
+  hero.style.transform = 'translateY(30px) scale(0.98)';
+  setTimeout(() => {
+    hero.style.transition = 'opacity 1s cubic-bezier(0.22,1,0.36,1), transform 1s cubic-bezier(0.22,1,0.36,1)';
+    hero.style.opacity = '1';
+    hero.style.transform = 'translateY(0) scale(1)';
+  }, 120);
+}
+
+/* =============================================
+   SQL BLOCK TYPEWRITER on scroll into view
+============================================= */
+const sqlObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const lines = entry.target.querySelectorAll('span:not([class*="sql-"])');
+      // animate whole block sliding in
+      entry.target.style.transform = 'translateX(-8px)';
+      entry.target.style.opacity = '0';
+      entry.target.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+      setTimeout(() => {
+        entry.target.style.transform = 'translateX(0)';
+        entry.target.style.opacity = '1';
+      }, 50);
+      sqlObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.sql-block').forEach(b => sqlObs.observe(b));
+
+/* =============================================
+   CURSOR GLOW TRAIL
+============================================= */
+const trail = document.createElement('div');
+trail.style.cssText = 'position:fixed;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle,rgba(79,142,247,0.35),transparent 70%);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:left 0.08s ease,top 0.08s ease;';
+document.body.appendChild(trail);
+
+document.addEventListener('mousemove', e => {
+  trail.style.left = e.clientX + 'px';
+  trail.style.top = e.clientY + 'px';
+});
+
+/* =============================================
+   3D FLOATING CUBES - extra subtle rotation on scroll
+============================================= */
+window.addEventListener('scroll', () => {
+  const sy = window.scrollY;
+  document.querySelectorAll('.cube').forEach(c => {
+    c.style.animationPlayState = 'running';
+  });
+});
+
+/* =============================================
+   SECTION DIVIDERS - animated wave
+============================================= */
+document.querySelectorAll('.divider').forEach(div => {
+  div.innerHTML = '<svg width="100%" height="20" viewBox="0 0 800 20" preserveAspectRatio="none" style="display:block;"><path d="M0 10 Q100 0 200 10 Q300 20 400 10 Q500 0 600 10 Q700 20 800 10" fill="none" stroke="url(#wg)" stroke-width="1.5" opacity="0.5"><animate attributeName="d" values="M0 10 Q100 0 200 10 Q300 20 400 10 Q500 0 600 10 Q700 20 800 10;M0 10 Q100 20 200 10 Q300 0 400 10 Q500 20 600 10 Q700 0 800 10;M0 10 Q100 0 200 10 Q300 20 400 10 Q500 0 600 10 Q700 20 800 10" dur="5s" repeatCount="indefinite"/></path><defs><linearGradient id="wg" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#4f8ef7"/><stop offset="50%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#f472b6"/></linearGradient></defs></svg>';
+});
+
+console.log('%c🚀 SQL Mastery Day 8 Loaded!', 'font-size:16px;color:#a78bfa;font-weight:bold;');
+</script>
+
+<script>
+/* =============================================
+   RUNNING TOTAL BAR ANIMATION
+============================================= */
+const barWidths = ['60px','100px','70px','140px','90px'];
+const rtBars = document.querySelectorAll('.rt-bar');
+rtBars.forEach((bar, i) => {
+  bar.style.setProperty('--bar-width', barWidths[i] || '60px');
+});
+
+const rtObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const bars = e.target.querySelectorAll('.rt-bar');
+      bars.forEach((bar, i) => {
+        setTimeout(() => {
+          bar.style.width = barWidths[i] || '60px';
+        }, i * 200);
+      });
+      rtObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+const rtSection = document.querySelector('#running');
+if (rtSection) rtObs.observe(rtSection);
+
+/* =============================================
+   FLOATING SQL TOKENS (hero area)
+============================================= */
+const tokens = ['SELECT','FROM','WHERE','JOIN','GROUP BY','HAVING','ORDER BY','LIMIT','MAX()','COUNT(*)','AVG()','SUM()','DENSE_RANK()','PARTITION BY','IS NULL','DISTINCT'];
+const tokenColors = [
+  { bg:'rgba(79,142,247,0.1)', color:'rgba(79,142,247,0.7)', border:'rgba(79,142,247,0.2)' },
+  { bg:'rgba(167,139,250,0.1)', color:'rgba(167,139,250,0.7)', border:'rgba(167,139,250,0.2)' },
+  { bg:'rgba(244,114,182,0.1)', color:'rgba(244,114,182,0.7)', border:'rgba(244,114,182,0.2)' },
+  { bg:'rgba(45,212,191,0.1)', color:'rgba(45,212,191,0.7)', border:'rgba(45,212,191,0.2)' },
+];
+
+function spawnToken() {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+  const rect = hero.getBoundingClientRect();
+  const word = tokens[Math.floor(Math.random() * tokens.length)];
+  const clr = tokenColors[Math.floor(Math.random() * tokenColors.length)];
+  const el = document.createElement('div');
+  el.textContent = word;
+  el.style.cssText = `
+    position:absolute;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.62rem;
+    font-weight:600;
+    padding:0.18rem 0.55rem;
+    border-radius:7px;
+    pointer-events:none;
+    z-index:0;
+    white-space:nowrap;
+    background:${clr.bg};
+    color:${clr.color};
+    border:1px solid ${clr.border};
+    left:${10 + Math.random() * 80}%;
+    bottom:${5 + Math.random() * 30}%;
+    opacity:0;
+    animation: token-fly ${3 + Math.random()*3}s ease-in-out forwards;
+  `;
+  hero.style.overflow = 'hidden';
+  hero.appendChild(el);
+
+  // Animate with JS
+  let startY = 0;
+  const totalY = -(80 + Math.random() * 60);
+  const duration = (3 + Math.random()*3) * 1000;
+  const startTime = performance.now();
+  const startOpacity = 0;
+
+  function animToken(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const eased = t < 0.1 ? t/0.1 : t > 0.8 ? 1 - (t-0.8)/0.2 : 1;
+    el.style.opacity = eased * 0.75;
+    el.style.transform = `translateY(${totalY * t}px) rotate(${(Math.random()-0.5)*6}deg)`;
+    if (t < 1) requestAnimationFrame(animToken);
+    else el.remove();
+  }
+  requestAnimationFrame(animToken);
+}
+
+setInterval(spawnToken, 1800);
+
+/* =============================================
+   3D PARALLAX on hero cubes with mouse
+============================================= */
+document.addEventListener('mousemove', e => {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const dx = (e.clientX - cx) / cx;
+  const dy = (e.clientY - cy) / cy;
+
+  const cube = document.querySelector('.cube-scene');
+  if (cube) {
+    cube.style.transform = `translate(${dx * 15}px, ${dy * 10}px)`;
+    cube.style.transition = 'transform 0.3s ease';
+  }
+  const cube2 = document.querySelector('.cube-scene-2');
+  if (cube2) {
+    cube2.style.transform = `translate(${dx * -12}px, ${dy * -8}px)`;
+    cube2.style.transition = 'transform 0.3s ease';
+  }
+});
+
+/* =============================================
+   STAGGERED TABLE ROW ANIMATION
+============================================= */
+const tableObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const rows = e.target.querySelectorAll('tbody tr');
+      rows.forEach((row, i) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-12px)';
+        row.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        setTimeout(() => {
+          row.style.opacity = '1';
+          row.style.transform = 'translateX(0)';
+        }, i * 60 + 100);
+      });
+      tableObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.pattern-table').forEach(t => tableObs.observe(t));
+
+/* =============================================
+   3D DEPTH on SQL BLOCKS (layered shadow)
+============================================= */
+document.querySelectorAll('.sql-block').forEach(block => {
+  block.addEventListener('mouseenter', () => {
+    block.style.transform = 'perspective(600px) rotateX(2deg) scale(1.01)';
+    block.style.boxShadow = '0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.07)';
+    block.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+  });
+  block.addEventListener('mouseleave', () => {
+    block.style.transform = '';
+    block.style.boxShadow = '';
+  });
+});
+
+/* =============================================
+   CANVAS — TWINKLING STAR FIELD (layered under particles)
+============================================= */
+const starCanvas = document.createElement('canvas');
+starCanvas.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;';
+document.body.insertBefore(starCanvas, document.getElementById('particle-canvas'));
+const sCtx = starCanvas.getContext('2d');
+
+function resizeStar() { starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight; }
+resizeStar();
+window.addEventListener('resize', resizeStar);
+
+const STARS = Array.from({length: 80}, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  r: Math.random() * 1.5 + 0.3,
+  phase: Math.random() * Math.PI * 2,
+  speed: Math.random() * 0.02 + 0.005,
+  color: ['rgba(79,142,247,', 'rgba(167,139,250,', 'rgba(244,114,182,', 'rgba(255,255,255,'][Math.floor(Math.random()*4)],
+}));
+
+function animStars() {
+  sCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+  const t = performance.now() / 1000;
+  STARS.forEach(s => {
+    s.phase += s.speed;
+    const alpha = (Math.sin(s.phase) * 0.5 + 0.5) * 0.6 + 0.05;
+    sCtx.beginPath();
+    sCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    sCtx.fillStyle = s.color + alpha + ')';
+    sCtx.fill();
+  });
+  requestAnimationFrame(animStars);
+}
+animStars();
+
+/* =============================================
+   3D PERSPECTIVE GRID LINE CANVAS between sections
+============================================= */
+function drawGridFloor(canvas) {
+  const c = canvas.getContext('2d');
+  const w = canvas.width = canvas.offsetWidth;
+  const h = canvas.height = 50;
+  const vp = { x: w/2, y: -h*0.5 };
+  const lines = 10;
+  const cols = 14;
+
+  c.clearRect(0, 0, w, h);
+
+  // Horizontal lines
+  for (let i = 0; i <= lines; i++) {
+    const t = i / lines;
+    const y = h * t;
+    const leftX = vp.x + (0 - vp.x) * (1 - t*0.7);
+    const rightX = vp.x + (w - vp.x) * (1 - t*0.7);
+    c.beginPath();
+    c.moveTo(leftX, y);
+    c.lineTo(rightX, y);
+    const alpha = t * 0.3;
+    c.strokeStyle = `rgba(124,111,247,${alpha})`;
+    c.lineWidth = 0.5;
+    c.stroke();
+  }
+
+  // Vertical lines
+  for (let i = 0; i <= cols; i++) {
+    const t = i / cols;
+    const farX = t * w;
+    const nearX = vp.x + (farX - vp.x) * (1 + 0.7);
+    c.beginPath();
+    c.moveTo(farX, 0);
+    c.lineTo(nearX, h);
+    c.strokeStyle = `rgba(124,111,247,0.15)`;
+    c.lineWidth = 0.5;
+    c.stroke();
+  }
+}
+
+// Insert grid canvases before each divider
+document.querySelectorAll('.divider').forEach(div => {
+  const gc = document.createElement('canvas');
+  gc.style.cssText = 'width:100%;display:block;margin-bottom:-10px;';
+  div.parentNode.insertBefore(gc, div);
+  drawGridFloor(gc);
+  window.addEventListener('resize', () => drawGridFloor(gc));
+});
+
+/* =============================================
+   GLITCH EFFECT on h1 (subtle, on hover)
+============================================= */
+const h1 = document.querySelector('.hero h1');
+if (h1) {
+  h1.addEventListener('mouseenter', () => {
+    h1.style.animation = 'none';
+    let count = 0;
+    const glitch = setInterval(() => {
+      h1.style.transform = count % 2 === 0 ? 'skewX(-1deg) translate(2px,0)' : 'skewX(0.5deg) translate(-1px,0)';
+      h1.style.filter = 'brightness(1.1)';
+      count++;
+      if (count > 6) {
+        clearInterval(glitch);
+        h1.style.transform = '';
+        h1.style.filter = '';
+      }
+    }, 60);
+  });
+}
+
+/* =============================================
+   SECTION NUMBER — typewriter counter on enter
+============================================= */
+const secNumObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const text = el.textContent;
+      el.style.opacity = '0';
+      el.style.transform = 'scale(0.6) rotate(-8deg)';
+      el.style.transition = 'all 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+      setTimeout(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'scale(1) rotate(0deg)';
+      }, 80);
+      secNumObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.8 });
+document.querySelectorAll('.section-number').forEach(el => secNumObs.observe(el));
+
+/* =============================================
+   IQ CARD — spotlight follow mouse
+============================================= */
+document.querySelectorAll('.iq-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mouse-x', (e.clientX - rect.left) + 'px');
+    card.style.setProperty('--mouse-y', (e.clientY - rect.top) + 'px');
+  });
+});
+
+console.log('%c✨ All 3D animations loaded!', 'font-size:14px;color:#4f8ef7;');
+</script>
+</body>
+</html>

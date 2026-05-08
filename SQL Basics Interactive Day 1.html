@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SQL Basics – Placement Preparation</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #080b14;
@@ -28,7 +28,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);font-family: 'Inter', system-ui, sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;}
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
@@ -46,13 +46,13 @@ body::before{
   border-bottom:1px solid var(--border);
 }
 .nav-logo{
-  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:1.05rem;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.05rem;
   background:linear-gradient(90deg,var(--teal),var(--blue));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 .nav-tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:5px;}
 .nav-tab{
-  font-family: 'Inter', system-ui, sans-serif;font-size:.78rem;font-weight:700;
+  font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;
   padding:7px 16px;border-radius:99px;border:none;cursor:pointer;
   transition:all .25s;color:var(--muted);background:transparent;letter-spacing:.04em;
 }
@@ -64,7 +64,7 @@ body::before{
 
 /* ── SECTION LABEL ── */
 .sec-label{
-  font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:700;
+  font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;
   letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
   margin-bottom:16px;display:flex;align-items:center;gap:12px;
 }
@@ -88,17 +88,17 @@ body::before{
   top:-120px;right:-80px;background:var(--teal);opacity:.06;pointer-events:none;
 }
 .hero-eyebrow{
-  font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:700;
+  font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;
   letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;
 }
 .hero-band h1{
-  font-family: 'Inter', system-ui, sans-serif;font-size:clamp(2rem,5.5vw,3.2rem);
+  font-family:'Syne',sans-serif;font-size:clamp(2rem,5.5vw,3.2rem);
   font-weight:800;line-height:1.12;margin-bottom:14px;
 }
 .hero-band p{color:var(--soft);line-height:1.7;max-width:560px;font-size:.97rem;}
 .badge{
   display:inline-flex;align-items:center;gap:7px;
-  font-family: 'Inter', system-ui, sans-serif;font-size:.72rem;font-weight:700;
+  font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;
   letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:99px;margin-top:18px;
   background:rgba(45,212,191,.13);color:var(--teal);border:1px solid rgba(45,212,191,.3);
 }
@@ -114,7 +114,7 @@ body::before{
   width:66px;height:18px;border-radius:50%;
   border:2px solid var(--teal);background:rgba(45,212,191,.12);
   display:flex;align-items:center;justify-content:center;
-  font-size:.55rem;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--teal);font-weight:700;
+  font-size:.55rem;font-family:'JetBrains Mono',monospace;color:var(--teal);font-weight:700;
 }
 .db-body{
   width:66px;flex:1;border-left:2px solid var(--teal);border-right:2px solid var(--teal);
@@ -123,7 +123,7 @@ body::before{
 }
 .db-line{width:40px;height:2px;background:rgba(45,212,191,.25);border-radius:1px;}
 /* mini table */
-.mini-table{border-radius:10px;overflow:hidden;border:1px solid rgba(45,212,191,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.72rem;}
+.mini-table{border-radius:10px;overflow:hidden;border:1px solid rgba(45,212,191,.2);font-family:'JetBrains Mono',monospace;font-size:.72rem;}
 .mt-head{display:flex;background:rgba(45,212,191,.12);}
 .mt-row{display:flex;border-top:1px solid rgba(255,255,255,.05);}
 .mt-row:hover{background:rgba(45,212,191,.05);}
@@ -141,11 +141,11 @@ body::before{
 }
 .why-card:hover{transform:translateY(-4px);}
 .why-icon{font-size:1.5rem;margin-bottom:10px;}
-.why-card h4{font-family: 'Inter', system-ui, sans-serif;font-size:.85rem;font-weight:800;margin-bottom:6px;}
+.why-card h4{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:800;margin-bottom:6px;}
 .why-card p{font-size:.78rem;color:var(--muted);line-height:1.55;}
 
 /* ── TABLE VISUAL ── */
-.table-visual{border-radius:12px;overflow:hidden;border:1px solid rgba(91,156,246,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.82rem;margin-bottom:10px;}
+.table-visual{border-radius:12px;overflow:hidden;border:1px solid rgba(91,156,246,.2);font-family:'JetBrains Mono',monospace;font-size:.82rem;margin-bottom:10px;}
 .tv-head{display:grid;grid-template-columns:80px 1fr 80px;background:rgba(91,156,246,.12);}
 .tv-row{display:grid;grid-template-columns:80px 1fr 80px;border-top:1px solid rgba(255,255,255,.06);transition:background .2s;}
 .tv-row:hover{background:rgba(91,156,246,.06);}
@@ -154,13 +154,13 @@ body::before{
 .tv-cell.col-id{color:var(--yellow);}
 .tv-cell.col-name{color:var(--text);}
 .tv-cell.col-age{color:var(--green);}
-.row-label{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--muted);font-family: 'Inter', system-ui, sans-serif;font-weight:700;letter-spacing:.06em;margin-top:6px;}
+.row-label{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.06em;margin-top:6px;}
 .row-arrow{width:24px;height:1px;background:var(--muted);}
 
 /* ── CMD TYPE CARDS ── */
 .cmd-section{margin-bottom:28px;}
 .cmd-group-title{
-  font-family: 'Inter', system-ui, sans-serif;font-size:.78rem;font-weight:800;
+  font-family:'Syne',sans-serif;font-size:.78rem;font-weight:800;
   letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;padding:6px 14px;
   border-radius:8px;display:inline-block;
 }
@@ -170,7 +170,7 @@ body::before{
 }
 .cmd-card:hover{transform:translateY(-3px);}
 .cmd-name{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.95rem;font-weight:700;margin-bottom:6px;
+  font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;margin-bottom:6px;
 }
 .cmd-desc{font-size:.75rem;color:var(--muted);line-height:1.5;}
 .cmd-icon{font-size:1.1rem;margin-bottom:8px;}
@@ -195,9 +195,9 @@ body::before{
 }
 .code-dots{display:flex;gap:6px;}
 .cdot{width:10px;height:10px;border-radius:50%;}
-.code-lang{font-size:.72rem;font-weight:700;letter-spacing:.1em;font-family: 'Inter', system-ui, sans-serif;}
+.code-lang{font-size:.72rem;font-weight:700;letter-spacing:.1em;font-family:'Syne',sans-serif;}
 pre{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.8rem;line-height:1.75;
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.75;
   padding:20px 22px;overflow-x:auto;background:rgba(0,0,0,.22);
 }
 .kw{color:var(--purple);}
@@ -213,14 +213,14 @@ pre{
 .ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
 @media(max-width:620px){.ba-grid{grid-template-columns:1fr;}}
 .ba-card{padding:18px;border-radius:14px;}
-.ba-label{font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
+.ba-label{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;}
 
 /* ── WHERE INTERACTIVE ── */
 .where-interactive{padding:24px;margin-bottom:28px;}
-.where-interactive h3{font-family: 'Inter', system-ui, sans-serif;font-size:.9rem;font-weight:700;color:var(--soft);margin-bottom:16px;}
+.where-interactive h3{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--soft);margin-bottom:16px;}
 .filter-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
 .filter-btn{
-  font-family: 'Inter', system-ui, sans-serif;font-size:.78rem;font-weight:700;
+  font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;
   padding:8px 18px;border-radius:99px;border:1px solid var(--border);
   background:var(--surface);color:var(--muted);cursor:pointer;
   transition:all .2s;letter-spacing:.04em;
@@ -230,7 +230,7 @@ pre{
 .filter-btn.active-blue{background:rgba(91,156,246,.15);color:var(--blue);border-color:rgba(91,156,246,.35);box-shadow:0 0 14px var(--blue-glow);}
 .filter-btn.active-purple{background:rgba(167,139,250,.15);color:var(--purple);border-color:rgba(167,139,250,.35);}
 .where-query{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.8rem;
+  font-family:'JetBrains Mono',monospace;font-size:.8rem;
   background:rgba(0,0,0,.3);border:1px solid var(--border);
   border-radius:10px;padding:12px 16px;color:var(--yellow);
   margin-bottom:14px;transition:all .3s;
@@ -240,7 +240,7 @@ pre{
 .wt-row{display:grid;border-top:1px solid rgba(255,255,255,.04);transition:all .35s;}
 .wt-row.hidden-row{display:none;}
 .wt-row.highlight{background:rgba(45,212,191,.07);}
-.wt-cell{padding:9px 16px;font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;}
+.wt-cell{padding:9px 16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;}
 .wt-head .wt-cell{color:var(--soft);font-size:.72rem;font-weight:700;letter-spacing:.06em;}
 
 /* ── FLOW DIAGRAM ── */
@@ -250,7 +250,7 @@ pre{
   padding:18px 22px;border-radius:14px;text-align:center;min-width:110px;
 }
 .flow-icon{font-size:1.8rem;}
-.flow-label{font-family: 'Inter', system-ui, sans-serif;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.flow-label{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
 .flow-sub{font-size:.65rem;color:var(--muted);margin-top:2px;max-width:90px;line-height:1.4;}
 .flow-arrow{font-size:1.4rem;color:var(--muted);padding:0 4px;flex-shrink:0;}
 @media(max-width:560px){.flow-row{flex-direction:column;}.flow-arrow{transform:rotate(90deg);}}
@@ -266,12 +266,12 @@ pre{
 .pq-num{
   width:30px;height:30px;border-radius:8px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:.85rem;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:.85rem;
 }
 .pq-text{font-size:.88rem;line-height:1.6;color:var(--soft);}
 .pq-text strong{color:var(--text);}
 .pq-tag{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.72rem;
+  font-family:'JetBrains Mono',monospace;font-size:.72rem;
   padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.06);
   color:var(--muted);margin-left:6px;
 }
@@ -287,7 +287,7 @@ pre{
 .qa-qmark{
   width:26px;height:26px;border-radius:7px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:.75rem;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;
 }
 .qa-qtext{font-size:.88rem;font-weight:600;flex:1;}
 .qa-chevron{font-size:.8rem;color:var(--muted);transition:transform .3s;}
@@ -299,7 +299,7 @@ pre{
 .qa-a.open{max-height:300px;padding:14px 20px 18px;border-top:1px solid var(--border);}
 .qa-chevron.open{transform:rotate(90deg);}
 .qa-a code{
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;
   background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--teal);
 }
 
@@ -313,7 +313,7 @@ pre{
 .rev-card:hover{transform:translateY(-3px);}
 .rev-icon{font-size:1.3rem;flex-shrink:0;}
 .rev-text{font-size:.83rem;line-height:1.6;}
-.rev-kw{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.82rem;font-weight:700;}
+.rev-kw{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;}
 .rev-eq{color:var(--muted);margin:0 4px;}
 .rev-def{color:var(--soft);}
 
@@ -336,158 +336,6 @@ pre{
 
 .footer{text-align:center;color:var(--muted);font-size:.78rem;padding:24px 0 0;border-top:1px solid var(--border);}
 .footer span{color:var(--teal);}
-</style>
-
-<style>
-    :root {
-        /* Primary Backgrounds */
-        --bg: #080b14 !important;
-        --bg-from: #080b14 !important;
-        --bg-to: #080b14 !important;
-        --bg2: #0c101d !important;
-        --bg-secondary: #0c101d !important;
-        --bg3: #111626 !important;
-        
-        /* Surface & Cards */
-        --surface: rgba(255,255,255,0.04) !important;
-        --bg-card: rgba(255,255,255,0.04) !important;
-        --card-bg: rgba(255,255,255,0.04) !important;
-        --card: #0f1423 !important;
-        --card2: #161c2e !important;
-        --glass: rgba(255,255,255,0.06) !important;
-        
-        /* Borders */
-        --border: rgba(255,255,255,0.08) !important;
-        --glass-border: rgba(255,255,255,0.1) !important;
-        --border2: rgba(255,255,255,0.15) !important;
-        
-        /* Text */
-        --text: #e2e8f0 !important;
-        --text-primary: #e2e8f0 !important;
-        --text-secondary: #94a3b8 !important;
-        --text-muted: #64748b !important;
-        --muted: #64748b !important;
-        
-        /* Brand & Accents */
-        --primary: #5B9CFF !important;
-        --primary-dark: #3B7DE8 !important;
-        --accent: #22d3ee !important;
-        --cyan: #22d3ee !important;
-        --accent-cyan: #22d3ee !important;
-        --purple: #a855f7 !important;
-        --accent-purple: #a855f7 !important;
-        --emerald: #34d399 !important;
-        --accent-green: #34d399 !important;
-        --rose: #fb7185 !important;
-        --accent-pink: #fb7185 !important;
-        --amber: #fbbf24 !important;
-        --accent-yellow: #fbbf24 !important;
-    }
-
-    /* GLOBAL TEXT OVERRIDES */
-    h1, h2, h3, h4, h5, h6, p, li, span, div, section, article {
-        color: var(--text);
-    }
-    
-    .text-secondary, .subtitle, .muted, .section-desc, .hero-subtitle {
-        color: var(--text-secondary) !important;
-    }
-
-    /* FIX GRADIENT TITLES (Like in Day 5) */
-    .hero-title, [class*="title"] {
-        background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--purple) 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        background-clip: text !important;
-    }
-
-    /* FIX HARDCODED LIGHT CARDS & BADGES */
-    .type-card, .mistake-card, .flow-box, .badge, .float-card, .card, .thinking-box, .flow-visual, .practice-card, .interview-q, .flow-inner, .flow-output {
-        background: var(--bg2) !important;
-        border: 1px solid var(--border) !important;
-        color: var(--text) !important;
-    }
-
-    .type-card-blue, .badge-blue, .flow-inner, .practice-card { 
-        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)) !important; 
-        border: 1px solid rgba(59,130,246,0.3) !important;
-    }
-    .type-card-purple, .badge-purple, .flow-output, .interview-q { 
-        background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)) !important; 
-        border: 1px solid rgba(168,85,247,0.3) !important;
-    }
-    .type-card-green, .badge-green { 
-        background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)) !important; 
-        border: 1px solid rgba(52,211,153,0.3) !important;
-    }
-    .type-card-orange { 
-        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)) !important; 
-        border: 1px solid rgba(245,158,11,0.3) !important;
-    }
-    
-    .pnum, .iq-toggle {
-        color: var(--primary) !important;
-    }
-
-    .iq-q, .iq-answer, .practice-card p {
-        color: var(--text) !important;
-    }
-    
-    /* Ensure code blocks stay dark */
-    .code-block {
-        background: #000 !important;
-        border: 1px solid var(--border) !important;
-    }
-
-    h4[style*="color"], .pnum[style*="color"] {
-        color: var(--primary) !important;
-    }
-
-    /* FIX TABS & PAGING (Restoring nav tabs but keeping them clean) */
-    .nav { 
-        display: flex !important; 
-        position: relative !important;
-        background: transparent !important; 
-        border: none !important; 
-        padding: 20px 24px 0 !important;
-        justify-content: center !important;
-        z-index: 100 !important;
-    }
-    
-    .nav-logo, .nav-progress, .nav-inner > *:not(.nav-tabs), .nav > *:not(.nav-tabs) { 
-        display: none !important; 
-    }
-
-    .nav-tabs { 
-        display: flex !important;
-        flex-wrap: wrap !important; 
-        gap: 8px !important;
-        justify-content: center !important;
-        background: var(--surface) !important;
-        padding: 6px !important;
-        border-radius: 99px !important;
-        border: 1px solid var(--border) !important;
-    }
-
-    .nav-tab {
-        white-space: nowrap !important;
-    }
-
-    html { 
-        font-size: 18px !important; 
-    }
-
-    .page {
-        max-width: 1300px !important;
-        padding: 60px 40px 100px !important;
-    }
-
-    body { 
-        padding-top: 0 !important; 
-        background: var(--bg) !important;
-        color: var(--text) !important;
-    }
-    body::before { display: none !important; }
 </style>
 </head>
 <body>
@@ -525,7 +373,7 @@ pre{
     </div>
     <!-- Mini table -->
     <div>
-      <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Students Table</div>
+      <div style="font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">Students Table</div>
       <div class="mini-table">
         <div class="mt-head">
           <div class="mt-cell">id</div><div class="mt-cell">name</div><div class="mt-cell">age</div>
@@ -536,9 +384,9 @@ pre{
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="padding:8px 14px;border-radius:8px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.75rem;color:var(--teal);">SELECT * FROM Students;</div>
-      <div style="padding:8px 14px;border-radius:8px;background:rgba(91,156,246,.08);border:1px solid rgba(91,156,246,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.75rem;color:var(--blue);">WHERE age &gt; 18</div>
-      <div style="padding:8px 14px;border-radius:8px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.75rem;color:var(--green);">→ 3 rows returned</div>
+      <div style="padding:8px 14px;border-radius:8px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--teal);">SELECT * FROM Students;</div>
+      <div style="padding:8px 14px;border-radius:8px;background:rgba(91,156,246,.08);border:1px solid rgba(91,156,246,.2);font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--blue);">WHERE age &gt; 18</div>
+      <div style="padding:8px 14px;border-radius:8px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--green);">→ 3 rows returned</div>
     </div>
   </div>
 </div>
@@ -549,19 +397,19 @@ pre{
 <div class="section-block">
   <div class="sec-label animate-in">💬 What is SQL?</div>
   <div class="card animate-in" style="padding:28px;border-color:rgba(45,212,191,.15);margin-bottom:20px;">
-    <h2 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.15rem;font-weight:800;color:var(--teal);margin-bottom:12px;">Structured Query Language</h2>
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:var(--teal);margin-bottom:12px;">Structured Query Language</h2>
     <p style="color:var(--soft);line-height:1.75;font-size:.93rem;">SQL (pronounced "sequel") is the <strong style="color:var(--text)">language you use to talk to a database</strong>. Just like we use English to communicate with people, we use SQL to communicate with databases — to create tables, insert data, search for records, and update or delete information.</p>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;">
       <div style="padding:10px 18px;border-radius:10px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.18);">
-        <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;">S</div>
+        <div style="font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;">S</div>
         <div style="font-size:.8rem;color:var(--soft);margin-top:3px;">Structured</div>
       </div>
       <div style="padding:10px 18px;border-radius:10px;background:rgba(91,156,246,.08);border:1px solid rgba(91,156,246,.18);">
-        <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;">Q</div>
+        <div style="font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;">Q</div>
         <div style="font-size:.8rem;color:var(--soft);margin-top:3px;">Query</div>
       </div>
       <div style="padding:10px 18px;border-radius:10px;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.18);">
-        <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.7rem;font-weight:800;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;">L</div>
+        <div style="font-family:'Syne',sans-serif;font-size:.7rem;font-weight:800;color:var(--purple);letter-spacing:.1em;text-transform:uppercase;">L</div>
         <div style="font-size:.8rem;color:var(--soft);margin-top:3px;">Language</div>
       </div>
     </div>
@@ -604,14 +452,14 @@ pre{
   <div class="sec-label animate-in">🗄️ Database &amp; Table Structure</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;" class="animate-in">
     <div class="card" style="padding:22px;border-color:rgba(45,212,191,.15);">
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:.9rem;font-weight:800;color:var(--teal);margin-bottom:10px;">🗄️ What is a Database?</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;color:var(--teal);margin-bottom:10px;">🗄️ What is a Database?</h3>
       <p style="color:var(--soft);font-size:.85rem;line-height:1.7;">A database is an <strong style="color:var(--text)">organized collection of data</strong> stored electronically. Think of it like a smart digital filing cabinet where data is stored in an orderly way so it can be easily found and used.</p>
       <div style="margin-top:14px;padding:10px 14px;border-radius:8px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.15);font-size:.8rem;color:var(--soft);">
         🎓 Example: A <strong style="color:var(--teal);">Student Database</strong> has all info about students — names, marks, attendance.
       </div>
     </div>
     <div class="card" style="padding:22px;border-color:rgba(91,156,246,.15);">
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:.9rem;font-weight:800;color:var(--blue);margin-bottom:10px;">📋 What is a Table?</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;color:var(--blue);margin-bottom:10px;">📋 What is a Table?</h3>
       <p style="color:var(--soft);font-size:.85rem;line-height:1.7;">A table organizes data in <strong style="color:var(--text)">rows and columns</strong>. Each <strong style="color:var(--green)">row</strong> is one record (one student). Each <strong style="color:var(--yellow)">column</strong> is one field (like name or age).</p>
       <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
         <div style="padding:7px 12px;border-radius:7px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);font-size:.75rem;color:var(--green);font-weight:600;">↔ Rows = Records</div>
@@ -692,19 +540,19 @@ pre{
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;" class="animate-in">
     <div class="card" style="padding:14px;border-color:rgba(45,212,191,.15);">
-      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--teal);font-weight:700;margin-bottom:6px;">CREATE TABLE</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--teal);font-weight:700;margin-bottom:6px;">CREATE TABLE</div>
       <div style="font-size:.78rem;color:var(--muted);">Creates a new, empty table named Students</div>
     </div>
     <div class="card" style="padding:14px;border-color:rgba(251,191,36,.15);">
-      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--yellow);font-weight:700;margin-bottom:6px;">INT</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--yellow);font-weight:700;margin-bottom:6px;">INT</div>
       <div style="font-size:.78rem;color:var(--muted);">Integer datatype — stores whole numbers</div>
     </div>
     <div class="card" style="padding:14px;border-color:rgba(91,156,246,.15);">
-      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--blue);font-weight:700;margin-bottom:6px;">VARCHAR(50)</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--blue);font-weight:700;margin-bottom:6px;">VARCHAR(50)</div>
       <div style="font-size:.78rem;color:var(--muted);">Variable-length text, max 50 characters</div>
     </div>
     <div class="card" style="padding:14px;border-color:rgba(167,139,250,.15);">
-      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.78rem;color:var(--purple);font-weight:700;margin-bottom:6px;">( id, name, age )</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--purple);font-weight:700;margin-bottom:6px;">( id, name, age )</div>
       <div style="font-size:.78rem;color:var(--muted);">Column definitions inside parentheses</div>
     </div>
   </div>
@@ -772,11 +620,11 @@ pre{
     </div>
   </div>
   <div class="card animate-in" style="padding:16px 20px;border-color:rgba(91,156,246,.12);display:flex;gap:14px;flex-wrap:wrap;">
-    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--yellow);font-weight:700;">SELECT *</span> <span style="color:var(--muted);">= Fetch ALL columns</span></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family:'JetBrains Mono',monospace;color:var(--yellow);font-weight:700;">SELECT *</span> <span style="color:var(--muted);">= Fetch ALL columns</span></div>
     <div style="width:1px;background:var(--border);"></div>
-    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--purple);font-weight:700;">SELECT name</span> <span style="color:var(--muted);">= Fetch ONLY name column</span></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family:'JetBrains Mono',monospace;color:var(--purple);font-weight:700;">SELECT name</span> <span style="color:var(--muted);">= Fetch ONLY name column</span></div>
     <div style="width:1px;background:var(--border);"></div>
-    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;color:var(--teal);font-weight:700;">FROM Students</span> <span style="color:var(--muted);">= From this table</span></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:.83rem;"><span style="font-family:'JetBrains Mono',monospace;color:var(--teal);font-weight:700;">FROM Students</span> <span style="color:var(--muted);">= From this table</span></div>
   </div>
 </div>
 
@@ -825,7 +673,7 @@ pre{
 <div class="section-block">
   <div class="sec-label animate-in">🔄 Real-Life SQL Flow</div>
   <div class="card animate-in" style="padding:28px;border-color:rgba(45,212,191,.12);margin-bottom:16px;">
-    <div style="font-family: 'Inter', system-ui, sans-serif;font-size:.85rem;font-weight:700;color:var(--soft);margin-bottom:20px;">
+    <div style="font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:var(--soft);margin-bottom:20px;">
       Example: "Find all Instagram users above 18"
     </div>
     <div class="flow-row">
@@ -854,7 +702,7 @@ pre{
       </div>
     </div>
     <div style="margin-top:20px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid var(--border);padding:14px 18px;">
-      <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;font-size:.82rem;color:var(--yellow);">SELECT * FROM Users WHERE age &gt; 18;</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--yellow);">SELECT * FROM Users WHERE age &gt; 18;</div>
       <div style="font-size:.78rem;color:var(--muted);margin-top:8px;">→ Returns all user records where age is more than 18 years</div>
     </div>
   </div>
@@ -868,7 +716,7 @@ pre{
   <div class="practice-list">
     <div class="card practice-item animate-in" style="border-color:rgba(45,212,191,.15);">
       <div class="pq-num" style="background:rgba(45,212,191,.15);color:var(--teal);">Q1</div>
-      <div class="pq-text"><strong>Create a Table</strong> — Write a SQL query to create a table called <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--teal);">Employees</code> with columns: <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">id</code>, <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">name</code>, <code style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">salary</code>.<span class="pq-tag">CREATE TABLE</span></div>
+      <div class="pq-text"><strong>Create a Table</strong> — Write a SQL query to create a table called <code style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--teal);">Employees</code> with columns: <code style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">id</code>, <code style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">name</code>, <code style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.07);padding:1px 6px;border-radius:4px;color:var(--yellow);">salary</code>.<span class="pq-tag">CREATE TABLE</span></div>
     </div>
     <div class="card practice-item animate-in" style="border-color:rgba(251,146,60,.15);">
       <div class="pq-num" style="background:rgba(251,146,60,.15);color:var(--orange);">Q2</div>

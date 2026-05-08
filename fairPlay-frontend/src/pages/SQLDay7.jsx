@@ -1,19 +1,9 @@
 import { motion } from 'framer-motion';
 import SQLModuleLayout from '../components/SQLModuleLayout';
 
-const SQLDay5 = () => {
-  const titles = [
-    '',
-    'SQL Basics Interactive Day 1',
-    'SQL Where Clause Day 2',
-    'Aggregate Functions Day 3',
-    'SQL Joins Masterclass Day 4',
-    'Mastering Subqueries Day 5',
-    'Window Functions Day 6'
-  ];
-
+const SQLDay7 = () => {
   return (
-    <SQLModuleLayout currentDay={5}>
+    <SQLModuleLayout currentDay={7}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -21,8 +11,8 @@ const SQLDay5 = () => {
         className="w-full h-full"
       >
         <iframe
-          src="/content/sql-day-5.html"
-          title={titles[5]}
+          src="/content/sql-day-7.html"
+          title="SQL Basics Interactive Day 7"
           className="w-full h-full border-none"
         />
       </motion.div>
@@ -30,4 +20,4 @@ const SQLDay5 = () => {
   );
 };
 
-export default SQLDay5;
+export default SQLDay7;

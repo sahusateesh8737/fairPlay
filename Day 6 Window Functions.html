@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Day 6 — Window Functions · SQL Mastery</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -67,7 +67,7 @@ body{
 .day-badge .dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 .hero h1{
-  font-family: 'Inter', system-ui, sans-serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:800;
+  font-family:'Syne',sans-serif;font-size:clamp(3rem,8vw,6.5rem);font-weight:800;
   line-height:1.0;margin-bottom:1.5rem;
   animation:fadeUp .8s .1s ease both;
 }
@@ -129,7 +129,7 @@ body{
   width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;
   font-size:1.2rem;flex-shrink:0;
 }
-.sec-title h2{font-family: 'Inter', system-ui, sans-serif;font-size:1.8rem;font-weight:700}
+.sec-title h2{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:700}
 .sec-label{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.2rem}
 
 /* ── CARDS ── */
@@ -297,7 +297,7 @@ tr:last-child td{border-bottom:none}
 }
 .s-num{
   width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  font-family: 'Inter', system-ui, sans-serif;font-weight:800;font-size:.9rem;flex-shrink:0;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:.9rem;flex-shrink:0;
 }
 .scenario-body{padding:1.5rem 1.75rem}
 .step-list{list-style:none;counter-reset:sc}
@@ -367,7 +367,7 @@ tr:last-child td{border-bottom:none}
 
 /* ── BIG QUOTE ── */
 .big-quote{
-  font-family: 'Inter', system-ui, sans-serif;font-size:1.4rem;font-weight:700;
+  font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;
   color:transparent;background:linear-gradient(135deg,var(--blue),var(--purple));
   -webkit-background-clip:text;background-clip:text;
   border-left:3px solid var(--blue);padding:.75rem 1.5rem;margin:2rem 0;
@@ -413,158 +413,6 @@ tr:last-child td{border-bottom:none}
 
 /* PROSE */
 .prose{font-size:.97rem;color:var(--muted2);line-height:1.8;margin-bottom:.75rem}
-</style>
-
-<style>
-    :root {
-        /* Primary Backgrounds */
-        --bg: #080b14 !important;
-        --bg-from: #080b14 !important;
-        --bg-to: #080b14 !important;
-        --bg2: #0c101d !important;
-        --bg-secondary: #0c101d !important;
-        --bg3: #111626 !important;
-        
-        /* Surface & Cards */
-        --surface: rgba(255,255,255,0.04) !important;
-        --bg-card: rgba(255,255,255,0.04) !important;
-        --card-bg: rgba(255,255,255,0.04) !important;
-        --card: #0f1423 !important;
-        --card2: #161c2e !important;
-        --glass: rgba(255,255,255,0.06) !important;
-        
-        /* Borders */
-        --border: rgba(255,255,255,0.08) !important;
-        --glass-border: rgba(255,255,255,0.1) !important;
-        --border2: rgba(255,255,255,0.15) !important;
-        
-        /* Text */
-        --text: #e2e8f0 !important;
-        --text-primary: #e2e8f0 !important;
-        --text-secondary: #94a3b8 !important;
-        --text-muted: #64748b !important;
-        --muted: #64748b !important;
-        
-        /* Brand & Accents */
-        --primary: #5B9CFF !important;
-        --primary-dark: #3B7DE8 !important;
-        --accent: #22d3ee !important;
-        --cyan: #22d3ee !important;
-        --accent-cyan: #22d3ee !important;
-        --purple: #a855f7 !important;
-        --accent-purple: #a855f7 !important;
-        --emerald: #34d399 !important;
-        --accent-green: #34d399 !important;
-        --rose: #fb7185 !important;
-        --accent-pink: #fb7185 !important;
-        --amber: #fbbf24 !important;
-        --accent-yellow: #fbbf24 !important;
-    }
-
-    /* GLOBAL TEXT OVERRIDES */
-    h1, h2, h3, h4, h5, h6, p, li, span, div, section, article {
-        color: var(--text);
-    }
-    
-    .text-secondary, .subtitle, .muted, .section-desc, .hero-subtitle {
-        color: var(--text-secondary) !important;
-    }
-
-    /* FIX GRADIENT TITLES (Like in Day 5) */
-    .hero-title, [class*="title"] {
-        background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--purple) 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        background-clip: text !important;
-    }
-
-    /* FIX HARDCODED LIGHT CARDS & BADGES */
-    .type-card, .mistake-card, .flow-box, .badge, .float-card, .card, .thinking-box, .flow-visual, .practice-card, .interview-q, .flow-inner, .flow-output {
-        background: var(--bg2) !important;
-        border: 1px solid var(--border) !important;
-        color: var(--text) !important;
-    }
-
-    .type-card-blue, .badge-blue, .flow-inner, .practice-card { 
-        background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(59,130,246,0.04)) !important; 
-        border: 1px solid rgba(59,130,246,0.3) !important;
-    }
-    .type-card-purple, .badge-purple, .flow-output, .interview-q { 
-        background: linear-gradient(135deg, rgba(168,85,247,0.12), rgba(168,85,247,0.04)) !important; 
-        border: 1px solid rgba(168,85,247,0.3) !important;
-    }
-    .type-card-green, .badge-green { 
-        background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.04)) !important; 
-        border: 1px solid rgba(52,211,153,0.3) !important;
-    }
-    .type-card-orange { 
-        background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(245,158,11,0.04)) !important; 
-        border: 1px solid rgba(245,158,11,0.3) !important;
-    }
-    
-    .pnum, .iq-toggle {
-        color: var(--primary) !important;
-    }
-
-    .iq-q, .iq-answer, .practice-card p {
-        color: var(--text) !important;
-    }
-    
-    /* Ensure code blocks stay dark */
-    .code-block {
-        background: #000 !important;
-        border: 1px solid var(--border) !important;
-    }
-
-    h4[style*="color"], .pnum[style*="color"] {
-        color: var(--primary) !important;
-    }
-
-    /* FIX TABS & PAGING (Restoring nav tabs but keeping them clean) */
-    .nav { 
-        display: flex !important; 
-        position: relative !important;
-        background: transparent !important; 
-        border: none !important; 
-        padding: 20px 24px 0 !important;
-        justify-content: center !important;
-        z-index: 100 !important;
-    }
-    
-    .nav-logo, .nav-progress, .nav-inner > *:not(.nav-tabs), .nav > *:not(.nav-tabs) { 
-        display: none !important; 
-    }
-
-    .nav-tabs { 
-        display: flex !important;
-        flex-wrap: wrap !important; 
-        gap: 8px !important;
-        justify-content: center !important;
-        background: var(--surface) !important;
-        padding: 6px !important;
-        border-radius: 99px !important;
-        border: 1px solid var(--border) !important;
-    }
-
-    .nav-tab {
-        white-space: nowrap !important;
-    }
-
-    html { 
-        font-size: 18px !important; 
-    }
-
-    .page {
-        max-width: 1300px !important;
-        padding: 60px 40px 100px !important;
-    }
-
-    body { 
-        padding-top: 0 !important; 
-        background: var(--bg) !important;
-        color: var(--text) !important;
-    }
-    body::before { display: none !important; }
 </style>
 </head>
 <body>
@@ -943,7 +791,7 @@ tr:last-child td{border-bottom:none}
   <div class="scenario-head">
     <div class="s-num" style="background:linear-gradient(135deg,var(--blue),#2563eb);color:#fff">1</div>
     <div>
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Top 3 Students in Each City</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Top 3 Students in Each City</h3>
       <p style="font-size:.85rem;color:var(--muted)">Most common window function interview question</p>
     </div>
     <span class="neon-tag tag-blue" style="margin-left:auto;flex-shrink:0">ROW_NUMBER</span>
@@ -984,7 +832,7 @@ tr:last-child td{border-bottom:none}
   <div class="scenario-head">
     <div class="s-num" style="background:linear-gradient(135deg,var(--purple),#6d28d9);color:#fff">2</div>
     <div>
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Rank Employees by Salary in Department</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Rank Employees by Salary in Department</h3>
       <p style="font-size:.85rem;color:var(--muted)">HR analytics — compensation benchmarking</p>
     </div>
     <span class="neon-tag tag-purple" style="margin-left:auto;flex-shrink:0">DENSE_RANK</span>
@@ -1015,7 +863,7 @@ tr:last-child td{border-bottom:none}
   <div class="scenario-head">
     <div class="s-num" style="background:linear-gradient(135deg,var(--green),#059669);color:#000">3</div>
     <div>
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Second Highest Salary (Clean Method)</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Second Highest Salary (Clean Method)</h3>
       <p style="font-size:.85rem;color:var(--muted)">Classic trick question — DENSE_RANK is the right tool</p>
     </div>
     <span class="neon-tag tag-green" style="margin-left:auto;flex-shrink:0">DENSE_RANK</span>
@@ -1045,7 +893,7 @@ tr:last-child td{border-bottom:none}
   <div class="scenario-head">
     <div class="s-num" style="background:linear-gradient(135deg,var(--amber),#d97706);color:#000">4</div>
     <div>
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Running Total of Sales</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Running Total of Sales</h3>
       <p style="font-size:.85rem;color:var(--muted)">Finance/analytics — cumulative revenue per region</p>
     </div>
     <span class="neon-tag tag-amber" style="margin-left:auto;flex-shrink:0">SUM OVER</span>
@@ -1079,7 +927,7 @@ tr:last-child td{border-bottom:none}
   <div class="scenario-head">
     <div class="s-num" style="background:linear-gradient(135deg,var(--red),#dc2626);color:#fff">5</div>
     <div>
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Find Duplicate Records</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Find Duplicate Records</h3>
       <p style="font-size:.85rem;color:var(--muted)">Data cleaning — the elegant deduplication pattern</p>
     </div>
     <span class="neon-tag tag-red" style="margin-left:auto;flex-shrink:0">ROW_NUMBER</span>
@@ -1113,7 +961,7 @@ tr:last-child td{border-bottom:none}
   <div class="scenario-head">
     <div class="s-num" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff">6</div>
     <div>
-      <h3 style="font-family: 'Inter', system-ui, sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Highest Salary Per Department (With All Details)</h3>
+      <h3 style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.2rem">Highest Salary Per Department (With All Details)</h3>
       <p style="font-size:.85rem;color:var(--muted)">The GROUP BY trap — window function to the rescue</p>
     </div>
     <span class="neon-tag tag-blue" style="margin-left:auto;flex-shrink:0">RANK</span>

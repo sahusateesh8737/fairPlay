@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import PrepHomePage from './pages/PrepHomePage';
+import SyllabusPage from './pages/SyllabusPage';
 import Auth from './pages/Auth';
 import AdminAuth from './pages/AdminAuth';
 import AdminDashboard from './pages/AdminDashboard';
@@ -21,6 +22,8 @@ import SQLDay3 from './pages/SQLDay3';
 import SQLDay4 from './pages/SQLDay4';
 import SQLDay5 from './pages/SQLDay5';
 import SQLDay6 from './pages/SQLDay6';
+import SQLDay7 from './pages/SQLDay7';
+import SQLDay8 from './pages/SQLDay8';
 import SQLHub from './pages/SQLHub';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -38,6 +41,7 @@ function App() {
             element={import.meta.env.VITE_EXAM_MODE === 'true' ? <PrepHomePage /> : <Home />} 
           />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/practice" element={<PracticeHub />} />
           <Route path="/practice/:id" element={<StudentPracticeSandbox />} />
           <Route path="/placement-prep/sql" element={<SQLHub />} />
@@ -47,6 +51,8 @@ function App() {
           <Route path="/placement-prep/sql/day-4" element={<SQLDay4 />} />
           <Route path="/placement-prep/sql/day-5" element={<SQLDay5 />} />
           <Route path="/placement-prep/sql/day-6" element={<SQLDay6 />} />
+          <Route path="/placement-prep/sql/day-7" element={<SQLDay7 />} />
+          <Route path="/placement-prep/sql/day-8" element={<SQLDay8 />} />
           
           {/* Protected Routes */}
           <Route path="/admin" element={<AdminAuth />} />

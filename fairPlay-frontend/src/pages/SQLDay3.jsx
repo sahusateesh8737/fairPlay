@@ -1,38 +1,32 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import AdvancedBackground from '../components/AdvancedBackground';
+import SQLModuleLayout from '../components/SQLModuleLayout';
 
 const SQLDay3 = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="h-screen w-screen overflow-hidden relative bg-[#080b14]"
-    >
-      <AdvancedBackground />
-      
-      {/* Floating Back Button */}
-      <div className="absolute top-4 left-6 z-50">
-        <Link 
-          to="/placement-prep/sql" replace 
-          className="group flex items-center gap-2 text-white transition-all text-sm font-bold bg-primary hover:bg-primary/90 px-6 py-2.5 rounded-full shadow-lg shadow-primary/40 hover:scale-105 active:scale-95"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Hub
-        </Link>
-      </div>
+  const titles = [
+    '',
+    'SQL Basics Interactive Day 1',
+    'SQL Where Clause Day 2',
+    'Aggregate Functions Day 3',
+    'SQL Joins Masterclass Day 4',
+    'Mastering Subqueries Day 5',
+    'Window Functions Day 6'
+  ];
 
-      <div className="w-full h-full relative z-10">
+  return (
+    <SQLModuleLayout currentDay={3}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="w-full h-full"
+      >
         <iframe
           src="/content/sql-day-3.html"
-          title="SQL Aggregate Functions Day 3"
+          title={titles[3]}
           className="w-full h-full border-none"
         />
-      </div>
-    </motion.div>
+      </motion.div>
+    </SQLModuleLayout>
   );
 };
 

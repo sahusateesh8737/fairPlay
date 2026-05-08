@@ -52,6 +52,22 @@ const SQLHub = () => {
       description: 'Master advanced analytical functions. Learn ROW_NUMBER, RANK, DENSE_RANK, and OVER clauses for complex reporting.',
       path: '/placement-prep/sql/day-6',
       icon: <MonitorPlay className="w-8 h-8 text-indigo-500" />
+    },
+    {
+      id: 7,
+      day: 'Day 7',
+      title: 'Common Table Expressions',
+      description: 'Stop writing spaghetti SQL. Learn how CTEs transform unreadable nested queries into clear, elegant, step-by-step logic.',
+      path: '/placement-prep/sql/day-7',
+      icon: <Layers className="w-8 h-8 text-rose-500" />
+    },
+    {
+      id: 8,
+      day: 'Day 8',
+      title: 'Interview Patterns',
+      description: 'Master advanced SQL interview patterns. Learn how to solve top N, running totals, and complex joins commonly asked by top companies.',
+      path: '/placement-prep/sql/day-8',
+      icon: <Terminal className="w-8 h-8 text-blue-500" />
     }
   ];
 
