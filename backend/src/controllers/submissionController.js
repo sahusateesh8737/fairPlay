@@ -264,6 +264,11 @@ exports.submitCode = async (req, res, next) => {
       await connectRedis();
       await redisClient.del(`assignment:${assignmentId}`);
       await redisClient.del(`assignment:submissions:${assignmentId}`);
+      
+      // ALSO invalidate the student's primary assignments list cache so they see "Completed" instantly!
+      if (assignment.targetSectionId) {
+        await redisClient.del(`assignments:student:section:${assignment.targetSectionId}`);
+      }
     } catch (socketErr) {
       console.error('Socket notification failed during submission:', socketErr.message);
     }
