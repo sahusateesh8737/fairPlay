@@ -50,10 +50,14 @@ exports.createAssignment = async (req, res, next) => {
       }
     });
 
-    // Invalidate the teacher's assignment list cache
+    // Invalidate the teacher's and student section list cache
     try {
       await connectRedis();
       await redisClient.del(`assignments:teacher:${req.user.id}`);
+      // Clear cache for the target students
+      if (section.id) {
+        await redisClient.del(`assignments:student:section:${section.id}`);
+      }
     } catch (cacheErr) {
       console.error('Failed to clear cache on creation:', cacheErr.message);
     }
@@ -241,6 +245,9 @@ exports.deleteAssignment = async (req, res, next) => {
     await connectRedis();
     await redisClient.del(`assignment:${req.params.id}`);
     await redisClient.del(`assignments:teacher:${req.user.id}`);
+    if (assignment.targetSectionId) {
+      await redisClient.del(`assignments:student:section:${assignment.targetSectionId}`);
+    }
 
     res.status(200).json({
       success: true,
@@ -284,6 +291,9 @@ exports.updateAssignmentStatus = async (req, res, next) => {
     await connectRedis();
     await redisClient.del(`assignment:${req.params.id}`);
     await redisClient.del(`assignments:teacher:${req.user.id}`);
+    if (assignment.targetSectionId) {
+      await redisClient.del(`assignments:student:section:${assignment.targetSectionId}`);
+    }
 
     res.status(200).json({ success: true, data: updated });
   } catch (err) {

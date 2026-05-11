@@ -25,11 +25,20 @@ app.use(requestMetricsMiddleware);
 app.use(helmet());
 app.use(compression());
 app.use(cors({
-    origin: [
-        "http://localhost:5173",
-        "https://fair-play-liart.vercel.app",
-        process.env.CLIENT_URL // fallback for custom envs
-    ].filter(Boolean),
+    origin: function(origin, callback) {
+        const allowed = [
+            "http://localhost:5173", 
+            "https://fair-play-liart.vercel.app",
+            "https://fair-play-davq.vercel.app",
+            process.env.CLIENT_URL
+        ];
+        // Allow if in array, no origin (mobile apps/curl), or if it matches any Vercel subdomain
+        if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true
 }));
