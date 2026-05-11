@@ -1,7 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,29 +20,30 @@ model Section {
 }
 
 model User {
-  id          Int          @id @default(autoincrement())
-  name        String
-  email       String       @unique
-  password    String       @map("password_hash")
-  role        String       // "admin", "teacher", "student"
-  sectionId   Int?         @map("section_id")
-  section     Section?     @relation(fields: [sectionId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String   @map("password_hash")
+  role      String // "admin", "teacher", "student"
+  sectionId Int?     @map("section_id")
+  section   Section? @relation(fields: [sectionId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Academic Profile (for students)
-  registrationNumber String?  @unique @map("registration_number")
+  registrationNumber String? @unique @map("registration_number")
   department         String?
-  semester          Int?
-  year              Int?
-  rollNumber        String?  @map("roll_number")
-  
+  semester           Int?
+  year               Int?
+  rollNumber         String? @map("roll_number")
+
   // Relations
-  addedIps    AllowedIp[]  @relation("AddedBy")
-  assignments Assignment[] @relation("TeacherAssignments")
-  submissions Submission[]
+  addedIps     AllowedIp[]   @relation("AddedBy")
+  assignments  Assignment[]  @relation("TeacherAssignments")
+  submissions  Submission[]
   examSessions ExamSession[]
 
+  @@index([sectionId])
   @@map("users")
 }
 
@@ -55,30 +55,33 @@ model AllowedIp {
   user        User?    @relation("AddedBy", fields: [addedBy], references: [id])
   createdAt   DateTime @default(now())
 
+  @@index([addedBy])
   @@map("allowed_ips")
 }
 
 model Assignment {
-  id              Int          @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   title           String
-  targetSectionId Int          @map("target_section_id")
-  section         Section      @relation(fields: [targetSectionId], references: [id])
-  teacherId       Int          @map("teacher_id")
-  teacher         User         @relation("TeacherAssignments", fields: [teacherId], references: [id])
-  dueDate         DateTime?    @map("due_date")
-  description     String?      @db.Text
-  difficulty      String?      @default("Medium") // "Easy", "Medium", "Hard"
-  language        String?      @default("JavaScript")
-  maxScore        Int?         @default(100) @map("max_score")
-  status          String       @default("draft") // "draft", "active", "closed"
-  durationMinutes Int?         @map("duration_minutes")
-  referenceImage  String?      @map("reference_image") @db.Text
-  createdAt       DateTime     @default(now())
-  
-  questions       Question[]
-  submissions     Submission[]
-  examSessions    ExamSession[]
+  targetSectionId Int       @map("target_section_id")
+  section         Section   @relation(fields: [targetSectionId], references: [id])
+  teacherId       Int       @map("teacher_id")
+  teacher         User      @relation("TeacherAssignments", fields: [teacherId], references: [id])
+  dueDate         DateTime? @map("due_date")
+  description     String?   @db.Text
+  difficulty      String?   @default("Medium") // "Easy", "Medium", "Hard"
+  language        String?   @default("JavaScript")
+  maxScore        Int?      @default(100) @map("max_score")
+  status          String    @default("draft") // "draft", "active", "closed"
+  durationMinutes Int?      @map("duration_minutes")
+  referenceImage  String?   @map("reference_image") @db.Text
+  createdAt       DateTime  @default(now())
 
+  questions    Question[]
+  submissions  Submission[]
+  examSessions ExamSession[]
+
+  @@index([targetSectionId])
+  @@index([teacherId])
   @@map("assignments")
 }
 
@@ -89,29 +92,33 @@ model Question {
   prompt       String     @db.Text
   boilerplate  String?    @db.Text
   createdAt    DateTime   @default(now())
-  
-  submissions  Submission[]
 
+  submissions Submission[]
+
+  @@index([assignmentId])
   @@map("questions")
 }
 
 model Submission {
-  id           Int              @id @default(autoincrement())
-  assignmentId Int              @map("assignment_id")
-  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  studentId    Int              @map("student_id")
-  student      User             @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  questionId   Int?             @map("question_id")
-  question     Question?        @relation(fields: [questionId], references: [id])
-  submittedAt  DateTime         @default(now()) @map("submitted_at")
-  score        Decimal?         @db.Decimal(5, 2) @map("final_score")
-  
+  id           Int        @id @default(autoincrement())
+  assignmentId Int        @map("assignment_id")
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    Int        @map("student_id")
+  student      User       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  questionId   Int?       @map("question_id")
+  question     Question?  @relation(fields: [questionId], references: [id])
+  submittedAt  DateTime   @default(now()) @map("submitted_at")
+  score        Decimal?   @map("final_score") @db.Decimal(5, 2)
+
   teacherFeedback String? @map("teacher_feedback") @db.Text
   rrwebEvents     String? @map("rrweb_events") @db.Text
-  
-  files        SubmissionFile[]
-  cheatLogs    CheatLog[]
 
+  files     SubmissionFile[]
+  cheatLogs CheatLog[]
+
+  @@index([assignmentId])
+  @@index([studentId])
+  @@index([questionId])
   @@map("submissions")
 }
 
@@ -123,6 +130,7 @@ model SubmissionFile {
   code         String     @db.Text
   createdAt    DateTime   @default(now())
 
+  @@index([submissionId])
   @@map("submission_files")
 }
 
@@ -135,6 +143,7 @@ model CheatLog {
   screenshot     String?    @db.Text
   createdAt      DateTime   @default(now())
 
+  @@index([submissionId])
   @@map("cheat_logs")
 }
 
@@ -154,6 +163,8 @@ model ExamSession {
   startedAt    DateTime   @default(now()) @map("started_at")
 
   @@unique([studentId, assignmentId])
+  @@index([studentId])
+  @@index([assignmentId])
   @@map("exam_sessions")
 }
 

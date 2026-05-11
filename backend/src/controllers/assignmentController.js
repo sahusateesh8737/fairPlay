@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const ErrorResponse = require('../utils/ErrorResponse');
+const { redisClient, connectRedis } = require('../config/redis');
 
 // @desc    Create new assignment
 // @route   POST /api/assignments
@@ -48,6 +49,14 @@ exports.createAssignment = async (req, res, next) => {
         section: true
       }
     });
+
+    // Invalidate the teacher's assignment list cache
+    try {
+      await connectRedis();
+      await redisClient.del(`assignments:teacher:${req.user.id}`);
+    } catch (cacheErr) {
+      console.error('Failed to clear cache on creation:', cacheErr.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -141,7 +150,6 @@ exports.getAssignments = async (req, res, next) => {
     next(err);
   }
 };
-const { redisClient, connectRedis } = require('../config/redis');
 
 // @desc    Get single assignment
 // @route   GET /api/assignments/:id
@@ -232,6 +240,7 @@ exports.deleteAssignment = async (req, res, next) => {
     // Invalidate Cache
     await connectRedis();
     await redisClient.del(`assignment:${req.params.id}`);
+    await redisClient.del(`assignments:teacher:${req.user.id}`);
 
     res.status(200).json({
       success: true,
@@ -274,6 +283,7 @@ exports.updateAssignmentStatus = async (req, res, next) => {
     // Invalidate Cache
     await connectRedis();
     await redisClient.del(`assignment:${req.params.id}`);
+    await redisClient.del(`assignments:teacher:${req.user.id}`);
 
     res.status(200).json({ success: true, data: updated });
   } catch (err) {

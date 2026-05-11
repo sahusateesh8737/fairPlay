@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 const { register, requestMetricsMiddleware } = require('./config/prometheus');
+const compression = require('compression');
 
 // Route Files
 const authRoutes = require('./routes/authRoutes');
@@ -22,6 +23,7 @@ app.set('trust proxy', 1);
 // Middlewares
 app.use(requestMetricsMiddleware);
 app.use(helmet());
+app.use(compression());
 app.use(cors({
     origin: [
         "http://localhost:5173",
