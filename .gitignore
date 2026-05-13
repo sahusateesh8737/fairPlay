@@ -1,0 +1,30 @@
+# fairPlay Ignored Artifacts
+
+# Dependency managers
+node_modules/
+.pnpm-store/
+dist/
+build/
+
+# IDE settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment and credentials
+.env
+.env.*
+secrets/
+*.pem
+
+# Runtime snapshots and DB dumps
+*.rdb
+dump.rdb
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -237,8 +237,26 @@ exports.deleteAssignment = async (req, res, next) => {
       return next(new ErrorResponse('Not authorized to delete this assignment', 401));
     }
 
-    await prisma.assignment.delete({
-      where: { id: parseInt(req.params.id) }
+    // Use a transaction to clear all dependencies manually and safely before removing the assignment
+    await prisma.$transaction(async (tx) => {
+      const assignmentId = parseInt(req.params.id);
+
+      // 1. Clear sub-dependencies (Files and logs attached to submissions)
+      await tx.cheatLog.deleteMany({
+        where: { submission: { assignmentId } }
+      });
+      
+      await tx.submissionFile.deleteMany({
+        where: { submission: { assignmentId } }
+      });
+
+      // 2. Clear direct dependents
+      await tx.submission.deleteMany({ where: { assignmentId } });
+      await tx.examSession.deleteMany({ where: { assignmentId } });
+      await tx.question.deleteMany({ where: { assignmentId } });
+
+      // 3. Delete the actual assignment
+      await tx.assignment.delete({ where: { id: assignmentId } });
     });
 
     // Invalidate Cache
