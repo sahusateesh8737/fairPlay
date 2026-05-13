@@ -6,7 +6,13 @@ on:
 jobs:
   build-check:
     runs-on: ubuntu-latest
+    defaults:
+        run:
+          working-directory: ./backend
+          
     steps:
+      
+
       - name: repository cloning
         uses: actions/checkout@v4
 
@@ -16,9 +22,7 @@ jobs:
           node-version: '24'
         
       - name: install dependencies
-        working-directory: ./backend
         run: npm install
 
       - name: run test
-        working-directory: ./backend
         run: npm run test
