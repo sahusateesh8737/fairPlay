@@ -5,9 +5,9 @@ pipeline {
         // Ensure Jenkins can find Docker on macOS (Intel and Apple Silicon)
         PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
         
-        // Shared backend environment variables for tests
-        DATABASE_URL = "postgresql://test_user:test_password@localhost:5432/test_db?schema=public"
-        REDIS_URL = "redis://localhost:6379"
+        // Shared backend environment variables for tests (Using alternate ports to prevent conflicts)
+        DATABASE_URL = "postgresql://test_user:test_password@localhost:5435/test_db?schema=public"
+        REDIS_URL = "redis://localhost:6380"
         PORT = "5001"
         JWT_SECRET = "cicd_super_secret_token"
         CLIENT_URL = "http://localhost:5173"
@@ -60,8 +60,8 @@ pipeline {
                 // Spin up temporary PostgreSQL and Redis containers for isolated testing
                 echo 'Starting test databases...'
                 sh '''
-                    /usr/local/bin/docker run --name fairplay-pg-test -e POSTGRES_USER=test_user -e POSTGRES_PASSWORD=test_password -e POSTGRES_DB=test_db -p 5432:5432 -d postgres:15-alpine
-                    /usr/local/bin/docker run --name fairplay-redis-test -p 6379:6379 -d redis:7-alpine
+                    /usr/local/bin/docker run --name fairplay-pg-test -e POSTGRES_USER=test_user -e POSTGRES_PASSWORD=test_password -e POSTGRES_DB=test_db -p 5435:5432 -d postgres:15-alpine
+                    /usr/local/bin/docker run --name fairplay-redis-test -p 6380:6379 -d redis:7-alpine
                     
                     # Wait for databases to initialize
                     sleep 10
