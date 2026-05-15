@@ -2,6 +2,9 @@ pipeline {
     agent any
 
     environment {
+        // Ensure Jenkins can find Docker on macOS (Intel and Apple Silicon)
+        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
+        
         // Shared backend environment variables for tests
         DATABASE_URL = "postgresql://test_user:test_password@localhost:5432/test_db?schema=public"
         REDIS_URL = "redis://localhost:6379"
