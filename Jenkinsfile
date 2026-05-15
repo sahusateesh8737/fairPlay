@@ -60,8 +60,8 @@ pipeline {
                 // Spin up temporary PostgreSQL and Redis containers for isolated testing
                 echo 'Starting test databases...'
                 sh '''
-                    docker run --name fairplay-pg-test -e POSTGRES_USER=test_user -e POSTGRES_PASSWORD=test_password -e POSTGRES_DB=test_db -p 5432:5432 -d postgres:15-alpine
-                    docker run --name fairplay-redis-test -p 6379:6379 -d redis:7-alpine
+                    /usr/local/bin/docker run --name fairplay-pg-test -e POSTGRES_USER=test_user -e POSTGRES_PASSWORD=test_password -e POSTGRES_DB=test_db -p 5432:5432 -d postgres:15-alpine
+                    /usr/local/bin/docker run --name fairplay-redis-test -p 6379:6379 -d redis:7-alpine
                     
                     # Wait for databases to initialize
                     sleep 10
@@ -75,7 +75,7 @@ pipeline {
                     sh 'npm run test'
                     
                     echo 'Verifying Docker Build Sanity...'
-                    sh 'docker build -t fairplay-backend:test .'
+                    sh '/usr/local/bin/docker build -t fairplay-backend:test .'
                 }
             }
         }
@@ -86,8 +86,8 @@ pipeline {
             // Ensure test databases are cleanly destroyed regardless of pipeline success or failure
             echo 'Cleaning up test databases...'
             sh '''
-                docker rm -f fairplay-pg-test || true
-                docker rm -f fairplay-redis-test || true
+                /usr/local/bin/docker rm -f fairplay-pg-test || true
+                /usr/local/bin/docker rm -f fairplay-redis-test || true
             '''
         }
     }
